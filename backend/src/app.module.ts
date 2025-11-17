@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 // import { ProductsModule } from '@module/product.module';
 import { DatabaseModule } from '@system/database.module';
 import { CustomersModule } from '@module/customers.module';
+import { ProductModule } from '@module/product.module';
 
 
 @Module({
@@ -16,7 +17,7 @@ import { CustomersModule } from '@module/customers.module';
     // AuthModule,
     DatabaseModule,
     CustomersModule,
-    // ProductsModule,
+    ProductModule,
   ],
   providers: [],
 })

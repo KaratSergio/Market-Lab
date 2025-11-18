@@ -1,19 +1,22 @@
-import { Navigation } from './Navigation/Navigation'
-// import { UserMenu } from './UserMenu'
-// import { Search } from './Search'
+import { DesktopNav } from './Navigation/DesktopNav'
+import { UserMenu } from './User/UserMenu'
+import { CartIcon } from './Cart/CartIcon'
+import { Logo } from '@/components/ui'
 
 export function Header() {
   return (
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* <Logo /> */}
-          <Navigation />
+          <Logo href="/" size="lg" />
           
-          {/* <div className="flex items-center gap-4">
-            <Search />
+          <DesktopNav />
+          
+          <div className="flex items-center gap-4">
+            <CartIcon />
+            <span>|</span>
             <UserMenu />
-          </div> */}
+          </div>
         </div>
       </div>
     </header>

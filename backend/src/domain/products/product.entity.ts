@@ -1,8 +1,12 @@
 export class ProductEntity{
     constructor(
-        id: string | null,
-        name: string,
-        description: string,
-        price: number
+        public id: string | null,
+        public name: string,
+        public description: string,
+        public price: number
     ){}
+
+    setId(id: string | null){
+        this.id = id;
+    }
 }

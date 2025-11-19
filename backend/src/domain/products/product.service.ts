@@ -1,11 +1,13 @@
-import { Injectable, NotFoundException} from "@nestjs/common";
+import { Injectable, Inject, NotFoundException} from "@nestjs/common";
 import { ProductRepository } from "./product.repository";
 import { CreateProductDto, UpdateProductDto } from "./types/product.dto";
 import { ProductEntity } from "./product.entity";
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(
+    @Inject('ProductRepository')
+    private readonly productRepository: ProductRepository) {}
 
   async create(dto: CreateProductDto): Promise<ProductEntity>{
     const product = new ProductEntity(null, dto.name, dto.description, dto.price);

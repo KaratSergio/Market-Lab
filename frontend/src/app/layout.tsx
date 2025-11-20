@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { geistSans, geistMono } from "@/shared/assets/fonts/fonts";
+import { ReactQueryProvider } from '@/core/providers/react-query-provider';
 import "../shared/styles/globals.css";
 
 import { Header } from '@/components/layout/Header/Header'
@@ -18,9 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Header />
-        {children}
+        <ReactQueryProvider>
+          <Header />
+          <main>{children}</main>
         {/* <Footer /> */}
+        </ReactQueryProvider>
       </body>
     </html>
   );

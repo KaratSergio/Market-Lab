@@ -45,58 +45,58 @@
 
 # Карта потоку даних
 ```
-┌───────────────────────────────────┐
-│                    SHARED LAYER                             
-│  ┌───────────────────────────────┐    
-│  │              BaseRepository<T>                          
-│  │  (універсальний контракт для ВСІХ репозиторіїв)         
-│  │                                                         
-│  │  create(data: Partial<T>): Promise<T>                   
-│  │  findById(id: string): Promise<T | null>                
-│  │  update(id: string, data: Partial<T>): Promise<T>       
-│  │  delete(id: string): Promise<void>                      
-│  └───────────────────────────────┘    
-└───────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    SHARED LAYER                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              BaseRepository<T>                      │    │
+│  │  (універсальний контракт для ВСІХ репозиторіїв)     │    │
+│  │                                                     │    │
+│  │  create(data: Partial<T>): Promise<T>               │    │
+│  │  findById(id: string): Promise<T | null>            │    │
+│  │  update(id: string, data: Partial<T>): Promise<T>   │    │
+│  │  delete(id: string): Promise<void>                  │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
                                 △
                                 │ implements
                                 │
-┌───────────────────────────────────┐
-│                    DOMAIN LAYER                             
-│  ┌───────────────────────────────┐    
-│  │           CustomerRepository                           
-│  │  (доменна абстракція + специфічні методи)              
-│  │                                                        
-│  │  abstract findByEmail(email: string)                   
-│  │  abstract create(customer: CustomerEntity)             
-│  │  abstract update()                                     
-│  └───────────────────────────────┘    
-│                                                             
-│  ┌───────────────────────────────┐    
-│  │           CustomerEntity                               
-│  │  (багата модель з бізнес-логікою)                      
-│  │                                                        
-│  │  update(updateDto: UpdateCustomerDto): void            
-│  │  activate(): void                                      
-│  │  deactivate(): void                                    
-│  └───────────────────────────────┘    
-└───────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    DOMAIN LAYER                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │           CustomerRepository                        │    │
+│  │  (доменна абстракція + специфічні методи)           │    │
+│  │                                                     │    │
+│  │  abstract findByEmail(email: string)                │    │
+│  │  abstract create(customer: CustomerEntity)          │    │
+│  │  abstract update()                                  │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │           CustomerEntity                            │    │
+│  │  (багата модель з бізнес-логікою)                   │    │
+│  │                                                     │    │
+│  │  update(updateDto: UpdateCustomerDto): void         │    │
+│  │  activate(): void                                   │    │
+│  │  deactivate(): void                                 │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
                                 △
                                 │ extends
                                 │
-┌───────────────────────────────────┐
-│               INFRASTRUCTURE LAYER                       
-│  ┌───────────────────────────────┐                  
-│  │         PostgresCustomerRepository                 
-│  │  (конкретна реалізація для PostgreSQL)             
-│  │                                                   
-│  │  constructor(@InjectRepository(...))               
-│  │  async findByEmail(email: string)                
-│  │  async create(customer: CustomerEntity)                
-│  │  async update(id: string, customer: CustomerEntity) 
-│  └───────────────────────────────┘    
-└───────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│               INFRASTRUCTURE LAYER                          │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │         PostgresCustomerRepository                  │    │
+│  │  (конкретна реалізація для PostgreSQL)              │    │
+│  │                                                     │    │
+│  │  constructor(@InjectRepository(...))                │    │
+│  │  async findByEmail(email: string)                   │    │
+│  │  async create(customer: CustomerEntity)             │    │
+│  │  async update(id: string, customer: CustomerEntity) │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
 ```
 ## SHARED → Стандартизація (всі репозиторії однакові)
 ## DOMAIN → Ізоляція бізнес-логіки (не залежить від БД)
-## INFRASTRUCTURE → Гнучкість реалізації (можемо міняти БД)
+## INFRA → Гнучкість реалізації (можемо міняти БД)
 ### Кожен шар знає лише про шар вище !!!

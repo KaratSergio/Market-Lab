@@ -1,11 +1,11 @@
-import { DesktopNav } from './Navigation/DesktopNav'
-import { UserMenu } from './User/UserMenu'
-import { CartIcon } from './Cart/CartIcon'
-import { Logo } from '@/components/ui'
+import { DesktopNav } from './Navigation/DesktopNav';
+import { UserMenu } from './User/UserMenu';
+import { CartIcon } from './Cart/CartIcon';
+import { Logo } from '@/components/ui';
 
 export function Header() {
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Logo href="/" size="lg" />
@@ -14,11 +14,11 @@ export function Header() {
           
           <div className="flex items-center gap-4">
             <CartIcon />
-            <span>|</span>
+            <span className="text-gray-300">|</span>
             <UserMenu />
           </div>
         </div>
       </div>
     </header>
-  )
+  );
 }

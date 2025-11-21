@@ -1,32 +1,45 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-
+import { useAuthStore } from '@/core/store/auth-store';
+import { useLogout } from '@/core/hooks/use-auth';
+import { Button } from '@/components/ui';
 
 export function UserMenu() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false) //! mock data
-  const [userName, setUserName] = useState('Alisa') //! mock data
+  const { user, isAuthenticated } = useAuthStore();
+  const logoutMutation = useLogout();
 
-  if (!isLoggedIn) {
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
+  if (!isAuthenticated || !user) {
     return (
-      <Link href="/login">
-        <div>
-          <span>👤</span>
-          <span>Login</span>
-        </div>
-      </Link>
-    )
+      <Button variant="outline" size="sm">
+        <a href="/login">Login</a>
+      </Button>
+    );
   }
 
   return (
-    <div>
-      <div>
-        <span>👤</span>
-        <span>{userName}</span>
+    <div className="flex items-center gap-3">
+      {/* Avatar */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+          {user.email.charAt(0).toUpperCase()}
+        </div>
+        <span className="text-sm text-gray-700 hidden sm:block">
+          {user.email}
+        </span>
       </div>
-      
-      {/* <UserDropdown /> */}
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleLogout}
+        disabled={logoutMutation.isPending}
+      >
+        {logoutMutation.isPending ? '...' : 'Logout'}
+      </Button>
     </div>
-  )
+  );
 }

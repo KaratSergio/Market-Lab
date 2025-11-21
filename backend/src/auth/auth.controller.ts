@@ -58,4 +58,15 @@ export class AuthController {
 
     return this.authService.requestSupplier(user.id, dto);
   }
+
+  @Post('logout')
+  @HttpCode(200)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('authToken', {
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? 'yourdomain.com' : 'localhost',
+    });
+
+    return { message: 'Logged out successfully' };
+  }
 }

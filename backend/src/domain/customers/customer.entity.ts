@@ -1,6 +1,6 @@
 import { CreateCustomerDto, UpdateCustomerDto, CustomerRole, CustomerModel, CustomerAddress, CUSTOMER_DEFAULTS } from './types';
 
-export class CustomerEntity implements CustomerModel {
+export class CustomerDomainEntity implements CustomerModel {
   constructor(
     public id: string,
     public email: string,
@@ -16,8 +16,8 @@ export class CustomerEntity implements CustomerModel {
   ) { }
 
   // Business methods
-  static create(createDto: CreateCustomerDto): CustomerEntity {
-    return new CustomerEntity(
+  static create(createDto: CreateCustomerDto): CustomerDomainEntity {
+    return new CustomerDomainEntity(
       '', // ID autogenerate in DB 
       createDto.email,
       createDto.password,

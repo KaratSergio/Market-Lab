@@ -10,8 +10,8 @@ import { AuthLocalStrategy } from './strategy/auth-local.strategy';
 import { AuthJwtStrategy } from './strategy/auth-jwt.strategy';
 import { EncryptModule } from './encrypt/encrypt.module';
 
-import { CustomerEntity } from '@infrastructure/database/postgres/customers/customer.entity';
-import { SupplierEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
+import { CustomerOrmEntity } from '@infrastructure/database/postgres/customers/customer.entity';
+import { SupplierOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { SupplierEntity } from '@infrastructure/database/postgres/suppliers/supp
       imports: [ConfigModule],
       useClass: AuthJwtConfig,
     }),
-    TypeOrmModule.forFeature([CustomerEntity, SupplierEntity]),
+    TypeOrmModule.forFeature([CustomerOrmEntity, SupplierOrmEntity]),
     EncryptModule,
   ],
   providers: [

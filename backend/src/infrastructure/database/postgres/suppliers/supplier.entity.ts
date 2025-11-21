@@ -1,16 +1,16 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { CustomerEntity } from '../customers/customer.entity';
+import { CustomerOrmEntity } from '../customers/customer.entity';
 
 export type SupplierStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 
 @Entity('suppliers')
-export class SupplierEntity {
+export class SupplierOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => CustomerEntity)
+  @ManyToOne(() => CustomerOrmEntity)
   @JoinColumn({ name: 'customer_id' })
-  customer: CustomerEntity;
+  customer: CustomerOrmEntity;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;

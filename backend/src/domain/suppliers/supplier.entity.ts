@@ -1,10 +1,10 @@
-import { CustomerEntity } from '@domain/customers/customer.entity';
+import { CustomerDomainEntity } from '@domain/customers/customer.entity';
 import { CreateSupplierDto, type SupplierStatus, SUPPLIER_STATUS } from './types';
 
 export class SupplierEntity {
   constructor(
     public id: string,
-    public customer: CustomerEntity,
+    public customer: CustomerDomainEntity,
     public name: string,
     public email: string,
     public phone?: string,
@@ -15,7 +15,7 @@ export class SupplierEntity {
   ) { }
 
   // Business methods
-  static create(customer: CustomerEntity, createDto: CreateSupplierDto): SupplierEntity {
+  static create(customer: CustomerDomainEntity, createDto: CreateSupplierDto): SupplierEntity {
     return new SupplierEntity(
       '', // ID autogenerate in DB
       customer,

@@ -6,8 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 
-import { CustomerEntity } from '@domain/customers/customer.entity';
-import { SupplierEntity } from '@domain/suppliers/supplier.entity';
+import { CustomerOrmEntity } from '@infrastructure/database/postgres/customers/customer.entity';
+import { SupplierOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
 
 @Injectable()
 export class AuthService {
@@ -15,11 +15,11 @@ export class AuthService {
     private readonly encryptService: EncryptService,
     private readonly jwtService: JwtService,
 
-    @InjectRepository(CustomerEntity)
-    private readonly customerRepo: Repository<CustomerEntity>,
+    @InjectRepository(CustomerOrmEntity)
+    private readonly customerRepo: Repository<CustomerOrmEntity>,
 
-    @InjectRepository(SupplierEntity)
-    private readonly supplierRepo: Repository<SupplierEntity>,
+    @InjectRepository(SupplierOrmEntity)
+    private readonly supplierRepo: Repository<SupplierOrmEntity>,
   ) { }
 
 
@@ -61,7 +61,7 @@ export class AuthService {
     if (!isValid) return null;
 
     const { password, ...safeUser } = user;
-    return safeUser;
+    return safeUser as CustomerModel;
   }
 
   async login(customerId: string) {
@@ -75,7 +75,7 @@ export class AuthService {
   }
 
   // BECOME A SUPPLIER
-  async requestSupplier(customerId: string, dto: RequestSupplierDto): Promise<SupplierEntity> {
+  async requestSupplier(customerId: string, dto: RequestSupplierDto): Promise<SupplierOrmEntity> {
     const customer = await this.customerRepo.findOne({ where: { id: customerId } });
     if (!customer) throw new NotFoundException('Customer not found');
 
@@ -116,7 +116,7 @@ export class AuthService {
 
 
   // @internal
-  private _buildAuthResponse(customer: CustomerEntity) {
+  private _buildAuthResponse(customer: CustomerOrmEntity) {
     const payload: UserPayload = {
       id: customer.id,
       email: customer.email,

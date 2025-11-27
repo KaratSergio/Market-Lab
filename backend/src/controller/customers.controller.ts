@@ -16,16 +16,6 @@ export class CustomersController {
     return this.customerService.findById(id);
   }
 
-  // @Get('email/:email')
-  // async findByEmail(@Param('email') email: string) {
-  //   return this.customerService.findByEmail(email);
-  // }
-
-  @Post()
-  async create(@Body() createDto: CreateCustomerDto) {
-    return this.customerService.create(createDto);
-  }
-
   @Put(':id')
   async update(
     @Param('id', ParseUUIDPipe) id: string,

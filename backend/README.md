@@ -25,8 +25,7 @@ src/
 │   │   └── auth.type.ts                   # Authentication types
 │   ├── auth.controller.ts                 # Authentication controller
 │   ├── auth.module.ts                     # Authentication module
-│   ├── auth.service.ts                    # Authentication service
-│   └── user.service.ts                    # User management service
+│   └── auth.service.ts                    # Authentication service
 │
 ├── shared/                                # SHARED UTILITIES
 │   ├── interfaces/
@@ -39,6 +38,13 @@ src/
 │   └── pipes/                             # Custom pipes
 │
 ├── domain/                                # DOMAIN LAYER (business logic)
+│   ├── users/                             # Users domain
+│   │   ├── user.entity.ts                 # User business entity
+│   │   ├── user.repository.ts             # User repository interface
+│   │   ├── user.service.ts                # User business logic
+│   │   └── types/
+│   │       ├── user.dto.ts
+│   │       └── user.type.ts
 │   ├── products/                          # Products domain
 │   │   ├── product.entity.ts              # Product business entity
 │   │   ├── product.repository.ts          # Product repository interface
@@ -65,12 +71,19 @@ src/
 │   ├── database/                          # DATABASE IMPLEMENTATIONS
 │   │   ├── mongodb/                       # MongoDB implementation
 │   │   └── postgres/                      # PostgreSQL implementation
+│   │       ├── users/                     
+│   │       │   ├── user.entity.ts         # TypeORM user entity
+│   │       │   └── user.repository.ts     # PostgreSQL user repository
 │   │       ├── products/
 │   │       │   ├── product.entity.ts      # TypeORM product entity
 │   │       │   └── product.repository.ts  # PostgreSQL product repository
+│   │       ├── customers/
+│   │       │   ├── customer.entity.ts     # TypeORM customer entity
+│   │       │   └── customer.repository.ts # PostgreSQL customer repository
 │   │       └── suppliers/
 │   │           ├── supplier.entity.ts     # TypeORM supplier entity
 │   │           └── supplier.repository.ts # PostgreSQL supplier repository
+│   │
 │   ├── oauth/                             # OAuth providers
 │   │   └── google/                        # Google OAuth implementation
 │   └── redis/                             # Redis implementations

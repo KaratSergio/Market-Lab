@@ -1,29 +1,51 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-// import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthModule } from '@auth/auth.module';
+import { SuperAdminInitializerService } from './system/scripts/super-admin-initializer.service';
+
+// System Modules
 import { DatabaseModule } from '@system/database.module';
 
+// Feature Modules
+import { AuthModule } from '@auth/auth.module';
 import { UsersModule } from '@module/users.module';
 import { CustomersModule } from '@module/customers.module';
 import { SuppliersModule } from '@module/suppliers.module';
 import { ProductModule } from '@module/product.module';
+import { AdminModule } from '@module/admin.module';
 
+// ORM Entities
+import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
+import { AdminOrmEntity } from '@infrastructure/database/postgres/admin/admin.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // MongooseModule.forRoot(process.env.MONGO_URI || ''),
 
+    // Database
     DatabaseModule,
-    AuthModule,
 
+    // Feature Modules
+    AuthModule,
     UsersModule,
     CustomersModule,
     SuppliersModule,
     ProductModule,
+    AdminModule,
+
+    // TypeORM entities for SuperAdminInitializerService
+    TypeOrmModule.forFeature([UserOrmEntity, AdminOrmEntity]),
   ],
-  providers: [],
+  providers: [SuperAdminInitializerService],
 })
-export class AppModule { }
+export class AppModule implements OnModuleInit {
+  constructor(
+    private readonly superAdminInitializer: SuperAdminInitializerService,
+  ) { }
+
+  async onModuleInit() {
+    // Initialize the super-admin when the application starts
+    await this.superAdminInitializer.initializeSuperAdmin();
+  }
+}

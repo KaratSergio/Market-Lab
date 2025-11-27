@@ -15,7 +15,7 @@ export class RegCustomerProfileDto {
   phone: string;
 
   @IsString()
-  address: string;
+  address?: string; //! (optional)
 }
 
 export class RegSupplierProfileDto {

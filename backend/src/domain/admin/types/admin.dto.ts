@@ -5,17 +5,13 @@ export interface CreateAdminDto {
   userId: string;
   firstName: string;
   lastName: string;
+  phone: string,
   role: AdminRole;
   department?: string;
   permissions?: Partial<AdminPermissions>;
 }
 
-export interface UpdateAdminDto {
-  firstName?: string;
-  lastName?: string;
-  role?: AdminRole;
+export interface UpdateAdminDto extends Partial<CreateAdminDto> {
   status?: AdminStatus;
-  department?: string;
-  permissions?: Partial<AdminPermissions>;
   lastActiveAt?: Date;
 }

@@ -2,6 +2,7 @@ import { IsEmail, IsString, MinLength, IsIn, ValidateNested, IsOptional, IsObjec
 import { Type } from 'class-transformer';
 import { ROLES } from './auth.type';
 import type { Role } from './auth.type';
+import type { CustomerAddress } from '@domain/customers/types';
 
 
 export class RegCustomerProfileDto {
@@ -15,7 +16,7 @@ export class RegCustomerProfileDto {
   phone: string;
 
   @IsString()
-  address?: string; //! (optional)
+  address: CustomerAddress;
 }
 
 export class RegSupplierProfileDto {

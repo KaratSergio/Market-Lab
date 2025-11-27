@@ -14,6 +14,7 @@ export class AdminDomainEntity implements AdminModel {
   public userId: string;
   public firstName: string;
   public lastName: string;
+  public phone: string;
   public role: AdminRole;
   public status: AdminStatus;
   public permissions: AdminPermissions;
@@ -27,6 +28,7 @@ export class AdminDomainEntity implements AdminModel {
     userId: string,
     firstName: string,
     lastName: string,
+    phone: string,
     role: AdminRole = ADMIN_ROLES.ADMIN,
     status: AdminStatus = ADMIN_STATUS.ACTIVE,
     permissions: AdminPermissions = AdminDomainEntity.getDefaultPermissions(role),
@@ -39,6 +41,7 @@ export class AdminDomainEntity implements AdminModel {
     this.userId = userId;
     this.firstName = firstName;
     this.lastName = lastName;
+    this.phone = phone;
     this.role = role;
     this.status = status;
     this.permissions = permissions;
@@ -54,6 +57,7 @@ export class AdminDomainEntity implements AdminModel {
       createDto.userId,
       createDto.firstName,
       createDto.lastName,
+      createDto.phone || '',
       createDto.role,
       ADMIN_STATUS.ACTIVE,
       AdminDomainEntity.getDefaultPermissions(createDto.role, createDto.permissions),

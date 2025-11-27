@@ -3,7 +3,6 @@ import { UserOrmEntity } from '../users/user.entity';
 import { ADMIN_ROLES, ADMIN_STATUS } from '@domain/admin/types';
 import type { AdminRole, AdminStatus } from '@domain/admin/types';
 
-
 @Entity('admins')
 export class AdminOrmEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -17,6 +16,9 @@ export class AdminOrmEntity {
 
   @Column()
   lastName: string;
+
+  @Column()
+  phone: string;
 
   @Column({
     type: 'enum',

@@ -1,6 +1,6 @@
-import { DesktopNav } from './Navigation/DesktopNav';
-import { UserMenu } from './User/UserMenu';
-import { CartIcon } from './Cart/CartIcon';
+import { DesktopNav } from './navigation/desktop-nav';
+import { UserMenu } from './user/user-menu';
+import { CartIcon } from './cart/cart-icon';
 import { Logo } from '@/components/ui';
 
 export function Header() {

@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, RegisterFormData } from '@/core/utils/validations';
 import { useRegister } from '@/core/hooks/use-auth';
-import { Input } from '@/components/ui/Input/input';
-import { Button } from '@/components/ui/Button/Button';
+import { Input } from '@/components/ui/input/input';
+import { Button } from '@/components/ui/button/button';
 import Link from 'next/link';
 
 export function RegisterForm() {

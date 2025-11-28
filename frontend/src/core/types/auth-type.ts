@@ -21,6 +21,7 @@ export interface User {
   id: string;
   email: string;
   roles: string[];
+  permissions?: string[];
 }
 
 export interface RequestSupplierDto {

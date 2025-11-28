@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Dropdown, DropdownItem } from '@/components/ui'
+import { useSession } from '@/core/hooks/use-auth'
 
 interface NavDropdownItem {
   href: string
@@ -19,6 +20,7 @@ interface NavItem {
 export function DesktopNav() {
   const pathname = usePathname()
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const { data: user } = useSession() // get User Data
 
   const navItems: NavItem[] = [
     { 
@@ -113,6 +115,20 @@ export function DesktopNav() {
           )}
         </div>
       ))}
+
+      {/* Link to the admin panel for admins */}
+      {user?.roles.includes('admin') && (
+        <Link
+          href="/admin"
+          className={`px-3 py-2 rounded-md text-sm font-medium ${
+            pathname === '/admin'
+              ? 'bg-green-100 text-green-700' 
+              : 'text-green-600 hover:bg-green-100'
+          }`}
+        >
+          Admin Panel
+        </Link>
+      )}
     </nav>
   )
 }

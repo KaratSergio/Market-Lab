@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 // Entry hook (login)
 export const useLogin = () => {
   const queryClient = useQueryClient();
-  const { setUser, setIsAuthenticated } = useAuthStore();
+  const { setUser, setIsAuthenticated, setToken } = useAuthStore();
   const router = useRouter();
 
   return useMutation({
@@ -15,8 +15,14 @@ export const useLogin = () => {
     onSuccess: (data) => {
       setUser(data.user);
       setIsAuthenticated(true);
+      setToken(data.access_token);
       queryClient.invalidateQueries({ queryKey: ['session'] });
-      router.push('/cabinet');
+
+      if (data.user.roles.includes('admin')) {
+        router.push('/admin');
+      } else {
+        router.push('/cabinet');
+      }
     },
   });
 };

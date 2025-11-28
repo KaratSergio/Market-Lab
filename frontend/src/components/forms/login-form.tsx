@@ -64,7 +64,7 @@ export function LoginForm() {
               id="password"
               type="password"
               autoComplete="current-password"
-              placeholder="Ваш пароль"
+              placeholder="Your password"
               {...register('password')}
               className="mt-1"
             />

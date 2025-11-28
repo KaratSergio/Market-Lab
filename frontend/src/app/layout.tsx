@@ -3,7 +3,7 @@ import { geistSans, geistMono } from "@/shared/assets/fonts/fonts";
 import { ReactQueryProvider } from '@/core/providers/react-query-provider';
 import "../shared/styles/globals.css";
 
-import { Header } from '@/components/layout/Header/Header'
+import { Header } from '@/components/layout/header/header'
 // import { Footer } from '@/components/layout/Footer'
 
 export const metadata: Metadata = {

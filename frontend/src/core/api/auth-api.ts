@@ -9,6 +9,7 @@ class ApiError extends Error {
   }
 }
 
+
 export const authApi = {
   async login(credentials: LoginFormData): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {

@@ -1,3 +1,4 @@
+// Use it to type the incoming data
 import { UserRole } from './user.type';
 
 export interface CreateUserDto {

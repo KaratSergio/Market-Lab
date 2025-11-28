@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Put, Delete, Param, Body, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
 import { CustomerService } from '@domain/customers/customer.service';
-import type { CreateCustomerDto, UpdateCustomerDto } from '@domain/customers/types/customer.dto';
+import type { UpdateCustomerDto } from '@domain/customers/types/customer.dto';
 
 @Controller('customers')
 export class CustomersController {

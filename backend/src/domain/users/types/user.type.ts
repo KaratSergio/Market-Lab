@@ -1,3 +1,4 @@
+// Use only within the domain, internal typing..
 import { Entity } from '@shared/interfaces/entity.interface';
 
 export const USER_ROLES = {

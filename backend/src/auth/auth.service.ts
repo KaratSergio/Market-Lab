@@ -123,6 +123,10 @@ export class AuthService {
     return this._authResponse(user);
   }
 
+  async findByEmail(email: string) {
+    return this.userRepo.findOne({ where: { email } });
+  }
+
   // @internal
   private _authResponse(user: UserOrmEntity) {
     const token = this.jwt.sign({

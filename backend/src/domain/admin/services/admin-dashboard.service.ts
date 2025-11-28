@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { AdminRepository } from './admin.repository';
-import { AdminDomainEntity } from './admin.entity';
-import { AdminRole, ADMIN_ROLES, ADMIN_STATUS, AdminDistribution, SystemStats } from './types';
+import { AdminRepository } from '@domain/admin/admin.repository';
+import { AdminDomainEntity } from '@domain/admin/admin.entity';
+import { AdminRole, ADMIN_ROLES, ADMIN_STATUS, AdminDistribution, SystemStats } from '../types';
 
 @Injectable()
 export class AdminDashboardService {

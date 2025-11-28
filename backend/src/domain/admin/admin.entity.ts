@@ -191,6 +191,31 @@ export class AdminDomainEntity implements AdminModel {
     return `${this.firstName} ${this.lastName}`;
   }
 
+  // Management permission methods
+  canManageUsers(): boolean {
+    return this.can('canManageUsers');
+  }
+
+  canManageProducts(): boolean {
+    return this.can('canManageProducts');
+  }
+
+  canManageOrders(): boolean {
+    return this.can('canManageOrders');
+  }
+
+  canManageContent(): boolean {
+    return this.can('canManageContent');
+  }
+
+  canViewAnalytics(): boolean {
+    return this.can('canViewAnalytics');
+  }
+
+  canManageSystem(): boolean {
+    return this.can('canManageSystem');
+  }
+
   canManageAdmins(): boolean {
     return this.isSuperAdmin() || this.isAdmin();
   }

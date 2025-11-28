@@ -2,6 +2,9 @@
 import { AdminRole, AdminPermissions, AdminStatus } from "./admin.type";
 
 export interface CreateAdminDto {
+  email?: string;
+  password?: string;
+
   userId: string;
   firstName: string;
   lastName: string;

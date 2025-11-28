@@ -55,3 +55,18 @@ export interface SystemStats {
   adminDistribution: AdminDistribution;
   recentActivity: AdminModel[];
 }
+
+// Response types
+export interface AdminResponse {
+  admin: AdminModel;
+  user: {
+    id: string;
+    email: string;
+    roles: string[];
+    status: string;
+    emailVerified: boolean;
+    lastLoginAt?: Date;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}

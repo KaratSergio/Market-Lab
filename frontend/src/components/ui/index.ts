@@ -1,3 +1,7 @@
+export { FileUpload } from './FileUpload'
+export { ProgressBar } from './ProgressBar'
+export { DatePicker } from './DatePicker'
+export { Textarea } from './Textarea'
 export { Logo } from './logo/Logo'
 export { Dropdown } from './dropdown/Dropdown'
 export { DropdownItem } from './dropdown/DropdownItem'

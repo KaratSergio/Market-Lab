@@ -16,10 +16,10 @@ export default async function ProductPage(props: {
       {/* Navigation */}
       <div className="mb-6">
         <Link
-          href="/catalog"
+          href="/products"
           className="text-green-600 hover:text-green-700 hover:underline inline-flex items-center gap-2"
         >
-          ← Back to Catalog
+          ← Back to Products
         </Link>
       </div>
 
@@ -37,7 +37,7 @@ export default async function ProductPage(props: {
             .map(relatedProduct => (
               <Link
                 key={relatedProduct.id}
-                href={`/catalog/${relatedProduct.id}`}
+                href={`/products/${relatedProduct.id}`}
                 className="block p-4 border rounded-lg hover:shadow-md transition"
               >
                 <div className="font-medium mb-1">{relatedProduct.title}</div>

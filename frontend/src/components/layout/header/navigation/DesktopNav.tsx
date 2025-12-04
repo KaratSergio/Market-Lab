@@ -8,8 +8,8 @@ export function DesktopNav() {
 
   const navItems = [
     {
-      href: '/catalog',
-      label: 'catalog',
+      href: '/products',
+      label: 'products',
     },
     {
       href: '/map',

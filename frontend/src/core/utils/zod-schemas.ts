@@ -27,7 +27,31 @@ export const adminCreateSchema = z.object({
   department: z.string().optional(),
 });
 
+// Customer profile registration step
+export const customerProfileSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  phone: z.string().regex(/^\+?[0-9\s\-\(\)]{10,}$/, 'Invalid phone number'),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
+  birthDate: z.date().optional(),
+});
+
+// Supplier profile registration step
+export const supplierProfileSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  phone: z.string().regex(/^\+?[0-9\s\-\(\)]{10,}$/, 'Invalid phone number'),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
+  companyName: z.string().min(2, 'Company name must be at least 2 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  registrationNumber: z.string().min(5, 'Registration number is required'),
+  documents: z.array(z.instanceof(File)).min(1, 'At least one document is required'),
+});
+
+
 export type AdminCreateFormData = z.infer<typeof adminCreateSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 export type RequestSupplierFormData = z.infer<typeof requestSupplierSchema>;
+export type CustomerProfileFormData = z.infer<typeof customerProfileSchema>;
+export type SupplierProfileFormData = z.infer<typeof supplierProfileSchema>;

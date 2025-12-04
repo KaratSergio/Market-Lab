@@ -1,45 +1,65 @@
 
 ```
+FRONTEND
+
 frontend/
-├── src/
-│   ├── app/                  # Application pages and routing
-│   │   ├── (auth)/           # Auth layout group
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   ├── (cabinet)/        # User cabinet layout group
-│   │   │   ├── profile/
-│   │   │   ├── orders/
-│   │   │   └── subscriptions/
-│   │   ├── (catalog)/        # Catalog layout group
-│   │   │   ├── products/
-│   │   │   └── categories/
-│   │   ├── cart/             # Shopping cart pages
-│   │   ├── layout.tsx        # Root layout component
-│   │   └── page.tsx          # Home page
-│   ├── components/           # All React components
-│   │   ├── ui/               # Base UI components
-│   │   ├── layout/           # Layout components
-│   │   ├── product/          # Product components
-│   │   ├── cart/             # Cart components
-│   │   ├── forms/            # Form components
-│   │   ├── features/         # Business feature components
-│   │   └── index.ts          # Unified components export
-│   ├── shared/               # Global resources
-│   │   ├── styles/           # Global styles
-│   │   │   ├── globals.css   # Main styles
-│   │   │   └── variables.css # CSS variables
-│   │   └── assets/           # Fonts, icons, images
-│   └── core/                 # Core application logic
-│       ├── api/              # API functions
-│       ├── store/            # Global state management
-│       ├── utils/            # Helper functions
-│       ├── constants/        # Constants
-│       └── types/            # TypeScript types
-├── public/                   # Static files
-├── next.config.js            # Next.js configuration
-├── tailwind.config.ts        # Tailwind CSS configuration
-├── tsconfig.json             # TypeScript configuration
-└── package.json              # Dependencies
+├──📁 src/
+│   ├──📁 app/                        == Application pages & routing
+│   │   ├──📁 (auth)/                 # Auth layout group
+│   │   │   ├──📁 login/
+│   │   │   └──📁 register/     
+│   │   │
+│   │   ├──📁 (admin)/                # Admin cabinet layout group
+│   │   │   ├──📁 admin-dashboard/
+│   │   │   └──📄 layout.tsx      
+│   │   │
+│   │   ├──📁 (customer)/             # Customer cabinet layout group
+│   │   │   ├──📁 customer-dashboard/
+│   │   │   └──📄 layout.tsx 
+│   │   │
+│   │   ├──📁 (supplier)/             # Supplier cabinet layout group
+│   │   │   ├──📁 supplier-dashboard/ 
+│   │   │   └──📄 layout.tsx 
+│   │   │
+│   │   ├──📁 (products)/             # Catalog layout group
+│   │   │   ├──📁 [id]/               # Dynamic product detail
+│   │   │   ├──📄 page.tsx
+│   │   │   └──📄 layout.tsx
+│   │   │
+│   │   ├──📁 cart/                   # Shopping cart pages
+│   │   │
+│   │   ├──📄 layout.tsx              # Root layout component
+│   │   └──📄 page.tsx                # Home page
+│   │
+│   ├──📁 components/                 == All React components
+│   │   ├──📁 ui/                     # Base UI components (buttons, inputs, etc.)
+│   │   ├──📁 layout/                 # Layout components (headers, footers, etc.)
+│   │   ├──📁 product/                # Product-related components
+│   │   ├──📁 cart/                   # Cart-specific components
+│   │   ├──📁 features/               # Business feature components
+│   │   └──📄 index.ts                # Unified components export
+│   │
+│   ├──📁 shared/                     == Global resources
+│   │   ├──📁 styles/                 # Global styles
+│   │   │   ├──📄 globals.css         # Main styles file
+│   │   │   └──📄 variables.css       # CSS variables (colors, fonts, etc.)
+│   │   │
+│   │   └──📁 assets/                 # 🖼️ Fonts, icons, images
+│   │
+│   └──📁 core/                       == Core application logic
+│       ├──📁 api/                    # API functions & clients (e.g., fetch/axios)
+│       ├──📁 store/                  # Global state management (e.g., Zustand/Redux)
+│       ├──📁 hooks/                  # Custom React hooks
+│       ├──📁 providers/              # Context providers (tanstack)
+│       ├──📁 utils/                  # Helper functions
+│       ├──📁 constants/              # Constants (validation, configs, etc.)
+│       └──📁 types/                  # TypeScript type definitions
+│
+├──📁 public/                         == Static files (favicon, robots.txt, etc.)
+├──⚙️  next.config.js                 # Next.js configuration
+├──🎨 tailwind.config.ts              # Tailwind CSS configuration
+├──📐 tsconfig.json                   # TypeScript configuration
+└──📦 package.json                    # Dependencies & scripts
 ```
 
 
@@ -48,142 +68,171 @@ frontend/
 - Layout components   [→ Details](#layout-components)
 - Product components  [→ Details](#product-components)
 - Cart components     [→ Details](#cart-components)
-- Form components     [→ Details](#form-components)
 - Features components [→ Details](#features-components)
+- Core components     [→ Details](#core-components)
 
 
 
 ## UI Components
 ```
-ui/
-├── Button/              # Buttons with variants
-├── Input/               # Input fields
-├── Modal/               # Modal dialogs
-├── Select/              # Dropdown selects
-├── Checkbox/            # Checkbox inputs
-├── Radio/               # Radio buttons
-├── Tabs/                # Tab components
-├── Accordion/           # Accordion components
-├── Badge/               # Badges and labels
-├── Loader/              # Loading indicators
-├── Toast/               # Notification toasts
-└── index.ts             # Unified exports
+📁 ui/
+├──📁 Button/              # Buttons with variants
+├──📁 Input/               # Input fields
+├──📁 Modal/               # Modal dialogs
+├──📁 Select/              # Dropdown selects
+├──📁 Checkbox/            # Checkbox inputs
+├──📁 Radio/               # Radio buttons
+├──📁 Tabs/                # Tab components
+├──📁 Accordion/           # Accordion components
+├──📁 Badge/               # Badges and labels
+├──📁 Loader/              # Loading indicators
+├──📁 Toast/               # Notification toasts
+└──📄 index.ts             # Unified exports
 ```
 
 
 ## Common Components
 ```
-features/
-├── SearchBar/           # Search bar component
-├── Pagination/          # Pagination component
-├── Breadcrumbs/         # Breadcrumb navigation
-├── Rating/              # Star rating component
-├── Price/               # Price formatting component
-├── ImageGallery/        # Image gallery component
-├── Counter/             # Quantity counter
-├── ShareButtons/        # Social share buttons
-└── index.ts             # Unified exports
+📁 features/
+├──📁 SearchBar/           # Search bar component
+├──📁 Pagination/          # Pagination component
+├──📁 Breadcrumbs/         # Breadcrumb navigation
+├──📁 Rating/              # Star rating component
+├──📁 Price/               # Price formatting component
+├──📁 ImageGallery/        # Image gallery component
+├──📁 Counter/             # Quantity counter
+├──📁 ShareButtons/        # Social share buttons
+└──📄 index.ts             # Unified exports
 ```
 
 
 ## Layout Components
 ```
-layout/
-├── Header/              # Site header
-│   ├── Header.tsx
-│   ├── Navigation/      # Navigation menu
-│   ├── UserMenu/        # User dropdown menu
-│   └── Search/          # Header search
-├── Footer/              # Site footer
-│   ├── Footer.tsx
-│   ├── LinksSection/    # Links section
-│   └── SocialLinks/     # Social media links
-├── Sidebar/             # Sidebar panel
-│   ├── Sidebar.tsx
-│   ├── Filters/         # Sidebar filters
-│   └── Categories/      # Categories list
-├── MainLayout/          # Main page layout
-├── AuthLayout/          # Authentication pages layout
-├── DashboardLayout/     # User dashboard layout
-└── index.ts             # Unified exports
+📁 layout/
+├──📁 Header/              # Site header
+│   ├──📄 Header.tsx
+│   ├──📁 Navigation/      # Navigation menu
+│   ├──📁 UserMenu/        # User dropdown menu
+│   └──📁 Search/          # Header search
+├──📁 Footer/              # Site footer
+│   ├──📄 Footer.tsx
+│   ├──📁 LinksSection/    # Links section
+│   └──📁 SocialLinks/     # Social media links
+├──📁 Sidebar/             # Sidebar panel
+│   ├──📄 Sidebar.tsx
+│   ├──📁 Filters/         # Sidebar filters
+│   └──📁 Categories/      # Categories list
+├──📁 MainLayout/          # Main page layout
+├──📁 AuthLayout/          # Authentication pages layout
+├──📁 DashboardLayout/     # User dashboard layout
+└──📄 index.ts             # Unified exports
 ```
 
 
-## Form Components
+## Features Components
 ```
-forms/
-├── auth/                # Authentication forms
-│   ├── LoginForm/       # Login form
-│   └── RegisterForm/    # Registration form
-├── checkout/            # Checkout process form
-│   ├── DeliveryStep/    # Delivery information step
-│   ├── PaymentStep/     # Payment information step
-│   └── ReviewStep/      # Order review step
-├── product/             # Product add/edit form
-├── profile/             # User profile edit form
-├── search/              # Advanced search form
-├── review/              # Product review form
-├── contact/             # Contact form
-├── newsletter/          # Newsletter subscription form
-└── hooks/               # Custom form hooks
-    ├── useForm.ts
-    ├── useValidation.ts
-    └── useFormSteps.ts
+📁 features/
+├──📁 auth/                           # Authentication & authorization
+│   ├──📁 forms/                      # All authentication-related forms
+│   │   ├──📁 LoginForm/              # User login form component
+│   │   └──📁 RegisterForm/           # User registration form component
+│   └──📄 RouteGuard.tsx              # Route protection & access control
+├──📁 customer/                       # Customer functionality
+│   ├──📁 forms/                      # Customer-specific forms
+│   │   ├──📁 ProfileForm/            # Edit customer profile
+│   │   ├──📁 OrderForm/              # Create/edit customer orders
+│   │   └──📁 SubscriptionForm/       # Manage subscriptions
+│   ├──📁 dashboard/                  # Customer dashboard components
+│   └──📁 orders/                     # Order history & management
+├──📁 supplier/                       # Supplier functionality
+│   ├──📁 forms/                      # Supplier-specific forms
+│   │   ├──📁 ProductForm/            # Add/edit products
+│   │   ├──📁 InventoryForm/          # Manage inventory levels
+│   │   └──📁 SupplierProfileForm/    # Supplier company profile
+│   ├──📁 products/                   # Product management UI
+│   └──📁 analytics/                  # Supplier performance metrics
+└──📁 checkout/                       # Checkout process
+    ├──📁 forms/                      # Checkout step forms
+    │   ├──📁 DeliveryForm/           # Delivery address & method
+    │   ├──📁 PaymentForm/            # Payment information
+    │   └──📁 OrderReview/            # Order summary & confirmation
+    └──📄 Checkout.tsx                # Main checkout flow controller
 ```
 
 
 ## Product Components
 ```
-product/
-├── ProductCard/            # Product card for listings
-│   ├── ProductCard.tsx
-│   ├── ProductImage/       # Product image display
-│   ├── ProductPrice/       # Price display block
-│   └── ProductActions/     # Action buttons
-├── ProductGrid/            # Products grid layout
-├── ProductList/            # Products list layout
-├── ProductGallery/         # Product image gallery
-├── ProductInfo/            # Product information
-│   ├── ProductTitle/
-│   ├── ProductDescription/
-│   ├── ProductAttributes/  # Product specifications
-│   └── ProductRating/      # Ratings and reviews
-├── ProductVariants/        # Product variants (size, color)
-├── ProductRecommendations/ # Product recommendations
-├── ProductFilters/         # Product filters
-│   ├── PriceFilter/
-│   ├── CategoryFilter/
-│   └── BrandFilter/
-├── ProductSort/            # Product sorting
-└── hooks/                  # Product hooks
-    ├── useProduct.ts
-    ├── useProductList.ts
-    └── useProductSearch.ts
+📁 product/
+├──📁 ProductCard/            # Product card for listings
+│   ├──📁 ProductCard.tsx
+│   ├──📁 ProductImage/       # Product image display
+│   ├──📁 ProductPrice/       # Price display block
+│   └──📁 ProductActions/     # Action buttons
+├──📁 ProductGrid/            # Products grid layout
+├──📁 ProductList/            # Products list layout
+├──📁 ProductGallery/         # Product image gallery
+├──📁 ProductInfo/            # Product information
+│   ├──📁 ProductTitle/
+│   ├──📁 ProductDescription/
+│   ├──📁 ProductAttributes/  # Product specifications
+│   └──📁 ProductRating/      # Ratings and reviews
+├──📁 ProductVariants/        # Product variants (size, color)
+├──📁 ProductRecommendations/ # Product recommendations
+├──📁 ProductFilters/         # Product filters
+│   ├──📁 PriceFilter/
+│   ├──📁 CategoryFilter/
+│   └──📁 BrandFilter/
+├──📁 ProductSort/            # Product sorting
+└──📁 hooks/                  # Product hooks
+    ├──📁 useProduct.ts
+    ├──📁 useProductList.ts
+    └──📁 useProductSearch.ts
 ```
 
 
 ## Cart Components
 ```
-cart/
-├── CartItem/              # Cart item component
-│   ├── CartItem.tsx
-│   ├── CartItemImage/     # Item image in cart
-│   ├── CartItemInfo/      # Item information in cart
-│   └── CartItemActions/   # Quantity management
-├── CartList/              # Cart items list
-├── CartSummary/           # Cart summary information
-│   ├── CartTotals/        # Total calculations
-│   ├── DiscountCode/      # Discount code input
-│   └── CheckoutButton/    # Checkout action button
-├── CartSidebar/           # Cart sidebar panel
-├── CartEmpty/             # Empty cart state
-├── CartPreview/           # Cart preview (in header)
-├── AddToCart/             # Add to cart functionality
-│   ├── AddToCartButton/
-│   ├── QuantitySelector/  # Quantity selection
-│   └── AddToCartForm/
-└── hooks/                 # Cart hooks
-    ├── useCart.ts
-    ├── useCartActions.ts
-    └── useCartTotals.ts
+📁 cart/
+├──📁 CartItem/              # Cart item component
+│   ├──📁 CartItem.tsx
+│   ├──📁 CartItemImage/     # Item image in cart
+│   ├──📁 CartItemInfo/      # Item information in cart
+│   └──📁 CartItemActions/   # Quantity management
+├──📁 CartList/              # Cart items list
+├──📁 CartSummary/           # Cart summary information
+│   ├──📁 CartTotals/        # Total calculations
+│   ├──📁 DiscountCode/      # Discount code input
+│   └──📁 CheckoutButton/    # Checkout action button
+├──📁 CartSidebar/           # Cart sidebar panel
+├──📁 CartEmpty/             # Empty cart state
+├──📁 CartPreview/           # Cart preview (in header)
+├──📁 AddToCart/             # Add to cart functionality
+│   ├──📁 AddToCartButton/
+│   ├──📁 QuantitySelector/  # Quantity selection
+│   └──📁 AddToCartForm/
+└──📁 hooks/                 # Cart hooks
+    ├──📁 useCart.ts
+    ├──📁 useCartActions.ts
+    └──📁 useCartTotals.ts
+```
+
+## Core Components
+```
+📁 core/                      
+├──📁 api/                   # API functions & clients
+│   ├──📄 auth-api.ts
+│   ├──📄 admin-api.ts
+│   └──📄 index.ts
+├──📁 store/                 # Global state management
+├──📁 hooks/                 # Custom React hooks
+├──📁 providers/             # Context providers
+├──📁 utils/                 # Helper functions
+│   ├──📄 api-utils.ts
+│   ├──📄 zod-schemas.ts
+│   └──📄 index.ts
+├──📁 constants/             # Constants (validation, configs, etc.)
+│   ├──📄 api.config.ts      # API configuration
+│   ├──📄 validation.ts      # validation constants
+│   └──📄 index.ts
+└──📁 types/                 # TypeScript type definitions
 ```

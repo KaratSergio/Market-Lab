@@ -1,8 +1,58 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authApi } from '../api/authApi';
+import { authApi } from '../api/auth-api.ts';
 import { useAuthStore } from '../store/authStore';
 import { useRouter } from 'next/navigation';
 
+
+export const useRegisterInitial = () => {
+  const queryClient = useQueryClient();
+  const { setAuth } = useAuthStore();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: authApi.registerInitial,
+    onSuccess: (data) => {
+      setAuth(data.user, data.access_token);
+
+      queryClient.invalidateQueries({ queryKey: ['session'] });
+
+      if (!data.user.regComplete) {
+        router.push('/register/role');
+      } else {
+        const role = data.user.roles[0];
+        if (role === 'customer') {
+          router.push('/customer-dashboard');
+        } else {
+          router.push('/supplier-dashboard');
+        }
+      }
+    },
+  });
+};
+
+// Hook for completing registration
+export const useRegisterComplete = () => {
+  const queryClient = useQueryClient();
+  const { setUser, setRegComplete } = useAuthStore();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: authApi.registerComplete,
+    onSuccess: (data) => {
+      setUser(data.user);
+      setRegComplete(data.user.regComplete ?? true);
+
+      queryClient.invalidateQueries({ queryKey: ['session'] });
+
+      const role = data.user.roles[0];
+      if (role === 'customer') {
+        router.push('/customer-dashboard');
+      } else if (role === 'supplier') {
+        router.push('/supplier-dashboard');
+      }
+    },
+  });
+};
 
 // Entry hook (login)
 export const useLogin = () => {
@@ -29,7 +79,7 @@ export const useLogin = () => {
   });
 };
 
-// Hook for registration
+// Hook for registration(for super-admin)
 export const useRegister = () => {
   const queryClient = useQueryClient();
   const { setUser, setIsAuthenticated } = useAuthStore();

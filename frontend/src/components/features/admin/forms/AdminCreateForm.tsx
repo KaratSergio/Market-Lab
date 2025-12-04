@@ -7,7 +7,7 @@ import { ADMIN_ROLES } from '@/core/types/adminTypes';
 import { Button } from '../../../ui/button/Button';
 import { Input } from '../../../ui/input/Input';
 import { Select } from '../../../ui/select/Select';
-import { AdminCreateFormData, adminCreateSchema } from '@/core/utils/validations';
+import { AdminCreateFormData, adminCreateSchema } from '@/core/utils/zod-schemas';
 
 
 const ROLE_OPTIONS = [

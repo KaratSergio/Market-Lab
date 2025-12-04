@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { adminApi } from '@/core/api/adminApi';
+import { adminApi } from '@/core/api/admin-api.ts';
 import { CreateAdminDto, AdminPermissions } from '@/core/types/adminTypes';
 import { useAuthStore } from '@/core/store/authStore';
 

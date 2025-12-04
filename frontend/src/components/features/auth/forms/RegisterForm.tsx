@@ -2,11 +2,12 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerSchema, RegisterFormData } from '@/core/utils/validations';
+import { registerSchema, RegisterFormData } from '@/core/utils/zod-schemas';
 import { useRegisterInitial } from '@/core/hooks/useAuth';
 import { Input } from '@/components/ui/input/Input';
 import { Button } from '@/components/ui/button/Button';
 import Link from 'next/link';
+
 
 export function RegisterForm() {
   const registerMutation = useRegisterInitial();

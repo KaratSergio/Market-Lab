@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authApi } from '../api/authApi';
+import { authApi } from '../api/auth-api.ts';
 import { useAuthStore } from '../store/authStore';
 import { useRouter } from 'next/navigation';
 

@@ -2,10 +2,11 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginFormData } from '@/core/utils/validations';
+import { loginSchema, LoginFormData } from '@/core/utils/zod-schemas';
 import { useLogin } from '@/core/hooks/useAuth';
 import { Input, Button } from '@/components/ui/';
 import Link from 'next/link';
+
 
 export function LoginForm() {
   const loginMutation = useLogin();

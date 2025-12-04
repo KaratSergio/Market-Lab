@@ -52,7 +52,7 @@ frontend/
 │       ├──📁 hooks/                  # Custom React hooks
 │       ├──📁 providers/              # Context providers (tanstack)
 │       ├──📁 utils/                  # Helper functions
-│       ├──📁 constants/              # Constants (routes, configs, etc.)
+│       ├──📁 constants/              # Constants (validation, configs, etc.)
 │       └──📁 types/                  # TypeScript type definitions
 │
 ├──📁 public/                         == Static files (favicon, robots.txt, etc.)
@@ -69,6 +69,7 @@ frontend/
 - Product components  [→ Details](#product-components)
 - Cart components     [→ Details](#cart-components)
 - Features components [→ Details](#features-components)
+- Core components     [→ Details](#core-components)
 
 
 
@@ -213,4 +214,25 @@ frontend/
     ├──📁 useCart.ts
     ├──📁 useCartActions.ts
     └──📁 useCartTotals.ts
+```
+
+## Core Components
+```
+📁 core/                      
+├──📁 api/                   # API functions & clients
+│   ├──📄 auth-api.ts
+│   ├──📄 admin-api.ts
+│   └──📄 index.ts
+├──📁 store/                 # Global state management
+├──📁 hooks/                 # Custom React hooks
+├──📁 providers/             # Context providers
+├──📁 utils/                 # Helper functions
+│   ├──📄 api-utils.ts
+│   ├──📄 zod-schemas.ts
+│   └──📄 index.ts
+├──📁 constants/             # Constants (validation, configs, etc.)
+│   ├──📄 api.config.ts      # API configuration
+│   ├──📄 validation.ts      # validation constants
+│   └──📄 index.ts
+└──📁 types/                 # TypeScript type definitions
 ```

@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supplierProfileSchema, SupplierProfileFormData } from '@/core/utils/validations';
+import { supplierProfileSchema, SupplierProfileFormData } from '@/core/utils/zod-schemas';
 import { useRegisterComplete } from '@/core/hooks/useAuth';
 import { FileUpload, ProgressBar, Button, Input, Textarea } from '@/components/ui';
 
 const steps = ['Personal Info', 'Farm Details', 'Documents', 'Confirmation'];
+
 
 export function SupplierProfileForm() {
   const completeRegistration = useRegisterComplete();

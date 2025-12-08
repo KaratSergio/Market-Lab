@@ -6,6 +6,7 @@ import {
   CreateCartDto
 } from './types';
 
+
 export class CartItem implements CartItemModel {
   constructor(
     public productId: string,

@@ -2,6 +2,7 @@ import { BaseRepository, QueryableRepository } from '@shared/interfaces/reposito
 import { AdminDomainEntity } from './admin.entity';
 import { AdminRole, AdminStatus } from './types';
 
+
 export abstract class AdminRepository implements
   BaseRepository<AdminDomainEntity>,
   QueryableRepository<AdminDomainEntity> {

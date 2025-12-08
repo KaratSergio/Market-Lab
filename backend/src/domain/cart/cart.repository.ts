@@ -1,6 +1,7 @@
 import { BaseRepository, QueryableRepository } from '@shared/interfaces/repository.interface';
 import { CartDomainEntity } from './cart.entity';
 
+
 export abstract class CartRepository implements
   BaseRepository<CartDomainEntity>,
   QueryableRepository<CartDomainEntity> {

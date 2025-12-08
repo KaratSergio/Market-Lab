@@ -4,6 +4,7 @@ import { CartRepository } from './cart.repository';
 import { AddItemToCartDto, UpdateCartItemDto, ApplyDiscountDto, CART_STATUS } from './types';
 import { CUSTOMER_STATUS } from '@domain/customers/types';
 
+
 @Injectable()
 export class CartService {
   constructor(

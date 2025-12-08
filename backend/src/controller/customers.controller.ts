@@ -2,6 +2,7 @@ import { Controller, Get, Put, Delete, Param, Body, HttpCode, HttpStatus, ParseU
 import { CustomerService } from '@domain/customers/customer.service';
 import type { UpdateCustomerDto } from '@domain/customers/types/customer.dto';
 
+
 @Controller('customers')
 export class CustomersController {
   constructor(private readonly customerService: CustomerService) { }

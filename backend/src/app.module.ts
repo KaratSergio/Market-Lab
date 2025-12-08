@@ -15,12 +15,15 @@ import { SuppliersModule } from '@module/suppliers.module';
 import { ProductModule } from '@module/product.module';
 import { AdminModule } from '@module/admin.module';
 import { CartModule } from '@module/cart.module';
+import { OrderModule } from '@module/order.module';
 
 // ORM Entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
 import { AdminOrmEntity } from '@infrastructure/database/postgres/admin/admin.entity';
 import { CartOrmEntity } from '@infrastructure/database/postgres/cart/cart.entity';
 import { CartItemOrmEntity } from '@infrastructure/database/postgres/cart/cart-item.entity';
+import { OrderOrmEntity } from '@infrastructure/database/postgres/order/order.entity';
+import { OrderItemOrmEntity } from '@infrastructure/database/postgres/order/order-item.entity';
 
 @Module({
   imports: [
@@ -37,13 +40,16 @@ import { CartItemOrmEntity } from '@infrastructure/database/postgres/cart/cart-i
     ProductModule,
     AdminModule,
     CartModule,
+    OrderModule,
 
     // TypeORM entities for SuperAdminInitializerService
     TypeOrmModule.forFeature([
       UserOrmEntity,
       AdminOrmEntity,
       CartOrmEntity,
-      CartItemOrmEntity
+      CartItemOrmEntity,
+      OrderOrmEntity,
+      OrderItemOrmEntity
     ]),
   ],
   providers: [SuperAdminInitializerService],

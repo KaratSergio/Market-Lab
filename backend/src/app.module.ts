@@ -16,6 +16,7 @@ import { ProductModule } from '@module/product.module';
 import { AdminModule } from '@module/admin.module';
 import { CartModule } from '@module/cart.module';
 import { OrderModule } from '@module/order.module';
+import { PaymentModule } from '@module/payment.module';
 
 // ORM Entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
@@ -24,6 +25,7 @@ import { CartOrmEntity } from '@infrastructure/database/postgres/cart/cart.entit
 import { CartItemOrmEntity } from '@infrastructure/database/postgres/cart/cart-item.entity';
 import { OrderOrmEntity } from '@infrastructure/database/postgres/order/order.entity';
 import { OrderItemOrmEntity } from '@infrastructure/database/postgres/order/order-item.entity';
+import { PaymentOrmEntity } from '@infrastructure/database/postgres/payment/payment.entity';
 
 @Module({
   imports: [
@@ -41,6 +43,7 @@ import { OrderItemOrmEntity } from '@infrastructure/database/postgres/order/orde
     AdminModule,
     CartModule,
     OrderModule,
+    PaymentModule,
 
     // TypeORM entities for SuperAdminInitializerService
     TypeOrmModule.forFeature([
@@ -49,7 +52,8 @@ import { OrderItemOrmEntity } from '@infrastructure/database/postgres/order/orde
       CartOrmEntity,
       CartItemOrmEntity,
       OrderOrmEntity,
-      OrderItemOrmEntity
+      OrderItemOrmEntity,
+      PaymentOrmEntity
     ]),
   ],
   providers: [SuperAdminInitializerService],

@@ -14,10 +14,18 @@ import { CustomersModule } from '@module/customers.module';
 import { SuppliersModule } from '@module/suppliers.module';
 import { ProductModule } from '@module/product.module';
 import { AdminModule } from '@module/admin.module';
+import { CartModule } from '@module/cart.module';
+import { OrderModule } from '@module/order.module';
+import { PaymentModule } from '@module/payment.module';
 
 // ORM Entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
 import { AdminOrmEntity } from '@infrastructure/database/postgres/admin/admin.entity';
+import { CartOrmEntity } from '@infrastructure/database/postgres/cart/cart.entity';
+import { CartItemOrmEntity } from '@infrastructure/database/postgres/cart/cart-item.entity';
+import { OrderOrmEntity } from '@infrastructure/database/postgres/order/order.entity';
+import { OrderItemOrmEntity } from '@infrastructure/database/postgres/order/order-item.entity';
+import { PaymentOrmEntity } from '@infrastructure/database/postgres/payment/payment.entity';
 
 @Module({
   imports: [
@@ -33,9 +41,20 @@ import { AdminOrmEntity } from '@infrastructure/database/postgres/admin/admin.en
     SuppliersModule,
     ProductModule,
     AdminModule,
+    CartModule,
+    OrderModule,
+    PaymentModule,
 
     // TypeORM entities for SuperAdminInitializerService
-    TypeOrmModule.forFeature([UserOrmEntity, AdminOrmEntity]),
+    TypeOrmModule.forFeature([
+      UserOrmEntity,
+      AdminOrmEntity,
+      CartOrmEntity,
+      CartItemOrmEntity,
+      OrderOrmEntity,
+      OrderItemOrmEntity,
+      PaymentOrmEntity
+    ]),
   ],
   providers: [SuperAdminInitializerService],
 })

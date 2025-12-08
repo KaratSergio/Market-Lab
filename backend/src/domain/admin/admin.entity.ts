@@ -9,6 +9,7 @@ import {
   ADMIN_STATUS
 } from './types';
 
+
 export class AdminDomainEntity implements AdminModel {
   public id: string;
   public userId: string;

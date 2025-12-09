@@ -19,7 +19,7 @@ export class OrderItemOrmEntity {
   quantity: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  unitPrice: number;
+  price: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalPrice: number;

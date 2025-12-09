@@ -32,25 +32,23 @@ export class PostgresPaymentRepository extends DomainPaymentRepository {
   async update(id: string, data: Partial<PaymentDomainEntity>): Promise<PaymentDomainEntity> {
     if (!id) throw new Error('Payment ID is required for update');
 
-    await this.paymentRepository.update(id, {
-      status: data.status,
-      transactionId: data.transactionId,
-      providerResponse: data.providerResponse,
-      refundedAmount: data.refundedAmount,
-      failureReason: data.failureReason,
-      paidAt: data.paidAt,
-      refundedAt: data.refundedAt,
+    const existingEntity = await this.paymentRepository.findOne({ where: { id } });
+    if (!existingEntity) throw new Error(`Payment with id ${id} not found`);
+
+    Object.assign(existingEntity, {
+      status: data.status ?? existingEntity.status,
+      transactionId: data.transactionId ?? existingEntity.transactionId,
+      providerResponse: data.providerResponse ?? existingEntity.providerResponse,
+      refundedAmount: data.refundedAmount ?? existingEntity.refundedAmount,
+      failureReason: data.failureReason ?? existingEntity.failureReason,
+      paidAt: data.paidAt ?? existingEntity.paidAt,
+      refundedAt: data.refundedAt ?? existingEntity.refundedAt,
       updatedAt: new Date()
     });
 
-    const updatedOrmEntity = await this.paymentRepository.findOne({
-      where: { id }
-    });
-
-    if (!updatedOrmEntity) throw new Error(`Payment with id ${id} not found after update`);
+    const updatedOrmEntity = await this.paymentRepository.save(existingEntity);
     return this.toDomainEntity(updatedOrmEntity);
   }
-
   async delete(id: string): Promise<void> {
     if (!id) throw new Error('Payment ID is required for delete');
     await this.paymentRepository.delete(id);

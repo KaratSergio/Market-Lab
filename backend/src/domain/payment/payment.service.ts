@@ -1,7 +1,16 @@
 import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PaymentDomainEntity } from './payment.entity';
 import { PaymentRepository } from './payment.repository';
-import { CreatePaymentDto, ProcessPaymentDto, RefundPaymentDto, PAYMENT_STATUS } from './types';
+
+import {
+  CreatePaymentDto,
+  ProcessPaymentDto,
+  RefundPaymentDto,
+  ProviderResponse,
+  PaymentStatsDto,
+  PaymentWebhookData,
+  PAYMENT_STATUS
+} from './types';
 
 
 @Injectable()
@@ -65,7 +74,7 @@ export class PaymentService {
   async markPaymentAsPaid(
     paymentId: string,
     transactionId: string,
-    providerResponse?: Record<string, any>
+    providerResponse?: ProviderResponse
   ): Promise<PaymentDomainEntity> {
     const payment = await this.getPaymentById(paymentId);
 
@@ -86,14 +95,15 @@ export class PaymentService {
   async markPaymentAsFailed(
     paymentId: string,
     failureReason?: string,
-    providerResponse?: Record<string, any>
+    providerResponse?: ProviderResponse
   ): Promise<PaymentDomainEntity> {
     const payment = await this.getPaymentById(paymentId);
 
     try {
       payment.markAsFailed(failureReason, providerResponse);
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new BadRequestException(errorMessage);
     }
 
     const updated = await this.paymentRepository.update(payment.id, {
@@ -112,8 +122,9 @@ export class PaymentService {
 
     try {
       payment.markAsCancelled(reason);
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new BadRequestException(errorMessage);
     }
 
     const updated = await this.paymentRepository.update(payment.id, {
@@ -140,8 +151,9 @@ export class PaymentService {
 
     try {
       payment.refund(refundAmount, refundDto.reason);
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new BadRequestException(errorMessage);
     }
 
     const updated = await this.paymentRepository.update(payment.id, {
@@ -168,22 +180,25 @@ export class PaymentService {
     return this.paymentRepository.findFailedPayments();
   }
 
-  async getPaymentStats(startDate: Date, endDate: Date): Promise<any> {
+  async getPaymentStats(startDate: Date, endDate: Date): Promise<PaymentStatsDto> {
     return this.paymentRepository.getPaymentStats(startDate, endDate);
   }
 
-  async handleWebhook(eventData: any): Promise<void> {
-    //! Обработка webhook от платежных систем
-    // пока просто логируем
+  async handleWebhook(eventData: PaymentWebhookData): Promise<void> {
+    // Обработка webhook от платежных систем
     console.log('Payment webhook received:', eventData);
 
-    //! Пример обработки Stripe webhook
+    // Stripe webhook
     if (eventData.type === 'payment_intent.succeeded' && eventData.data?.object) {
-      const paymentIntent = eventData.data.object;
-      const payment = await this.paymentRepository.findByTransactionId(paymentIntent.id);
+      const paymentIntent = eventData.data.object as Record<string, unknown>;
+      const transactionId = paymentIntent.id as string;
 
-      if (payment) {
-        await this.markPaymentAsPaid(payment.id, paymentIntent.id, paymentIntent);
+      if (transactionId) {
+        const payment = await this.paymentRepository.findByTransactionId(transactionId);
+
+        if (payment) {
+          await this.markPaymentAsPaid(payment.id, transactionId, paymentIntent);
+        }
       }
     }
   }

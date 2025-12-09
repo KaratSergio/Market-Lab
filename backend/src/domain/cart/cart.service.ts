@@ -62,7 +62,7 @@ export class CartService {
       itemDto.productId,
       itemDto.quantity,
       itemDto.price,
-      itemDto.name,
+      itemDto.name!,
       itemDto.imageUrl
     );
 

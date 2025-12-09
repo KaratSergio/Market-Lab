@@ -1,5 +1,7 @@
 // Use only within the domain, internal typing..
 import { Entity } from '@shared/interfaces/entity.interface';
+import { ProductItemModel } from '@shared/interfaces/product-item.type';
+
 
 export const CART_STATUS = {
   ACTIVE: 'active',
@@ -10,14 +12,7 @@ export const CART_STATUS = {
 
 export type CartStatus = typeof CART_STATUS[keyof typeof CART_STATUS];
 
-export interface CartItemModel {
-  productId: string;
-  quantity: number;
-  price: number;
-  discount?: number;
-  name?: string;
-  imageUrl?: string;
-}
+export type CartItemModel = ProductItemModel;
 
 export interface CartModel extends Entity {
   userId: string;

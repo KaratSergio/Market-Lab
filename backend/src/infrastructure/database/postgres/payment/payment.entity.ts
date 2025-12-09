@@ -63,7 +63,7 @@ export class PaymentOrmEntity {
   };
 
   @Column({ type: 'jsonb', nullable: true })
-  providerResponse?: Record<string, any>;
+  providerResponse?: Record<string, unknown>;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   refundedAmount: number;

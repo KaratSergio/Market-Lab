@@ -1,5 +1,7 @@
 // Use only within the domain, internal typing..
 import { Entity } from "@shared/interfaces/entity.interface";
+import { ProductItemModel } from '@shared/interfaces/product-item.type';
+
 
 export const ORDER_STATUS = {
   PENDING: 'pending',
@@ -21,14 +23,7 @@ export const PAYMENT_STATUS = {
 
 export type PaymentStatus = typeof PAYMENT_STATUS[keyof typeof PAYMENT_STATUS];
 
-export interface OrderItemModel {
-  productId: string;
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  imageUrl?: string;
-}
+export type OrderItemModel = ProductItemModel;
 
 export interface ShippingAddress {
   street: string;

@@ -186,32 +186,31 @@ export class PostgresOrderRepository extends DomainOrderRepository {
       item.productId,
       item.name,
       item.quantity,
-      parseFloat(item.unitPrice.toString()),
+      parseFloat(item.price.toString()),
       parseFloat(item.totalPrice.toString()),
       item.imageUrl
     )) || [];
 
-    return new OrderDomainEntity(
-      ormEntity.id,
-      ormEntity.userId,
-      ormEntity.cartId,
-      ormEntity.orderNumber,
-      ormEntity.shippingAddress,
-      ormEntity.currency,
-      ormEntity.status,
-      ormEntity.paymentStatus,
-      items,
-      parseFloat(ormEntity.subtotal.toString()),
-      parseFloat(ormEntity.shippingFee.toString()),
-      parseFloat(ormEntity.taxAmount.toString()),
-      parseFloat(ormEntity.discountAmount.toString()),
-      parseFloat(ormEntity.totalAmount.toString()),
-      ormEntity.notes,
-      ormEntity.createdAt,
-      ormEntity.updatedAt
-    );
+    return new OrderDomainEntity({
+      id: ormEntity.id,
+      userId: ormEntity.userId,
+      cartId: ormEntity.cartId,
+      orderNumber: ormEntity.orderNumber,
+      shippingAddress: ormEntity.shippingAddress,
+      currency: ormEntity.currency,
+      status: ormEntity.status,
+      paymentStatus: ormEntity.paymentStatus,
+      items: items,
+      subtotal: parseFloat(ormEntity.subtotal.toString()),
+      shippingFee: parseFloat(ormEntity.shippingFee.toString()),
+      taxAmount: parseFloat(ormEntity.taxAmount.toString()),
+      discountAmount: parseFloat(ormEntity.discountAmount.toString()),
+      totalAmount: parseFloat(ormEntity.totalAmount.toString()),
+      notes: ormEntity.notes,
+      createdAt: ormEntity.createdAt,
+      updatedAt: ormEntity.updatedAt
+    });
   }
-
   private toOrmEntity(domainEntity: Partial<OrderDomainEntity>): OrderOrmEntity {
     const ormEntity = new OrderOrmEntity();
 
@@ -239,7 +238,7 @@ export class PostgresOrderRepository extends DomainOrderRepository {
         orderItem.productId = item.productId;
         orderItem.name = item.name;
         orderItem.quantity = item.quantity;
-        orderItem.unitPrice = item.unitPrice;
+        orderItem.price = item.price;
         orderItem.totalPrice = item.totalPrice;
         orderItem.imageUrl = item.imageUrl || '';
         return orderItem;

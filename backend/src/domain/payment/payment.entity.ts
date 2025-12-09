@@ -21,7 +21,7 @@ export class PaymentDomainEntity implements PaymentModel {
   public transactionId?: string;
   public cardDetails?: PaymentCardDetails;
   public cryptoDetails?: PaymentCryptoDetails;
-  public providerResponse?: Record<string, any>;
+  public providerResponse?: Record<string, unknown>;
   public refundedAmount?: number;
   public failureReason?: string;
   public paidAt?: Date;
@@ -41,7 +41,7 @@ export class PaymentDomainEntity implements PaymentModel {
     transactionId?: string,
     cardDetails?: PaymentCardDetails,
     cryptoDetails?: PaymentCryptoDetails,
-    providerResponse?: Record<string, any>,
+    providerResponse?: Record<string, unknown>,
     refundedAmount?: number,
     failureReason?: string,
     paidAt?: Date,
@@ -98,7 +98,7 @@ export class PaymentDomainEntity implements PaymentModel {
     this.updatedAt = new Date();
   }
 
-  markAsPaid(transactionId: string, providerResponse?: Record<string, any>): void {
+  markAsPaid(transactionId: string, providerResponse?: Record<string, unknown>): void {
     if (this.status !== PAYMENT_STATUS.PENDING && this.status !== PAYMENT_STATUS.PROCESSING) {
       throw new Error(`Cannot mark as paid payment with status: ${this.status}`);
     }
@@ -110,7 +110,7 @@ export class PaymentDomainEntity implements PaymentModel {
     this.updatedAt = new Date();
   }
 
-  markAsFailed(failureReason?: string, providerResponse?: Record<string, any>): void {
+  markAsFailed(failureReason?: string, providerResponse?: Record<string, unknown>): void {
     if (this.status === PAYMENT_STATUS.PAID || this.status === PAYMENT_STATUS.REFUNDED) {
       throw new Error(`Cannot mark as failed payment with status: ${this.status}`);
     }

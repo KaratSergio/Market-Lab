@@ -27,5 +27,9 @@ export abstract class OrderRepository implements
     totalRevenue: number;
     averageOrderValue: number;
     pendingOrders: number;
+    completedOrders?: number;
+    cancelledOrders?: number;
+    refundedOrders?: number;
+    [key: string]: number | undefined;
   }>;
 }

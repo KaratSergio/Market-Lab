@@ -13,7 +13,7 @@ export class CartItem implements CartItemModel {
     public quantity: number,
     public price: number,
     public discount: number = 0,
-    public name?: string,
+    public name: string,
     public imageUrl?: string
   ) { }
 
@@ -90,7 +90,7 @@ export class CartDomainEntity implements CartModel {
     );
   }
 
-  addItem(productId: string, quantity: number, price: number, name?: string, imageUrl?: string): void {
+  addItem(productId: string, quantity: number, price: number, name: string, imageUrl?: string): void {
     const existingItem = this.items.find(item => item.productId === productId);
 
     if (existingItem) {

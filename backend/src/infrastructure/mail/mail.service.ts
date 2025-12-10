@@ -32,19 +32,6 @@ export class MailService {
         body: JSON.stringify(body),
       });
 
-
-
-      const responseText = await res.text();
-      console.log('[MailService] Full Brevo Response:', {
-        status: res.status,
-        statusText: res.statusText,
-        body: responseText
-      });
-
-
-
-
-
       if (!res.ok) {
         const errorText = await res.text();
         console.error('[MailService] Failed to send email:', errorText);
@@ -52,10 +39,6 @@ export class MailService {
       }
 
       console.log(`[MailService] Email sent to ${to}`);
-
-      // Если статус 200/201, распарсите JSON ответа
-      const result = JSON.parse(responseText);
-      console.log('[MailService] Brevo Message ID:', result.messageId);
     } catch (err) {
       console.error('[MailService] Error:', err);
       throw err;

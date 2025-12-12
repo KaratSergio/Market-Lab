@@ -2,10 +2,14 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+// Script initial first user (super admin)
 import { SuperAdminInitializerService } from './system/scripts/super-admin-initializer.service';
 
 // System Modules
 import { DatabaseModule } from '@system/database.module';
+
+// OAuth google config
+import googleOAuthConfig from '@infrastructure/oauth/google/google-oauth.config';
 
 // Feature Modules
 import { AuthModule } from '@auth/auth.module';
@@ -29,7 +33,10 @@ import { PaymentOrmEntity } from '@infrastructure/database/postgres/payment/paym
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [googleOAuthConfig],
+    }),
 
     // Database
     DatabaseModule,

@@ -35,6 +35,16 @@ export class UserOrmEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  // Google OAuth
+  @Column({ nullable: true, unique: true, type: 'varchar' })
+  googleId: string | null;
+
+  @Column({ nullable: true, type: 'varchar' })
+  googleAccessToken: string | null;
+
+  @Column({ nullable: true, type: 'varchar' })
+  googleRefreshToken: string | null;
+
   // relation with profiles
   @OneToOne(() => CustomerProfileOrmEntity, customer => customer.user)
   customerProfile: CustomerProfileOrmEntity;

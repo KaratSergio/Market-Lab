@@ -1,5 +1,20 @@
-import { RegisterDto, RegisterInitialDto, RegCompleteDto, RegSupplierProfileDto, RegCustomerProfileDto } from './types';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  RegisterDto,
+  RegisterInitialDto,
+  RegCompleteDto,
+  RegSupplierProfileDto,
+  RegCustomerProfileDto,
+  GoogleAuthDto
+} from './types';
+
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException
+} from '@nestjs/common';
+
 import { EncryptService } from './encrypt/encrypt.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +27,8 @@ import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/supp
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from './tokens/token.service';
 import { MailService } from '@infrastructure/mail/mail.service';
+import { GoogleOAuthService } from '@infrastructure/oauth/google/google-oauth.service';
+
 
 @Injectable()
 export class AuthService {
@@ -23,6 +40,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly tokenService: TokenService,
     private readonly config: ConfigService,
+    private readonly googleOAuthService: GoogleOAuthService,
 
     @InjectRepository(UserOrmEntity)
     private readonly userRepo: Repository<UserOrmEntity>,
@@ -38,29 +56,30 @@ export class AuthService {
 
   // INITIAL REGISTRATION (for all types)
   async registerInitial(dto: RegisterInitialDto) {
-    const { email, password, googleId, facebookId } = dto;
+    const { email, password, googleId } = dto;
 
     const exists = await this.userRepo.findOne({ where: { email } });
-    if (exists) throw new ConflictException('Email already registered');
+    if (exists) {
+      if (googleId && exists.googleId === googleId) return this._authResponse(exists);
+      throw new ConflictException('Email already registered');
+    }
 
-    // hash the password if there is one (for regular registration)
+    // Hash password if provided
     let passwordHash = null;
     if (password) passwordHash = await this.encrypt.hash(password);
 
     const user = this.userRepo.create({
       email,
       password: passwordHash,
+      googleId: googleId || null,
       roles: [],
-      regComplete: false, // incomplete registration flag
-      emailVerified: googleId ? true : false, // verify for Google immediately
-      // Save the OAuth ID if it exists
-      ...(googleId && { googleId }),
-      ...(facebookId && { facebookId }),
+      regComplete: false,
+      emailVerified: googleId ? true : false,
     });
 
     const savedUser = await this.userRepo.save(user);
 
-    // send a verification email if not through Google
+    // Send verification email only for non-Google registration
     if (!googleId) {
       const token = await this.tokenService.createToken(user.id, 'email_verification', 24);
       const verificationLink = `${this.frontendUrl}/auth/verify-email?token=${token}`;
@@ -68,7 +87,6 @@ export class AuthService {
       this.mailService.sendVerificationEmail(email, verificationLink)
         .catch(err => console.error('Failed to send verification email:', err));
     }
-
 
     return this._authResponse(savedUser);
   }
@@ -316,5 +334,140 @@ export class AuthService {
     if (!user) throw new NotFoundException('User not found');
 
     return { verified: user.emailVerified };
+  }
+
+  // GOOGLE AUTH METHODS
+  // Get Google OAuth URL for frontend
+  async getGoogleAuthUrl(): Promise<{ url: string }> {
+    try {
+      const url = this.googleOAuthService.getAuthUrl();
+      return { url };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to generate Google auth URL');
+    }
+  }
+
+  // Handle Google OAuth callback with authorization code
+  async handleGoogleCallback(code: string) {
+    try {
+      // Exchange code for tokens
+      const tokens = await this.googleOAuthService.getTokens(code);
+
+      // Verify ID token and get user info
+      const googleUser = await this.googleOAuthService.verifyIdToken(tokens.idToken);
+
+      // Find existing user by Google ID or email
+      let user = await this.userRepo.findOne({
+        where: [
+          { googleId: googleUser.id },
+          { email: googleUser.email }
+        ]
+      });
+
+      if (!user) {
+        // Create new user for Google registration
+        user = this.userRepo.create({
+          email: googleUser.email,
+          googleId: googleUser.id,
+          emailVerified: googleUser.verified_email,
+          roles: [],
+          regComplete: false,
+          password: null,
+        });
+      } else {
+        // Update Google ID if missing
+        if (!user.googleId) user.googleId = googleUser.id;
+      }
+
+      const savedUser = await this.userRepo.save(user);
+
+      return this._authResponse(savedUser);
+    } catch (error) {
+      throw new BadRequestException(`Google authentication failed: ${error.message}`);
+    }
+  }
+
+  // Authenticate with Google using ID token
+  async authWithGoogle(dto: GoogleAuthDto) {
+    const { idToken } = dto;
+
+    try {
+      // Verify Google ID token
+      const googleUser = await this.googleOAuthService.verifyIdToken(idToken);
+
+      // Find existing user
+      let user = await this.userRepo.findOne({
+        where: [
+          { googleId: googleUser.id },
+          { email: googleUser.email }
+        ]
+      });
+
+      if (!user) {
+        // Create new user
+        user = this.userRepo.create({
+          email: googleUser.email,
+          googleId: googleUser.id,
+          emailVerified: googleUser.verified_email,
+          roles: [],
+          regComplete: false,
+          password: null,
+        });
+      }
+
+      const savedUser = await this.userRepo.save(user);
+
+      return this._authResponse(savedUser);
+    } catch (error) {
+      throw new BadRequestException(`Google authentication failed: ${error.message}`);
+    }
+  }
+
+  // Link Google account to existing user
+  async linkGoogleAccount(userId: string, dto: GoogleAuthDto) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.googleId) throw new BadRequestException('Google account already linked');
+
+    const googleUser = await this.googleOAuthService.verifyIdToken(dto.idToken);
+
+    // Check if Google account is already linked to another user
+    const existingUser = await this.userRepo.findOne({
+      where: { googleId: googleUser.id }
+    });
+    if (existingUser) throw new ConflictException('This Google account is already linked to another user');
+
+    // Link Google account
+    user.googleId = googleUser.id;
+    if (!user.emailVerified && googleUser.verified_email) {
+      user.emailVerified = true;
+    }
+
+    await this.userRepo.save(user);
+
+    return {
+      success: true,
+      message: 'Google account linked successfully'
+    };
+  }
+
+  // Unlink Google account
+  async unlinkGoogleAccount(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.googleId) throw new BadRequestException('Google account not linked');
+    if (!user.password) throw new BadRequestException('Cannot unlink Google account. Please set a password first');
+
+    user.googleId = null;
+    await this.userRepo.save(user);
+
+    return {
+      success: true,
+      message: 'Google account unlinked successfully'
+    };
+  }
+
+  async findByGoogleId(googleId: string): Promise<UserOrmEntity | null> {
+    return this.userRepo.findOne({ where: { googleId } });
   }
 }

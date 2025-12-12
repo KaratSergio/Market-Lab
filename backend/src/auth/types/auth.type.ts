@@ -36,3 +36,34 @@ export interface AuthRequest extends Request {
   user: SessionUser;
 }
 
+// for OAuth Google
+export interface GoogleAuthDto {
+  idToken: string;
+}
+
+export interface GoogleCallbackDto {
+  code: string;
+}
+
+export interface GoogleAuthResponse {
+  access_token: string;
+  user: {
+    id: string;
+    email: string;
+    roles: string[];
+    status: string;
+    emailVerified: boolean;
+    regComplete: boolean;
+    lastLoginAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    googleId: string | null;
+    googleAccessToken: string | null;
+    googleRefreshToken: string | null;
+  };
+}
+
+export interface GoogleLinkResponse {
+  success: boolean;
+  message: string;
+}

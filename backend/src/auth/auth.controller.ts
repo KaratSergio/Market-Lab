@@ -1,5 +1,28 @@
-import { Controller, Post, Body, HttpCode, Req, Res, UseGuards, Get, UnauthorizedException, Query } from '@nestjs/common';
-import type { RegisterDto, RegisterInitialDto, RegCompleteDto, RegSupplierProfileDto, AuthRequest, Response } from './types';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  Req,
+  Res,
+  UseGuards,
+  Get,
+  UnauthorizedException,
+  Query,
+  Redirect
+} from '@nestjs/common';
+
+import type {
+  RegisterDto,
+  RegisterInitialDto,
+  RegCompleteDto,
+  RegSupplierProfileDto,
+  AuthRequest,
+  Response,
+  GoogleAuthDto,
+  GoogleCallbackDto
+} from './types';
+
 import { AuthService } from './auth.service';
 import { AuthLocalGuard } from './guard/auth-local.guard';
 import { AuthJwtGuard } from './guard/auth-jwt.guard';
@@ -21,7 +44,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
     return result;
@@ -178,5 +201,70 @@ export class AuthController {
 
     await this.auth.sendVerificationEmail(user.email);
     return { message: 'Verification email sent' };
+  }
+
+  // OAuth GOOGLE
+  // Get Google OAuth URL for frontend redirection
+  @Get('google/url')
+  async getGoogleAuthUrl() {
+    return this.auth.getGoogleAuthUrl();
+  }
+
+  //Handle Google OAuth callback (server-side flow)
+  //Frontend redirects to this endpoint with code
+  @Get('google/callback')
+  @HttpCode(200)
+  async googleCallbackFrontend(
+    @Query('code') code: string,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const result = await this.auth.handleGoogleCallback(code);
+
+    res.cookie('authToken', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    return result;
+  }
+
+  // Authenticate with Google ID token (for mobile apps)
+  @Post('google')
+  @HttpCode(200)
+  async googleAuth(
+    @Body() dto: GoogleAuthDto,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const result = await this.auth.authWithGoogle(dto);
+
+    res.cookie('authToken', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    return result;
+  }
+
+  // Link Google account to existing user
+  @UseGuards(AuthJwtGuard)
+  @Post('google/link')
+  async linkGoogleAccount(
+    @Req() req: AuthRequest,
+    @Body() dto: GoogleAuthDto
+  ) {
+    if (!req.user) throw new UnauthorizedException();
+    return this.auth.linkGoogleAccount(req.user.id, dto);
+  }
+
+  // Unlink Google account
+  @UseGuards(AuthJwtGuard)
+  @Post('google/unlink')
+  async unlinkGoogleAccount(@Req() req: AuthRequest) {
+    if (!req.user) throw new UnauthorizedException();
+    return this.auth.unlinkGoogleAccount(req.user.id);
   }
 }

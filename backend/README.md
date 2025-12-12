@@ -85,7 +85,16 @@ src/
 │   │           └── supplier.repository.ts # PostgreSQL supplier repository
 │   │
 │   ├── oauth/                             # OAuth providers
+│   │   ├── facebook/                      # Facebook OAuth implementation
+│   │   │
 │   │   └── google/                        # Google OAuth implementation
+│   │       ├── google-oauth.service.ts    # Google OAuth service implementation
+│   │       ├── google-oauth.module.ts     # NestJS module for Google OAuth
+│   │       ├── google-oauth.config.ts     # Configuration for Google OAuth
+│   │       ├── google-user.mapper.ts      # Mapper: Google user ↔ Domain user
+│   │       ├── google-user.type.ts        # TypeScript types for Google OAuth
+│   │       └── google-oauth.controller.ts # Test controller for Google OAuth
+│   │
 │   └── redis/                             # Redis implementations
 │       └── redis-cache.service.ts         # Redis cache service
 │

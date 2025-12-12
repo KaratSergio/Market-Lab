@@ -15,7 +15,7 @@ import { TokensModule } from './tokens/tokens.module';
 
 // Infrastructure modules
 import { MailModule } from '@infrastructure/mail/mail.module';
-import { GoogleOAuthModule } from '@infrastructure/oauth/google-oauth.module';
+import { GoogleOAuthModule } from '@infrastructure/oauth/google/google-oauth.module';
 
 // Infrastructure entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
@@ -24,7 +24,7 @@ import { CustomerProfileOrmEntity } from '@infrastructure/database/postgres/cust
 import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
 
 //! Test Controller
-import { TestOAuthController } from '@infrastructure/oauth/test-oauth.controller';
+import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.controller';
 
 @Module({
   imports: [

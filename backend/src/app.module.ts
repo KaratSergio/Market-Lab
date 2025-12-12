@@ -9,7 +9,7 @@ import { SuperAdminInitializerService } from './system/scripts/super-admin-initi
 import { DatabaseModule } from '@system/database.module';
 
 // OAuth google config
-import googleOAuthConfig from '@infrastructure/oauth/google-oauth.config';
+import googleOAuthConfig from '@infrastructure/oauth/google/google-oauth.config';
 
 // Feature Modules
 import { AuthModule } from '@auth/auth.module';

@@ -25,6 +25,4 @@ export interface UserModel extends Entity {
   emailVerified: boolean;
   regComplete: boolean;
   lastLoginAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
 }

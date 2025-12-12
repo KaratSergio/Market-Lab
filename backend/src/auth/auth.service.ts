@@ -27,7 +27,7 @@ import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/supp
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from './tokens/token.service';
 import { MailService } from '@infrastructure/mail/mail.service';
-import { GoogleOAuthService, GoogleUserInfo } from '@infrastructure/oauth/google-oauth.service';
+import { GoogleOAuthService } from '@infrastructure/oauth/google/google-oauth.service';
 
 
 @Injectable()

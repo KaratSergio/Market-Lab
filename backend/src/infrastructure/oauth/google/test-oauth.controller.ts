@@ -8,22 +8,26 @@ export class TestOAuthController {
 
   @Get('google-setup')
   async testGoogleSetup() {
-    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
-    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI');
+    const googleConfig = this.configService.get('googleOAuth');
+    const clientId = googleConfig.clientId;
+    const redirectUri = googleConfig.redirectUri;
 
     return {
       status: 'Google OAuth Test',
+      configSource: 'FROM googleOAuth CONFIG FILE',
       hasClientId: !!clientId,
       clientIdLength: clientId?.length || 0,
       redirectUri,
+      frontendRedirectUri: googleConfig.frontendRedirectUri,
       nextSteps: [
-        '1. Check if GOOGLE_CLIENT_ID is set',
-        '2. Check if GOOGLE_CLIENT_SECRET is set',
+        '1. Config loaded from google-oauth.config.ts',
+        '2. Check if GOOGLE_CLIENT_ID is set in .env',
         '3. Verify redirect URI matches Google Cloud Console',
         '4. Test endpoint: GET /auth/google/url'
       ]
     };
   }
+
 
   @Get('simulate-callback')
   simulateCallback(@Res() res: Response, @Query('code') code: string) {

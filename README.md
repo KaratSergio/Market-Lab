@@ -4,12 +4,46 @@
 ---
 
 ## **Tech Stack**
+```
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│   Frontend      │────▶    Backend API    ────▶ │   PostgreSQL    │
+│   Next.js 14    │          NestJS               │   Database      │
+│   (React)       │◀────   (TypeScript)    ◀──── │                 │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+         │                        │                        │
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌───────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Google OAuth    │     │   Redis Cache   │     │   TypeORM       │
+│   Authentication  │     │   (Optional)    │     │   Migrations    │
+└───────────────────┘     └─────────────────┘     └─────────────────┘
+```
 
-### Backend
+User → Frontend → Backend API → Database → Backend API → Frontend → User
 
-
-### Frontend
-
+```
+📁 MARKET-LAB/
+├── 📁 frontend/ (Next.js)
+│ ├── 📁 src/
+│ │ ├── 📁 app/           # App Router (pages)
+│ │ ├── 📁 components/    # React components
+│ │ ├── 📁 core/          # Business logic
+│ │ └── 📁 shared/        # Resources
+│ └── 📁 public/          # Statics
+│
+├── 📁 backend/ (NestJS)
+│ ├── 📁 src/
+│ │ ├── 📁 auth/             # Authentication
+│ │ ├── 📁 domain/           # Domain logic
+│ │ ├── 📁 infrastructure/   # Infrastructure
+│ │ ├── 📁 module/           # Functional modules
+│ │ ├── 📁 controller/       # API Controllers 
+│ │ ├── 📁 system/           # System modules
+│ │ └── 📁 shared/           # Sleeping utilities
+│ └── 📁 migrations/         # Migrations DB
+│
+└── 📁 docker/               # Docker configuration
+```
 
 ---
 
@@ -76,3 +110,5 @@ Project
 
 - **404** returned if a quiz is not found
 - Validation errors return **meaningful messages** to the client
+
+

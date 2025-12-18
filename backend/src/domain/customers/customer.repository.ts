@@ -1,4 +1,4 @@
-import { BaseRepository, QueryableRepository } from '@shared/interfaces/repository.interface';
+import { BaseRepository, QueryableRepository } from '@shared/types/repository.interface';
 import { CustomerDomainEntity } from './customer.entity';
 
 export abstract class CustomerRepository implements

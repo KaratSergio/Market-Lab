@@ -2,11 +2,17 @@ import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { AuthService } from '../auth.service';
-import { SessionUser, Role } from '../types';
+import { PermissionsService } from '../permissions/permissions.service';
+import { Role } from '@shared/types';
+import { SessionUser } from '../types';
+
 
 @Injectable()
 export class AuthLocalStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly permissionsService: PermissionsService,
+  ) {
     super({
       usernameField: 'email',
       passwordField: 'password'
@@ -21,13 +27,14 @@ export class AuthLocalStrategy extends PassportStrategy(Strategy) {
     if (user.status !== 'active') throw new ForbiddenException('Account is not active');
 
     const roles = user.roles as Role[];
+    const permissions = this.permissionsService.getPermissionsByRoles(roles);
     let name: string | undefined;
 
-    if (roles.includes('customer') && user.customerProfile) {
+    if (roles.includes(Role.CUSTOMER) && user.customerProfile) {
       name = `${user.customerProfile.firstName} ${user.customerProfile.lastName}`.trim();
-    } else if (roles.includes('supplier') && user.supplierProfile) {
+    } else if (roles.includes(Role.SUPPLIER) && user.supplierProfile) {
       name = user.supplierProfile.companyName;
-    } else if (roles.includes('admin')) {
+    } else if (roles.includes(Role.ADMIN)) {
       name = 'Administrator';
     }
 
@@ -40,6 +47,7 @@ export class AuthLocalStrategy extends PassportStrategy(Strategy) {
       roles: roles,
       name: name,
       regComplete: user.regComplete,
+      permissions: permissions,
     };
   }
 }

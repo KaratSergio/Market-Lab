@@ -1,10 +1,11 @@
 // Use only within the domain, internal typing..
-import { Entity } from '@shared/interfaces/entity.interface';
+import { Entity } from '@shared/types/entity.interface';
+import { Role } from '@shared/types';
 
 export const USER_ROLES = {
-  CUSTOMER: 'customer',
-  SUPPLIER: 'supplier',
-  ADMIN: 'admin',
+  CUSTOMER: Role.CUSTOMER,
+  SUPPLIER: Role.SUPPLIER,
+  ADMIN: Role.ADMIN,
 } as const;
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];

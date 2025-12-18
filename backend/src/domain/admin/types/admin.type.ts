@@ -1,5 +1,5 @@
 // Use only within the domain, internal typing..
-import { Entity } from '@shared/interfaces/entity.interface';
+import { Entity } from '@shared/types/entity.interface';
 
 export const ADMIN_ROLES = {
   SUPER_ADMIN: 'super_admin',

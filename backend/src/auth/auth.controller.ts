@@ -20,7 +20,6 @@ import type {
   AuthRequest,
   Response,
   GoogleAuthDto,
-  GoogleCallbackDto
 } from './types';
 
 import { AuthService } from './auth.service';

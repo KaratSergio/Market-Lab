@@ -13,6 +13,11 @@ import { AuthJwtStrategy } from './strategy/auth-jwt.strategy';
 import { EncryptModule } from './encrypt/encrypt.module';
 import { TokensModule } from './tokens/token.module';
 
+// Permissions
+import { PermissionsService } from './permissions/permissions.service';
+import { RolesGuard } from './guard/roles.guard';
+import { PermissionsGuard } from './guard/permissions.guard';
+
 // Infrastructure modules
 import { MailModule } from '@infrastructure/mail/mail.module';
 import { GoogleOAuthModule } from '@infrastructure/oauth/google/google-oauth.module';
@@ -51,6 +56,9 @@ import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.con
     AuthService,
     AuthLocalStrategy,
     AuthJwtStrategy,
+    PermissionsService,
+    RolesGuard,
+    PermissionsGuard,
   ],
   controllers: [AuthController, TestOAuthController],
   exports: [AuthService],

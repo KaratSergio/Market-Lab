@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthService } from '@auth/auth.service';
 import { ADMIN_ROLES } from '@domain/admin/types';
+import { Role } from '@shared/types';
 
 import { AdminOrmEntity } from '@infrastructure/database/postgres/admin/admin.entity';
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
@@ -43,7 +44,7 @@ export class SuperAdminInitService {
       const { user } = await this.authService.register({
         email: SUPER_ADMIN_EMAIL,
         password: TEMP_PASSWORD,
-        role: 'admin',
+        role: Role.ADMIN,
         profile: {
           firstName: 'System',
           lastName: 'Super Admin',

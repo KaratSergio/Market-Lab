@@ -6,6 +6,12 @@ export enum Permission {
   PRODUCT_DELETE = 'product:delete',
   PRODUCT_PURCHASE = 'product:purchase',
 
+  // Customer permissions
+  CUSTOMER_READ = 'customer:read',
+  CUSTOMER_UPDATE = 'customer:update',
+  CUSTOMER_DELETE = 'customer:delete',
+  CUSTOMER_MANAGE = 'customer:manage',
+
   // Admin permissions
   ADMIN_ACCESS = 'admin:access',
 

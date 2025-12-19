@@ -10,7 +10,14 @@ export class PermissionsService {
       Permission.PRODUCT_UPDATE,
       Permission.PRODUCT_DELETE,
       Permission.PRODUCT_PURCHASE,
+
+      Permission.CUSTOMER_READ,
+      Permission.CUSTOMER_UPDATE,
+      Permission.CUSTOMER_DELETE,
+      Permission.CUSTOMER_MANAGE,
+
       Permission.ADMIN_ACCESS,
+
       Permission.USER_MANAGE
     ],
     [Role.SUPPLIER]: [
@@ -19,10 +26,14 @@ export class PermissionsService {
       Permission.PRODUCT_UPDATE,
       Permission.PRODUCT_DELETE,
       Permission.PRODUCT_PURCHASE,
+      Permission.CUSTOMER_READ, // Suppliers can see customers (clients)
     ],
     [Role.CUSTOMER]: [
       Permission.PRODUCT_READ,
-      Permission.PRODUCT_PURCHASE
+      Permission.PRODUCT_PURCHASE,
+      Permission.CUSTOMER_READ,
+      Permission.CUSTOMER_UPDATE,
+      Permission.CUSTOMER_DELETE,
     ],
     [Role.GUEST]: [
       Permission.PRODUCT_READ

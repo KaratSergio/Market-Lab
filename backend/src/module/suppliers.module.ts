@@ -9,6 +9,7 @@ import { SuppliersController } from '../controller/suppliers.controller';
   imports: [TypeOrmModule.forFeature([SupplierProfileOrmEntity])],
   controllers: [SuppliersController],
   providers: [
+    SupplierService,
     {
       provide: 'SupplierRepository',
       useClass: PostgresSupplierRepository,

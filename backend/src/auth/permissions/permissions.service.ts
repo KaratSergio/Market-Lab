@@ -34,6 +34,9 @@ export class PermissionsService {
 
       Permission.CUSTOMER_VIEW_ORDER_HISTORY,
 
+      Permission.CART_ADMIN_READ,
+      Permission.CART_ADMIN_CLEANUP,
+
       Permission.ADMIN_ACCESS,
 
       Permission.USER_MANAGE
@@ -75,6 +78,14 @@ export class PermissionsService {
       Permission.CUSTOMER_MESSAGE_SUPPLIER,
 
       Permission.CUSTOMER_VIEW_ORDER_HISTORY,
+
+      Permission.CART_READ,
+      Permission.CART_ADD_ITEM,
+      Permission.CART_UPDATE_ITEM,
+      Permission.CART_REMOVE_ITEM,
+      Permission.CART_APPLY_DISCOUNT,
+      Permission.CART_CLEAR,
+      Permission.CART_CHECKOUT,
     ],
     [Role.GUEST]: [
       Permission.PRODUCT_READ,

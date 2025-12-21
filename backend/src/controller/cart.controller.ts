@@ -1,23 +1,41 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
-import { AuthJwtGuard } from '@auth/guard/auth-jwt.guard';
+import {
+  Controller,
+  Get, Post, Put, Delete,
+  Body, Param,
+  HttpCode, HttpStatus, Request
+} from '@nestjs/common';
+
+import type {
+  AddItemToCartDto,
+  UpdateCartItemDto,
+  ApplyDiscountDto
+} from '@domain/cart/types';
+
+import {
+  Auth,
+  CustomerOnly,
+} from '../auth/decorators';
+
 import { CartService } from '@domain/cart/cart.service';
-import type { AddItemToCartDto, UpdateCartItemDto, ApplyDiscountDto, } from '@domain/cart/types';
+import type { AuthRequest } from '../auth/types';
+import { Permission, Role } from '@shared/types';
 
 
 @Controller('cart')
-@UseGuards(AuthJwtGuard)
 export class CartController {
   constructor(private readonly cartService: CartService) { }
 
   @Get()
-  async getCart(@Req() req: { user: { id: string } }) {
+  @CustomerOnly()
+  async getCart(@Request() req: AuthRequest) {
     const userId = req.user.id;
     return this.cartService.getOrCreateCart(userId);
   }
 
   @Post('items')
+  @Auth([Role.CUSTOMER], [Permission.CART_ADD_ITEM])
   async addItem(
-    @Req() req: { user: { id: string } },
+    @Request() req: AuthRequest,
     @Body() addItemDto: AddItemToCartDto
   ) {
     const userId = req.user.id;
@@ -25,8 +43,9 @@ export class CartController {
   }
 
   @Put('items/:productId')
+  @Auth([Role.CUSTOMER], [Permission.CART_UPDATE_ITEM])
   async updateItem(
-    @Req() req: { user: { id: string } },
+    @Request() req: AuthRequest,
     @Param('productId') productId: string,
     @Body() updateDto: UpdateCartItemDto,
   ) {
@@ -36,8 +55,9 @@ export class CartController {
 
   @Delete('items/:productId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Auth([Role.CUSTOMER], [Permission.CART_REMOVE_ITEM])
   async removeItem(
-    @Req() req: { user: { id: string } },
+    @Request() req: AuthRequest,
     @Param('productId') productId: string,
   ) {
     const cart = await this.cartService.getCartByUserId(req.user.id);
@@ -45,8 +65,9 @@ export class CartController {
   }
 
   @Post('apply-discount')
+  @Auth([Role.CUSTOMER], [Permission.CART_APPLY_DISCOUNT])
   async applyDiscount(
-    @Req() req: { user: { id: string } },
+    @Request() req: AuthRequest,
     @Body() discountDto: ApplyDiscountDto,
   ) {
     const cart = await this.cartService.getCartByUserId(req.user.id);
@@ -55,26 +76,38 @@ export class CartController {
 
   @Post('clear')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async clearCart(@Req() req: { user: { id: string } }) {
+  @Auth([Role.CUSTOMER], [Permission.CART_CLEAR])
+  async clearCart(@Request() req: AuthRequest) {
     const cart = await this.cartService.getCartByUserId(req.user.id);
     return this.cartService.clearCart(cart.id);
   }
 
   @Post('checkout')
-  async prepareCheckout(@Req() req: { user: { id: string } }) {
+  @Auth([Role.CUSTOMER], [Permission.CART_CHECKOUT])
+  async prepareCheckout(@Request() req: AuthRequest) {
     const cart = await this.cartService.getCartByUserId(req.user.id);
     return this.cartService.markCartAsPendingCheckout(cart.id);
   }
 
   // Admin endpoints
+
   @Get('admin/expired')
+  @Auth([Role.ADMIN], [Permission.CART_ADMIN_READ])
   async getExpiredCarts() {
     return this.cartService.findExpiredCarts();
   }
 
   @Post('admin/cleanup')
   @HttpCode(HttpStatus.OK)
+  @Auth([Role.ADMIN], [Permission.CART_ADMIN_CLEANUP])
   async cleanupExpiredCarts() {
     return this.cartService.cleanupExpiredCarts();
+  }
+
+  @Get('supplier/activity')
+  @Auth([Role.SUPPLIER])
+  async getSupplierCartActivity(@Request() req: AuthRequest) {
+    // Returns statistics: how many products from the supplier are in active carts
+    return this.cartService.getSupplierCartStats(req.user.id);
   }
 }

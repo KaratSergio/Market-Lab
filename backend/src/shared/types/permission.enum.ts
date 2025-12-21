@@ -34,6 +34,19 @@ export enum Permission {
   // Order-related
   CUSTOMER_VIEW_ORDER_HISTORY = 'customer:view-order-history',
 
+  // Cart permissions
+  CART_READ = 'cart:read',
+  CART_ADD_ITEM = 'cart:add-item',
+  CART_UPDATE_ITEM = 'cart:update-item',
+  CART_REMOVE_ITEM = 'cart:remove-item',
+  CART_APPLY_DISCOUNT = 'cart:apply-discount',
+  CART_CLEAR = 'cart:clear',
+  CART_CHECKOUT = 'cart:checkout',
+
+  // Admin cart permissions
+  CART_ADMIN_READ = 'cart:admin-read',
+  CART_ADMIN_CLEANUP = 'cart:admin-cleanup',
+
   // Admin permissions
   ADMIN_ACCESS = 'admin:access',
 

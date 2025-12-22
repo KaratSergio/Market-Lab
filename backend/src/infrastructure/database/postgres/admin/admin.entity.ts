@@ -1,7 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
 import { UserOrmEntity } from '../users/user.entity';
-import { ADMIN_ROLES, ADMIN_STATUS } from '@domain/admin/types';
-import type { AdminRole, AdminStatus } from '@domain/admin/types';
+import { ADMIN_STATUS } from '@domain/admin/types';
+import type { AdminStatus } from '@domain/admin/types';
+import { Role } from '@shared/types';
 
 @Entity('admins')
 export class AdminOrmEntity {
@@ -21,11 +22,10 @@ export class AdminOrmEntity {
   phone: string;
 
   @Column({
-    type: 'enum',
-    enum: ADMIN_ROLES,
-    default: ADMIN_ROLES.ADMIN
+    type: 'simple-array',
+    default: Role.ADMIN
   })
-  role: AdminRole;
+  roles: string[];
 
   @Column({
     type: 'enum',
@@ -36,16 +36,6 @@ export class AdminOrmEntity {
 
   @Column({ nullable: true })
   department: string;
-
-  @Column({ type: 'jsonb', default: {} })
-  permissions: {
-    canManageUsers: boolean;
-    canManageProducts: boolean;
-    canManageOrders: boolean;
-    canManageContent: boolean;
-    canViewAnalytics: boolean;
-    canManageSystem: boolean;
-  };
 
   @Column({ nullable: true })
   lastActiveAt: Date;

@@ -74,6 +74,12 @@ export enum Permission {
 
   // Admin permissions
   ADMIN_ACCESS = 'admin:access',
+  ADMIN_DASHBOARD_VIEW = 'admin:dashboard-view',
+  ADMIN_USERS_MANAGE = 'admin:users-manage',
+  ADMIN_SETTINGS_VIEW = 'admin:settings-view',
+  ADMIN_ANALYTICS_VIEW = 'admin:analytics-view',
+  ADMIN_ROLES_MANAGE = 'admin:roles-manage',
+  ADMIN_PERMISSIONS_MANAGE = 'admin:permissions-manage',
 
   // User permissions
   USER_MANAGE = 'user:manage',

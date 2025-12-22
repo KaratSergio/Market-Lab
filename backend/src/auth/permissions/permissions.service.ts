@@ -4,6 +4,18 @@ import { Permission, Role } from '@shared/types';
 @Injectable()
 export class PermissionsService {
   private readonly rolePermissions: Record<Role, Permission[]> = {
+    [Role.SUPER_ADMIN]: [
+      Permission.ADMIN_ACCESS,
+      Permission.ADMIN_DASHBOARD_VIEW,
+      Permission.ADMIN_USERS_MANAGE,
+      Permission.ADMIN_SETTINGS_VIEW,
+      Permission.ADMIN_ANALYTICS_VIEW,
+      Permission.ADMIN_ROLES_MANAGE,
+      Permission.ADMIN_PERMISSIONS_MANAGE,
+
+      // All other permissions
+      ...Object.values(Permission).filter(p => !p.startsWith('admin:'))
+    ],
     [Role.ADMIN]: [
       // Product permissions
       Permission.PRODUCT_READ,
@@ -70,9 +82,41 @@ export class PermissionsService {
 
       // Admin permissions
       Permission.ADMIN_ACCESS,
+      Permission.ADMIN_DASHBOARD_VIEW,
+      Permission.ADMIN_USERS_MANAGE,
+      Permission.ADMIN_SETTINGS_VIEW,
+      Permission.ADMIN_ANALYTICS_VIEW,
+      Permission.ADMIN_ROLES_MANAGE,
+      Permission.ADMIN_PERMISSIONS_MANAGE,
 
       // User permissions
       Permission.USER_MANAGE
+    ],
+    [Role.MODERATOR]: [
+      Permission.ADMIN_ACCESS,
+      Permission.ADMIN_DASHBOARD_VIEW,
+
+      Permission.PRODUCT_READ,
+      Permission.PRODUCT_UPDATE,
+
+      Permission.CUSTOMER_READ,
+
+      Permission.SUPPLIER_READ,
+
+      Permission.ORDER_READ_ALL,
+      Permission.ORDER_UPDATE,
+
+      Permission.PAYMENT_READ,
+
+      Permission.USER_MANAGE
+    ],
+    [Role.SUPPORT]: [
+      Permission.PRODUCT_READ,
+      Permission.CUSTOMER_READ,
+      Permission.ORDER_READ_ALL,
+      Permission.CART_ADMIN_READ,
+      Permission.ADMIN_ACCESS,
+      Permission.ADMIN_DASHBOARD_VIEW,
     ],
     [Role.SUPPLIER]: [
       // Product permissions
@@ -205,5 +249,19 @@ export class PermissionsService {
         perm => perm !== permission
       );
     }
+  }
+
+  /**
+ * Get all available permissions
+ */
+  getAllPermissions(): Permission[] {
+    return Object.values(Permission);
+  }
+
+  /**
+   * Get admin-specific permissions
+   */
+  getAdminPermissions(): Permission[] {
+    return Object.values(Permission).filter(p => p.startsWith('admin:'));
   }
 }

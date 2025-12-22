@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthService } from '@auth/auth.service';
-import { ADMIN_ROLES } from '@domain/admin/types';
 import { Role } from '@shared/types';
 
 import { AdminOrmEntity } from '@infrastructure/database/postgres/admin/admin.entity';
@@ -29,7 +28,6 @@ export class SuperAdminInitService {
     const existingAdmin = await this.adminRepository.findOne({
       where: {
         user: { email: SUPER_ADMIN_EMAIL },
-        role: ADMIN_ROLES.SUPER_ADMIN
       },
       relations: ['user']
     });
@@ -61,23 +59,16 @@ export class SuperAdminInitService {
 
       // Create a record in the admins table
       const admin = this.adminRepository.create({
-        userId: user.id,
+        user: { id: user.id },
         firstName: 'System',
         lastName: 'Super Admin',
         phone: '+0000000000',
-        role: ADMIN_ROLES.SUPER_ADMIN,
+        roles: [Role.SUPER_ADMIN],
         department: 'System Administration',
-        permissions: {
-          canManageUsers: true,
-          canManageProducts: true,
-          canManageOrders: true,
-          canManageContent: true,
-          canViewAnalytics: true,
-          canManageSystem: true,
-        },
       });
 
       await this.adminRepository.save(admin);
+      await this.authService.updateUserRoles(user.id, [Role.SUPER_ADMIN.toString()]);
 
       this.logger.log('✅ Super admin created successfully');
       this.logger.log(`Email: ${SUPER_ADMIN_EMAIL}`);

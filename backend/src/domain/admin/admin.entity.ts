@@ -2,12 +2,10 @@ import {
   CreateAdminDto,
   UpdateAdminDto,
   AdminModel,
-  AdminRole,
   AdminStatus,
-  AdminPermissions,
-  ADMIN_ROLES,
   ADMIN_STATUS
 } from './types';
+import { Role } from '@shared/types';
 
 
 export class AdminDomainEntity implements AdminModel {
@@ -16,9 +14,8 @@ export class AdminDomainEntity implements AdminModel {
   public firstName: string;
   public lastName: string;
   public phone: string;
-  public role: AdminRole;
+  public roles: Role[];
   public status: AdminStatus;
-  public permissions: AdminPermissions;
   public department?: string;
   public lastActiveAt?: Date;
   public createdAt: Date;
@@ -30,9 +27,8 @@ export class AdminDomainEntity implements AdminModel {
     firstName: string,
     lastName: string,
     phone: string,
-    role: AdminRole = ADMIN_ROLES.ADMIN,
+    roles: Role[] = [Role.ADMIN],
     status: AdminStatus = ADMIN_STATUS.ACTIVE,
-    permissions: AdminPermissions = AdminDomainEntity.getDefaultPermissions(role),
     department?: string,
     lastActiveAt?: Date,
     createdAt: Date = new Date(),
@@ -43,9 +39,8 @@ export class AdminDomainEntity implements AdminModel {
     this.firstName = firstName;
     this.lastName = lastName;
     this.phone = phone;
-    this.role = role;
+    this.roles = roles;
     this.status = status;
-    this.permissions = permissions;
     this.department = department;
     this.lastActiveAt = lastActiveAt;
     this.createdAt = createdAt;
@@ -59,81 +54,18 @@ export class AdminDomainEntity implements AdminModel {
       createDto.firstName,
       createDto.lastName,
       createDto.phone || '',
-      createDto.role,
+      createDto.roles || [Role.ADMIN],
       ADMIN_STATUS.ACTIVE,
-      AdminDomainEntity.getDefaultPermissions(createDto.role, createDto.permissions),
       createDto.department
     );
-  }
-
-  private static getDefaultPermissions(
-    role: AdminRole,
-    customPermissions?: Partial<AdminPermissions>
-  ): AdminPermissions {
-    const basePermissions: AdminPermissions = {
-      canManageUsers: false,
-      canManageProducts: false,
-      canManageOrders: false,
-      canManageContent: false,
-      canViewAnalytics: false,
-      canManageSystem: false,
-    };
-
-    const rolePermissions: Record<AdminRole, Partial<AdminPermissions>> = {
-      [ADMIN_ROLES.SUPER_ADMIN]: {
-        canManageUsers: true,
-        canManageProducts: true,
-        canManageOrders: true,
-        canManageContent: true,
-        canViewAnalytics: true,
-        canManageSystem: true,
-      },
-      [ADMIN_ROLES.ADMIN]: {
-        canManageUsers: true,
-        canManageProducts: true,
-        canManageOrders: true,
-        canManageContent: true,
-        canViewAnalytics: true,
-        canManageSystem: false,
-      },
-      [ADMIN_ROLES.MODERATOR]: {
-        canManageUsers: false,
-        canManageProducts: true,
-        canManageOrders: true,
-        canManageContent: true,
-        canViewAnalytics: true,
-        canManageSystem: false,
-      },
-      [ADMIN_ROLES.SUPPORT]: {
-        canManageUsers: false,
-        canManageProducts: false,
-        canManageOrders: true,
-        canManageContent: false,
-        canViewAnalytics: false,
-        canManageSystem: false,
-      },
-    };
-
-    return {
-      ...basePermissions,
-      ...rolePermissions[role],
-      ...customPermissions,
-    };
   }
 
   update(updateDto: UpdateAdminDto): void {
     if (updateDto.firstName) this.firstName = updateDto.firstName;
     if (updateDto.lastName) this.lastName = updateDto.lastName;
-    if (updateDto.role) {
-      this.role = updateDto.role;
-      // Updating rights when changing roles
-      this.permissions = AdminDomainEntity.getDefaultPermissions(updateDto.role, this.permissions);
-    }
+    if (updateDto.roles) this.roles = updateDto.roles;
     if (updateDto.status) this.status = updateDto.status;
     if (updateDto.department !== undefined) this.department = updateDto.department;
-    if (updateDto.permissions) {
-      this.permissions = { ...this.permissions, ...updateDto.permissions };
-    }
     if (updateDto.lastActiveAt) this.lastActiveAt = updateDto.lastActiveAt;
 
     this.updatedAt = new Date();
@@ -141,19 +73,15 @@ export class AdminDomainEntity implements AdminModel {
 
   // Role management
   isSuperAdmin(): boolean {
-    return this.role === ADMIN_ROLES.SUPER_ADMIN;
+    return this.hasRole(Role.SUPER_ADMIN);
   }
 
   isAdmin(): boolean {
-    return this.role === ADMIN_ROLES.ADMIN;
+    return this.hasRole(Role.ADMIN);
   }
 
   isModerator(): boolean {
-    return this.role === ADMIN_ROLES.MODERATOR;
-  }
-
-  isSupport(): boolean {
-    return this.role === ADMIN_ROLES.SUPPORT;
+    return this.hasRole(Role.MODERATOR);
   }
 
   // Status management
@@ -172,16 +100,6 @@ export class AdminDomainEntity implements AdminModel {
     this.updatedAt = new Date();
   }
 
-  // Permission methods
-  can(permission: keyof AdminPermissions): boolean {
-    return this.permissions[permission] || this.isSuperAdmin();
-  }
-
-  updatePermissions(permissions: Partial<AdminPermissions>): void {
-    this.permissions = { ...this.permissions, ...permissions };
-    this.updatedAt = new Date();
-  }
-
   // Activity tracking
   recordActivity(): void {
     this.lastActiveAt = new Date();
@@ -192,32 +110,31 @@ export class AdminDomainEntity implements AdminModel {
     return `${this.firstName} ${this.lastName}`;
   }
 
-  // Management permission methods
-  canManageUsers(): boolean {
-    return this.can('canManageUsers');
+  // Role methods
+  hasRole(role: Role): boolean {
+    return this.roles.includes(role);
   }
 
-  canManageProducts(): boolean {
-    return this.can('canManageProducts');
+  addRole(role: Role): void {
+    if (!this.hasRole(role)) {
+      this.roles.push(role);
+      this.updatedAt = new Date();
+    }
   }
 
-  canManageOrders(): boolean {
-    return this.can('canManageOrders');
+  removeRole(role: Role): void {
+    if (this.hasRole(role)) {
+      this.roles = this.roles.filter(r => r !== role);
+      this.updatedAt = new Date();
+    }
   }
 
-  canManageContent(): boolean {
-    return this.can('canManageContent');
-  }
-
-  canViewAnalytics(): boolean {
-    return this.can('canViewAnalytics');
-  }
-
-  canManageSystem(): boolean {
-    return this.can('canManageSystem');
-  }
-
-  canManageAdmins(): boolean {
-    return this.isSuperAdmin() || this.isAdmin();
+  getPrimaryRole(): Role {
+    if (this.hasRole(Role.SUPER_ADMIN)) return Role.SUPER_ADMIN;
+    if (this.hasRole(Role.ADMIN)) return Role.ADMIN;
+    if (this.hasRole(Role.MODERATOR)) return Role.MODERATOR;
+    if (this.hasRole(Role.SUPPLIER)) return Role.SUPPLIER;
+    if (this.hasRole(Role.CUSTOMER)) return Role.CUSTOMER;
+    return Role.GUEST;
   }
 }

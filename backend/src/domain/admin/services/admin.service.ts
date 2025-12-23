@@ -1,13 +1,17 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { AdminDomainEntity } from '@domain/admin/admin.entity';
 import { AdminRepository } from '@domain/admin/admin.repository';
-import { CreateAdminDto, UpdateAdminDto, AdminRole, ADMIN_STATUS } from '../types';
+import { PermissionsService } from '@auth/permissions/permissions.service';
+import { CreateAdminDto, UpdateAdminDto, ADMIN_STATUS } from '../types';
+import { Permission, Role } from '@shared/types';
 
 
 @Injectable()
 export class AdminService {
   constructor(
-    @Inject('AdminRepository') private readonly adminRepository: AdminRepository
+    @Inject('AdminRepository')
+    private readonly adminRepository: AdminRepository,
+    private readonly permissionsService: PermissionsService
   ) { }
 
   async createAdmin(createDto: CreateAdminDto): Promise<AdminDomainEntity> {
@@ -45,24 +49,55 @@ export class AdminService {
     return this.adminRepository.findAll();
   }
 
-  async getAdminsByRole(role: AdminRole): Promise<AdminDomainEntity[]> {
-    return this.adminRepository.findByRole(role);
+  async getAdminsByRole(role: Role): Promise<AdminDomainEntity[]> {
+    const allAdmins = await this.getAllAdmins();
+    return allAdmins.filter(admin => admin.hasRole(role));
   }
 
   async getActiveAdmins(): Promise<AdminDomainEntity[]> {
-    return this.adminRepository.findActiveAdmins();
+    const allAdmins = await this.getAllAdmins();
+    return allAdmins.filter(admin => admin.status === ADMIN_STATUS.ACTIVE);
   }
 
-  async promoteAdmin(id: string, newRole: AdminRole): Promise<AdminDomainEntity> {
-    return this.updateAdmin(id, { role: newRole });
+  async updateAdminRoles(id: string, roles: Role[]): Promise<AdminDomainEntity> {
+    return this.updateAdmin(id, { roles });
+  }
+
+  async addRoleToAdmin(id: string, role: Role): Promise<AdminDomainEntity> {
+    const admin = await this.findAdminById(id);
+
+    if (!admin.hasRole(role)) {
+      admin.addRole(role);
+      const updated = await this.adminRepository.update(id, admin);
+      if (!updated) throw new Error('Failed to add role to admin');
+      return updated;
+    }
+
+    return admin;
+  }
+
+  async removeRoleFromAdmin(id: string, role: Role): Promise<AdminDomainEntity> {
+    const admin = await this.findAdminById(id);
+
+    if (admin.hasRole(role)) {
+      admin.removeRole(role);
+      const updated = await this.adminRepository.update(id, admin);
+      if (!updated) throw new Error('Failed to remove role from admin');
+      return updated;
+    }
+
+    return admin;
   }
 
   async updateAdminPermissions(
     id: string,
-    permissions: Partial<AdminDomainEntity['permissions']>
+    permissions: Permission[]
   ): Promise<AdminDomainEntity> {
     const admin = await this.findAdminById(id);
-    admin.updatePermissions(permissions);
+    // Find roles that cover the requested permissions
+    const newRoles = this._findRolesForPermissions(permissions);
+
+    admin.update({ roles: newRoles });
 
     const updated = await this.adminRepository.update(id, admin);
     if (!updated) throw new Error('Failed to update admin permissions');
@@ -84,10 +119,73 @@ export class AdminService {
 
   async canUserPerformAction(
     userId: string,
-    permission: keyof AdminDomainEntity['permissions']
+    requiredPermission: Permission
   ): Promise<boolean> {
     const admin = await this.findAdminByUserId(userId);
     if (!admin || admin.status !== ADMIN_STATUS.ACTIVE) return false;
-    return admin.can(permission);
+    // Get permissions for admin roles
+    const permissions = this.permissionsService.getPermissionsByRoles(admin.roles);
+    // Check if the required permission exists
+    return this.permissionsService.hasPermission(permissions, requiredPermission);
+  }
+
+  async getAdminWithPermissions(userId: string): Promise<{
+    admin: AdminDomainEntity | null;
+    permissions: Permission[];
+  }> {
+    const admin = await this.findAdminByUserId(userId);
+    if (!admin || admin.status !== ADMIN_STATUS.ACTIVE) {
+      return { admin: null, permissions: [] };
+    }
+
+    const permissions = this.permissionsService.getPermissionsByRoles(admin.roles);
+    return { admin, permissions };
+  }
+
+  async validateAdminAccess(
+    adminId: string,
+    requiredPermissions: Permission[]
+  ): Promise<{ hasAccess: boolean; missingPermissions: Permission[] }> {
+    const { admin, permissions } = await this.getAdminWithPermissions(adminId);
+    if (!admin) return { hasAccess: false, missingPermissions: requiredPermissions };
+
+    const missingPermissions = requiredPermissions.filter(
+      perm => !this.permissionsService.hasPermission(permissions, perm)
+    );
+
+    return {
+      hasAccess: missingPermissions.length === 0,
+      missingPermissions
+    };
+  }
+
+  private _findRolesForPermissions(permissions: Permission[]): Role[] {
+    const allRoles = Object.values(Role);
+    const result: Role[] = [];
+
+    // Search for roles that cover all requested permissions
+    allRoles.forEach(role => {
+      const rolePermissions = this.permissionsService.getPermissionsForRole(role);
+      const hasAllPermissions = permissions.every(perm => rolePermissions.includes(perm));
+      if (hasAllPermissions) result.push(role);
+    });
+
+    // If you haven't found a suitable role, add the ADMIN role
+    if (result.length === 0) result.push(Role.ADMIN);
+
+    return result;
+  }
+
+  // Convenient methods for checking specific rights
+  async canManageUsers(userId: string): Promise<boolean> {
+    return this.canUserPerformAction(userId, Permission.ADMIN_USERS_MANAGE);
+  }
+
+  // async canManageProducts(userId: string): Promise<boolean> {
+  //   return this.canUserPerformAction(userId, Permission.PRODUCT_MANAGE);
+  // }
+
+  async canViewAnalytics(userId: string): Promise<boolean> {
+    return this.canUserPerformAction(userId, Permission.ADMIN_ANALYTICS_VIEW);
   }
 }

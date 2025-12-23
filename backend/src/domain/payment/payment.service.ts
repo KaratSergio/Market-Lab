@@ -1,6 +1,10 @@
-import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
-import { PaymentDomainEntity } from './payment.entity';
-import { PaymentRepository } from './payment.repository';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+  ConflictException
+} from '@nestjs/common';
 
 import {
   CreatePaymentDto,
@@ -9,8 +13,15 @@ import {
   ProviderResponse,
   PaymentStatsDto,
   PaymentWebhookData,
-  PAYMENT_STATUS
+  PAYMENT_STATUS,
+  StripeEvent,
+  PaypalEvent
 } from './types';
+
+import { PaymentDomainEntity } from './payment.entity';
+import { PaymentRepository } from './payment.repository';
+import { PermissionsService } from '@auth/permissions/permissions.service';
+import { Permission } from '@shared/types';
 
 
 @Injectable()
@@ -18,14 +29,22 @@ export class PaymentService {
   constructor(
     @Inject('PaymentRepository')
     private readonly paymentRepository: PaymentRepository,
+    private readonly permissionsService: PermissionsService
   ) { }
 
   async createPayment(createDto: CreatePaymentDto): Promise<PaymentDomainEntity> {
     // Check if a payment already exists for this order.
     const existingPayment = await this.paymentRepository.findByOrderId(createDto.orderId);
 
-    if (existingPayment && existingPayment.isSuccessful()) {
-      throw new ConflictException('Payment already exists and is successful for this order');
+    if (existingPayment) {
+      if (existingPayment.isSuccessful()) {
+        throw new ConflictException('Payment already exists and is successful for this order');
+      }
+
+      // If there is an unfinished payment, check if it belongs to the user
+      if (existingPayment.userId !== createDto.userId) {
+        throw new ConflictException('There is already a pending payment for this order');
+      }
     }
 
     const payment = PaymentDomainEntity.create(createDto);
@@ -42,6 +61,10 @@ export class PaymentService {
     const payment = await this.paymentRepository.findByOrderId(orderId);
     if (!payment) throw new NotFoundException('Payment not found for order');
     return payment;
+  }
+
+  async getAllPayments(): Promise<PaymentDomainEntity[]> {
+    return this.paymentRepository.findAll();
   }
 
   async processPayment(paymentId: string, processDto?: ProcessPaymentDto): Promise<PaymentDomainEntity> {
@@ -89,6 +112,8 @@ export class PaymentService {
     });
 
     if (!updated) throw new NotFoundException('Payment not found after update');
+    // Trigger a successful payment event
+    await this._triggerPaymentSuccessEvent(payment);
     return updated;
   }
 
@@ -114,6 +139,8 @@ export class PaymentService {
     });
 
     if (!updated) throw new NotFoundException('Payment not found after update');
+    // Trigger the failed payment event
+    await this._triggerPaymentFailureEvent(payment, failureReason);
     return updated;
   }
 
@@ -134,6 +161,8 @@ export class PaymentService {
     });
 
     if (!updated) throw new NotFoundException('Payment not found after update');
+    // Trigger the payment cancellation event
+    await this._triggerPaymentCancellationEvent(payment, reason);
     return updated;
   }
 
@@ -165,6 +194,8 @@ export class PaymentService {
     });
 
     if (!updated) throw new NotFoundException('Payment not found after update');
+    // Trigger the chargeback event
+    await this._triggerPaymentRefundEvent(payment, refundAmount, refundDto.reason);
     return updated;
   }
 
@@ -185,21 +216,83 @@ export class PaymentService {
   }
 
   async handleWebhook(eventData: PaymentWebhookData): Promise<void> {
-    // Обработка webhook от платежных систем
     console.log('Payment webhook received:', eventData);
 
     // Stripe webhook
-    if (eventData.type === 'payment_intent.succeeded' && eventData.data?.object) {
-      const paymentIntent = eventData.data.object as Record<string, unknown>;
-      const transactionId = paymentIntent.id as string;
+    if (eventData.eventType === 'stripe.webhook') {
+      const stripeEvent = eventData.data as StripeEvent;
 
-      if (transactionId) {
-        const payment = await this.paymentRepository.findByTransactionId(transactionId);
+      if (stripeEvent.type === 'payment_intent.succeeded') {
+        const paymentIntent = stripeEvent.data.object as Record<string, unknown>;
+        const transactionId = paymentIntent.id as string;
 
-        if (payment) {
-          await this.markPaymentAsPaid(payment.id, transactionId, paymentIntent);
+        if (transactionId) {
+          const payment = await this.paymentRepository.findByTransactionId(transactionId);
+
+          if (payment) {
+            await this.markPaymentAsPaid(payment.id, transactionId, paymentIntent);
+          }
         }
       }
     }
+
+    // PayPal webhook
+    if (eventData.eventType === 'paypal.webhook') {
+      const paypalEvent = eventData.data as PaypalEvent;
+
+      if (paypalEvent.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+        const capture = paypalEvent.resource as Record<string, unknown>;
+        const transactionId = capture.id as string;
+
+        if (transactionId) {
+          const payment = await this.paymentRepository.findByTransactionId(transactionId);
+
+          if (payment) {
+            await this.markPaymentAsPaid(payment.id, transactionId, capture);
+          }
+        }
+      }
+    }
+  }
+
+  // Helper methods for events
+  private async _triggerPaymentSuccessEvent(payment: PaymentDomainEntity): Promise<void> {
+    //! Здесь будет логика отправки события об успешном платеже
+    console.log(`Payment ${payment.id} succeeded for user ${payment.userId}`);
+    //! Можно интегрировать с EventEmitter или брокером сообщений
+  }
+
+  private async _triggerPaymentFailureEvent(payment: PaymentDomainEntity, reason?: string): Promise<void> {
+    console.log(`Payment ${payment.id} failed for user ${payment.userId}: ${reason}`);
+  }
+
+  private async _triggerPaymentCancellationEvent(payment: PaymentDomainEntity, reason?: string): Promise<void> {
+    console.log(`Payment ${payment.id} cancelled for user ${payment.userId}: ${reason}`);
+  }
+
+  private async _triggerPaymentRefundEvent(
+    payment: PaymentDomainEntity,
+    amount: number,
+    reason?: string
+  ): Promise<void> {
+    console.log(`Payment ${payment.id} refunded for user ${payment.userId}: ${amount} - ${reason}`);
+  }
+
+  // Method for checking payment access rights
+  async checkPaymentAccess(
+    userId: string,
+    userPermissions: Permission[],
+    paymentId: string
+  ): Promise<boolean> {
+    const payment = await this.getPaymentById(paymentId);
+
+    // If the payment belongs to the user
+    if (payment.userId === userId) return true;
+    // If the user has permission to read all payments
+    if (this.permissionsService.hasPermission(userPermissions, Permission.PAYMENT_READ_ALL)) return true;
+    // If the user has permission to manage payments
+    if (this.permissionsService.hasPermission(userPermissions, Permission.PAYMENT_MANAGE)) return true;
+
+    return false;
   }
 }

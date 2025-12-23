@@ -1,14 +1,6 @@
 // Use only within the domain, internal typing..
-import { Entity } from '@shared/interfaces/entity.interface';
-
-export const ADMIN_ROLES = {
-  SUPER_ADMIN: 'super_admin',
-  ADMIN: 'admin',
-  MODERATOR: 'moderator',
-  SUPPORT: 'support',
-} as const;
-
-export type AdminRole = typeof ADMIN_ROLES[keyof typeof ADMIN_ROLES];
+import { Entity } from '@shared/types/entity.interface';
+import { Role } from '@shared/types';
 
 export const ADMIN_STATUS = {
   ACTIVE: 'active',
@@ -18,22 +10,12 @@ export const ADMIN_STATUS = {
 
 export type AdminStatus = typeof ADMIN_STATUS[keyof typeof ADMIN_STATUS];
 
-export interface AdminPermissions {
-  canManageUsers: boolean;
-  canManageProducts: boolean;
-  canManageOrders: boolean;
-  canManageContent: boolean;
-  canViewAnalytics: boolean;
-  canManageSystem: boolean;
-}
-
 export interface AdminModel extends Entity {
   userId: string;
   firstName: string;
   lastName: string;
-  role: AdminRole;
+  roles: Role[];
   status: AdminStatus;
-  permissions: AdminPermissions;
   department?: string;
   lastActiveAt?: Date;
   createdAt: Date;
@@ -42,10 +24,12 @@ export interface AdminModel extends Entity {
 
 // System Stats
 export interface AdminDistribution {
-  [ADMIN_ROLES.SUPER_ADMIN]: number;
-  [ADMIN_ROLES.ADMIN]: number;
-  [ADMIN_ROLES.MODERATOR]: number;
-  [ADMIN_ROLES.SUPPORT]: number;
+  [Role.SUPER_ADMIN]: number;
+  [Role.ADMIN]: number;
+  [Role.MODERATOR]: number;
+  [Role.SUPPLIER]: number;
+  [Role.CUSTOMER]: number;
+  [Role.GUEST]: number;
 }
 
 export interface SystemStats {

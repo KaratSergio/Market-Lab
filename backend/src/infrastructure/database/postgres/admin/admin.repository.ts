@@ -4,7 +4,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AdminRepository as DomainAdminRepository } from '@domain/admin/admin.repository';
 import { AdminDomainEntity } from '@domain/admin/admin.entity';
 import { AdminOrmEntity } from './admin.entity';
-import { AdminRole, AdminStatus, ADMIN_STATUS } from '@domain/admin/types';
+import { AdminStatus, ADMIN_STATUS } from '@domain/admin/types';
+import { Role } from '@shared/types';
+
 
 @Injectable()
 export class PostgresAdminRepository extends DomainAdminRepository {
@@ -40,9 +42,9 @@ export class PostgresAdminRepository extends DomainAdminRepository {
     return ormEntity ? this.toDomainEntity(ormEntity) : null;
   }
 
-  async findByRole(role: AdminRole): Promise<AdminDomainEntity[]> {
+  async findByRole(roles: Role): Promise<AdminDomainEntity[]> {
     const ormEntities = await this.repository.find({
-      where: { role },
+      where: { roles },
       relations: ['user']
     });
     return ormEntities.map(this.toDomainEntity);
@@ -106,7 +108,7 @@ export class PostgresAdminRepository extends DomainAdminRepository {
     if (filter.firstName) queryBuilder.andWhere('admin.firstName = :firstName', { firstName: filter.firstName });
     if (filter.lastName) queryBuilder.andWhere('admin.lastName = :lastName', { lastName: filter.lastName });
     if (filter.phone) queryBuilder.andWhere('admin.phone = :phone', { phone: filter.phone });
-    if (filter.role) queryBuilder.andWhere('admin.role = :role', { role: filter.role });
+    if (filter.roles) queryBuilder.andWhere('admin.role = :role', { role: filter.roles });
     if (filter.status) queryBuilder.andWhere('admin.status = :status', { status: filter.status });
     if (filter.department) queryBuilder.andWhere('admin.department = :department', { department: filter.department });
 
@@ -124,7 +126,7 @@ export class PostgresAdminRepository extends DomainAdminRepository {
     if (filter.firstName) queryBuilder.andWhere('admin.firstName = :firstName', { firstName: filter.firstName });
     if (filter.lastName) queryBuilder.andWhere('admin.lastName = :lastName', { lastName: filter.lastName });
     if (filter.phone) queryBuilder.andWhere('admin.phone = :phone', { phone: filter.phone });
-    if (filter.role) queryBuilder.andWhere('admin.role = :role', { role: filter.role });
+    if (filter.roles) queryBuilder.andWhere(':role = ANY(admin.roles)', { role: filter.roles.toString() });
     if (filter.status) queryBuilder.andWhere('admin.status = :status', { status: filter.status });
     if (filter.department) queryBuilder.andWhere('admin.department = :department', { department: filter.department });
 
@@ -146,15 +148,15 @@ export class PostgresAdminRepository extends DomainAdminRepository {
   }
 
   private toDomainEntity(ormEntity: AdminOrmEntity): AdminDomainEntity {
+    const rolesAsEnum = ormEntity.roles.map(role => role as Role);
     return new AdminDomainEntity(
       ormEntity.id,
       ormEntity.userId,
       ormEntity.firstName,
       ormEntity.lastName,
       ormEntity.phone,
-      ormEntity.role,
+      rolesAsEnum,
       ormEntity.status,
-      ormEntity.permissions,
       ormEntity.department,
       ormEntity.lastActiveAt || undefined,
       ormEntity.createdAt,
@@ -170,9 +172,8 @@ export class PostgresAdminRepository extends DomainAdminRepository {
     if (domainEntity.firstName) ormEntity.firstName = domainEntity.firstName;
     if (domainEntity.lastName) ormEntity.lastName = domainEntity.lastName;
     if (domainEntity.phone) ormEntity.phone = domainEntity.phone;
-    if (domainEntity.role) ormEntity.role = domainEntity.role;
+    if (domainEntity.roles) ormEntity.roles = domainEntity.roles;
     if (domainEntity.status) ormEntity.status = domainEntity.status;
-    if (domainEntity.permissions) ormEntity.permissions = domainEntity.permissions;
     if (domainEntity.department !== undefined) ormEntity.department = domainEntity.department;
     if (domainEntity.lastActiveAt) ormEntity.lastActiveAt = domainEntity.lastActiveAt;
     if (domainEntity.createdAt) ormEntity.createdAt = domainEntity.createdAt;

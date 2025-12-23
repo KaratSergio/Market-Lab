@@ -1,4 +1,4 @@
-import { BaseRepository, QueryableRepository } from '@shared/interfaces/repository.interface';
+import { BaseRepository, QueryableRepository } from '@shared/types/repository.interface';
 import { UserDomainEntity } from './user.entity';
 
 export abstract class UserRepository implements

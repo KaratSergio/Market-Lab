@@ -1,10 +1,4 @@
-export const ROLES = {
-  CUSTOMER: 'customer',
-  SUPPLIER: 'supplier',
-  ADMIN: 'admin'
-} as const;
-
-export type Role = typeof ROLES[keyof typeof ROLES];
+import { Role, Permission } from '@shared/types';
 
 export const AUTH_PROVIDERS = {
   EMAIL: 'email',
@@ -14,22 +8,25 @@ export const AUTH_PROVIDERS = {
 
 export type AuthProvider = typeof AUTH_PROVIDERS[keyof typeof AUTH_PROVIDERS];
 
-export interface UserPayload {
-  id: string;
+export interface JwtPayload {
+  id: string;          // User ID
   email: string;
   roles: Role[];
-  regComplete: boolean;
+  regComplete?: boolean;
+  name?: string;
+  iat?: number;        // issued at
+  exp?: number;        // expiration
 }
 
-export interface SessionUser extends UserPayload {
-  name?: string;
-  permissions?: string[];
+export interface SessionUser extends Omit<JwtPayload, 'id' | 'iat' | 'exp'> {
+  id: string;
+  permissions: Permission[];
 }
 
 export interface ValidateUserResponse {
   success: boolean;
   message?: string;
-  payload?: UserPayload;
+  payload?: Omit<SessionUser, 'permissions'>;
 }
 
 export interface AuthRequest extends Request {

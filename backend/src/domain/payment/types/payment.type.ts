@@ -1,5 +1,5 @@
 // Use only within the domain, internal typing..
-import { Entity } from "@shared/interfaces/entity.interface";
+import { Entity } from "@shared/types/entity.interface";
 
 export const PAYMENT_METHOD = {
   CREDIT_CARD: 'credit_card',

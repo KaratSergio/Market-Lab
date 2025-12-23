@@ -1,3 +1,4 @@
 export * from './auth-jwt.guard';
 export * from './auth-local.guard';
 export * from './roles.guard';
+export * from './permissions.guard'

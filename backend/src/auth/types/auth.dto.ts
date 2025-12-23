@@ -1,7 +1,7 @@
-import { IsEmail, IsString, MinLength, IsIn, ValidateNested, IsOptional, IsObject, IsNotEmpty, IsBoolean } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsEnum, ValidateNested, IsOptional, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ROLES } from './auth.type';
-import type { Role } from './auth.type';
+
+import { Role } from '@shared/types';
 import type { CustomerAddress } from '@domain/customers/types';
 
 
@@ -45,12 +45,12 @@ export class RegisterDto {
   @MinLength(6)
   password: string;
 
-  @IsIn([ROLES.CUSTOMER, ROLES.SUPPLIER])
+  @IsEnum(Role)
   role: Role;
 
   @ValidateNested()
   @Type((obj) =>
-    obj?.object?.role === ROLES.SUPPLIER
+    obj?.object?.role === Role.SUPPLIER
       ? RegSupplierProfileDto
       : RegCustomerProfileDto
   )
@@ -92,12 +92,12 @@ export class RegisterInitialDto {
 }
 
 export class RegCompleteDto {
-  @IsIn([ROLES.CUSTOMER, ROLES.SUPPLIER])
+  @IsEnum(Role)
   role: Role;
 
   @ValidateNested()
   @Type((obj) =>
-    obj?.object?.role === ROLES.SUPPLIER
+    obj?.object?.role === Role.SUPPLIER
       ? RegSupplierProfileDto
       : RegCustomerProfileDto
   )

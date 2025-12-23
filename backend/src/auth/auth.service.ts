@@ -470,4 +470,89 @@ export class AuthService {
   async findByGoogleId(googleId: string): Promise<UserOrmEntity | null> {
     return this.userRepo.findOne({ where: { googleId } });
   }
+
+  async findById(userId: string): Promise<UserOrmEntity | null> {
+    return this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['customerProfile', 'supplierProfile']
+    });
+  }
+
+  async updateUserRoles(userId: string, roles: string[]): Promise<UserOrmEntity> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.roles = [...new Set(roles)];
+    user.updatedAt = new Date();
+
+    return this.userRepo.save(user);
+  }
+
+  async deactivateUser(userId: string): Promise<UserOrmEntity> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.status = 'inactive';
+    user.updatedAt = new Date();
+
+    return this.userRepo.save(user);
+  }
+
+  async getAllUsers(
+    page: number = 1,
+    limit: number = 10,
+    role?: string
+  ): Promise<{ users: UserOrmEntity[]; total: number }> {
+    const queryBuilder = this.userRepo.createQueryBuilder('user');
+
+    if (role) {
+      queryBuilder.where(':role = ANY(user.roles)', { role });
+    }
+
+    const [users, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { users, total };
+  }
+
+  async getUsersByRole(role: string): Promise<UserOrmEntity[]> {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .where(':role = ANY(user.roles)', { role })
+      .getMany();
+  }
+
+  async getAdmins(): Promise<UserOrmEntity[]> {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .where(`user.roles && ARRAY['admin', 'super_admin', 'admin_moderator']::text[]`)
+      .getMany();
+  }
+
+  async updateUserStatus(userId: string, status: string): Promise<UserOrmEntity> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.status = status;
+    user.updatedAt = new Date();
+
+    return this.userRepo.save(user);
+  }
+
+  async isUserAdmin(userId: string): Promise<boolean> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) return false;
+
+    return user.roles.some(role =>
+      ['admin', 'super_admin', 'admin_moderator'].includes(role)
+    );
+  }
 }

@@ -1,7 +1,15 @@
-import { Injectable, Inject, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ConflictException,
+  NotFoundException,
+  ForbiddenException
+} from '@nestjs/common';
+
 import { CustomerDomainEntity } from './customer.entity';
 import { CustomerRepository } from './customer.repository';
-import { CreateCustomerDto, UpdateCustomerDto, CUSTOMER_STATUS } from './types';
+import { CreateCustomerDto, UpdateCustomerDto } from './types';
+import { Role, Permission } from '@shared/types';
 
 
 @Injectable()
@@ -11,19 +19,34 @@ export class CustomerService {
     private readonly customerRepository: CustomerRepository,
   ) { }
 
-  async findAll(): Promise<CustomerDomainEntity[]> {
+  async findAll(userId: string, userRoles: string[]): Promise<CustomerDomainEntity[]> {
+    this._checkCustomerPermission(userRoles, Permission.CUSTOMER_READ, 'view customers');
     return this.customerRepository.findAll();
   }
 
-  async findById(id: string): Promise<CustomerDomainEntity> {
+  async findById(
+    id: string,
+    userId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity> {
     const customer = await this.customerRepository.findById(id);
     if (!customer) throw new NotFoundException('Customer not found');
+
+    this._checkCustomerAccess(customer, userId, userRoles, 'view');
+
     return customer;
   }
 
-  async findByUserId(userId: string): Promise<CustomerDomainEntity> {
+  async findByUserId(
+    userId: string,
+    requestUserId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity> {
     const customer = await this.customerRepository.findByUserId(userId);
     if (!customer) throw new NotFoundException('Customer not found');
+
+    this._checkCustomerAccess(customer, requestUserId, userRoles, 'view');
+
     return customer;
   }
 
@@ -35,14 +58,24 @@ export class CustomerService {
     return this.customerRepository.create(customer);
   }
 
-  async update(id: string, updateDto: UpdateCustomerDto): Promise<CustomerDomainEntity> {
-    const customer = await this.findById(id);
+  async update(
+    id: string,
+    updateDto: UpdateCustomerDto,
+    userId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity> {
+    const customer = await this.customerRepository.findById(id);
+    if (!customer) throw new NotFoundException('Customer not found');
+
+    this._checkCustomerAccess(customer, userId, userRoles, 'update');
+
     customer.update(updateDto);
 
     const updated = await this.customerRepository.update(id, {
       firstName: customer.firstName,
       lastName: customer.lastName,
       phone: customer.phone,
+      birthday: customer.birthday,
       status: customer.status,
       address: customer.address,
       updatedAt: customer.updatedAt
@@ -52,29 +85,113 @@ export class CustomerService {
     return updated;
   }
 
-  async delete(id: string): Promise<void> {
-    const customer = await this.findById(id);
+  async delete(
+    id: string,
+    userId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity> {
+    const customer = await this.customerRepository.findById(id);
+    if (!customer) throw new NotFoundException('Customer not found');
+
+    this._checkCustomerAccess(customer, userId, userRoles, 'delete');
+
     customer.deactivate();
 
-    await this.customerRepository.update(id, {
+    const updated = await this.customerRepository.update(id, {
       status: customer.status,
       updatedAt: customer.updatedAt
     });
+
+    if (!updated) throw new NotFoundException('Customer not found after deactivation');
+    return updated;
   }
 
-  async activate(id: string): Promise<CustomerDomainEntity> {
-    return this.update(id, { status: CUSTOMER_STATUS.ACTIVE });
+  // Activation/deactivation (admin)
+  async activate(
+    id: string,
+    userId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity> {
+    this._checkCustomerPermission(userRoles, Permission.CUSTOMER_MANAGE, 'activate customers');
+
+    const customer = await this.customerRepository.findById(id);
+    if (!customer) throw new NotFoundException('Customer not found');
+
+    customer.activate();
+
+    const updated = await this.customerRepository.update(id, {
+      status: customer.status,
+      updatedAt: customer.updatedAt
+    });
+
+    if (!updated) throw new NotFoundException('Customer not found after activation');
+    return updated;
   }
 
-  async deactivate(id: string): Promise<CustomerDomainEntity> {
-    return this.update(id, { status: CUSTOMER_STATUS.INACTIVE });
+  async deactivate(
+    id: string,
+    userId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity> {
+    this._checkCustomerPermission(userRoles, Permission.CUSTOMER_MANAGE, 'deactivate customers');
+
+    const customer = await this.customerRepository.findById(id);
+    if (!customer) throw new NotFoundException('Customer not found');
+
+    customer.deactivate();
+
+    const updated = await this.customerRepository.update(id, {
+      status: customer.status,
+      updatedAt: customer.updatedAt
+    });
+
+    if (!updated) throw new NotFoundException('Customer not found after deactivation');
+    return updated;
   }
 
-  async findOne(filter: Partial<CustomerDomainEntity>): Promise<CustomerDomainEntity | null> {
+  // Search for customers (admin/supplier)
+  async findOne(
+    filter: Partial<CustomerDomainEntity>,
+    userId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity | null> {
+    this._checkCustomerPermission(userRoles, Permission.CUSTOMER_READ, 'search customers');
     return this.customerRepository.findOne(filter);
   }
 
-  async findMany(filter: Partial<CustomerDomainEntity>): Promise<CustomerDomainEntity[]> {
+  async findMany(
+    filter: Partial<CustomerDomainEntity>,
+    userId: string,
+    userRoles: string[]
+  ): Promise<CustomerDomainEntity[]> {
+    this._checkCustomerPermission(userRoles, Permission.CUSTOMER_READ, 'search customers');
     return this.customerRepository.findMany(filter);
+  }
+
+  //! Helper methods for checking rights
+  private _checkCustomerPermission(
+    userRoles: string[],
+    requiredPermission: Permission,
+    action: string
+  ): void {
+    // Admins have all rights
+    if (userRoles.includes(Role.ADMIN)) return;
+    throw new ForbiddenException(`You don't have permission to ${action}`);
+  }
+
+  private _checkCustomerAccess(
+    customer: CustomerDomainEntity,
+    userId: string,
+    userRoles: string[],
+    action: string
+  ): void {
+    // Admins have all rights
+    if (userRoles.includes(Role.ADMIN)) return;
+    // Suppliers can read customers
+    if (userRoles.includes(Role.SUPPLIER) && action === 'view') return;
+    // Customers can only manage their own profile.
+    if (userRoles.includes(Role.CUSTOMER) && customer.userId === userId) return;
+
+    throw new ForbiddenException(`You don't have permission to ${action} this customer`);
   }
 }

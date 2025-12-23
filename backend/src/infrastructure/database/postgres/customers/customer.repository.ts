@@ -104,11 +104,8 @@ export class PostgresCustomerRepository extends DomainCustomerRepository {
     if (filter.phone) queryBuilder.andWhere('customer.phone = :phone', { phone: filter.phone });
 
     if (filter.birthday !== undefined) {
-      if (filter.birthday === null) {
-        queryBuilder.andWhere('customer.birthday IS NULL');
-      } else {
-        queryBuilder.andWhere('customer.birthday = :birthday', { birthday: filter.birthday });
-      }
+      if (filter.birthday === null) queryBuilder.andWhere('customer.birthday IS NULL');
+      else queryBuilder.andWhere('customer.birthday = :birthday', { birthday: filter.birthday });
     }
 
     if (filter.status) queryBuilder.andWhere('customer.status = :status', { status: filter.status });

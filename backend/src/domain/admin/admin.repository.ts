@@ -1,6 +1,7 @@
-import { BaseRepository, QueryableRepository } from '@shared/interfaces/repository.interface';
+import { BaseRepository, QueryableRepository } from '@shared/types/repository.interface';
 import { AdminDomainEntity } from './admin.entity';
-import { AdminRole, AdminStatus } from './types';
+import { AdminStatus } from './types';
+import { Role } from '@shared/types';
 
 
 export abstract class AdminRepository implements
@@ -20,7 +21,7 @@ export abstract class AdminRepository implements
 
   // Admin-specific methods
   abstract findByUserId(userId: string): Promise<AdminDomainEntity | null>;
-  abstract findByRole(role: AdminRole): Promise<AdminDomainEntity[]>;
+  abstract findByRole(roles: Role): Promise<AdminDomainEntity[]>;
   abstract findByStatus(status: AdminStatus): Promise<AdminDomainEntity[]>;
   abstract findByDepartment(department: string): Promise<AdminDomainEntity[]>;
   abstract findActiveAdmins(): Promise<AdminDomainEntity[]>;

@@ -70,9 +70,26 @@ export interface PaymentStatsDto {
 
 // for webhook data
 export interface PaymentWebhookData {
-  eventType: string;
-  data?: {
-    object?: Record<string, unknown>;
+  eventType: 'stripe.webhook' | 'paypal.webhook' | 'other.webhook';
+  data: StripeEvent | PaypalEvent | Record<string, unknown>;
+  signature?: string;
+  timestamp: number;
+}
+
+// Stripe
+export interface StripeEvent {
+  id: string;
+  type: string;
+  data: {
+    object: Record<string, unknown>;
   };
-  [key: string]: unknown;
+  created: number;
+}
+
+// PayPal
+export interface PaypalEvent {
+  id: string;
+  event_type: string;
+  resource: Record<string, unknown>;
+  create_time: string;
 }

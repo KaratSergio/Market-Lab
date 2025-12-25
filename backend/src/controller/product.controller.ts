@@ -4,7 +4,9 @@ import {
   Param, Body,
   Request, Query,
   ParseUUIDPipe,
-  BadRequestException
+  BadRequestException,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import type {
@@ -22,6 +24,7 @@ import {
   AdminOnly
 } from '../auth/decorators';
 
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductService } from '@domain/products/product.service';
 import type { AuthRequest } from '../auth/types';
 
@@ -70,24 +73,82 @@ export class ProductController {
 
   @Post()
   @SupplierOnly()
+  @UseInterceptors(FilesInterceptor('images', 4)) //! max 4 files
   async create(
     @Body() dto: CreateProductDto,
+    @UploadedFiles() images: Express.Multer.File[],
     @Request() req: AuthRequest
   ) {
     const supplierId = req.user.id;
-    return this.productService.create(dto, supplierId);
+    return this.productService.create(dto, supplierId, images);
   }
 
   @Put(':id')
   @SupplierOrAdmin()
+  @UseInterceptors(FilesInterceptor('newImages', 4))
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductDto,
+    @UploadedFiles() newImages: Express.Multer.File[],
     @Request() req: AuthRequest
   ) {
     const userId = req.user.id;
     const userRoles = req.user.roles;
-    return this.productService.update(id, dto, userId, userRoles);
+    return this.productService.update(id, dto, userId, userRoles, newImages);
+  }
+
+  // Adding images to an existing product
+  @Post(':id/images')
+  @SupplierOrAdmin()
+  @UseInterceptors(FilesInterceptor('images', 10))
+  async addImages(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFiles() images: Express.Multer.File[],
+    @Request() req: AuthRequest
+  ) {
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+
+    const uploadedUrls = await this.productService.addImages(
+      id,
+      userId,
+      userRoles,
+      images
+    );
+
+    return {
+      success: true,
+      urls: uploadedUrls,
+      message: `${uploadedUrls.length} image(s) added successfully`
+    };
+  }
+
+  // Removing an image from a product
+  @Delete(':id/images')
+  @SupplierOrAdmin()
+  async removeImage(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { imageUrl: string },
+    @Request() req: AuthRequest
+  ) {
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+
+    if (!body.imageUrl) {
+      throw new BadRequestException('imageUrl is required');
+    }
+
+    await this.productService.removeImage(
+      id,
+      userId,
+      userRoles,
+      body.imageUrl
+    );
+
+    return {
+      success: true,
+      message: 'Image removed successfully'
+    };
   }
 
   // Only suppliers or admins

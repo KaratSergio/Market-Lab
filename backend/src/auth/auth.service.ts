@@ -28,6 +28,7 @@ import { ConfigService } from '@nestjs/config';
 import { TokenService } from './tokens/token.service';
 import { MailService } from '@infrastructure/mail/mail.service';
 import { GoogleOAuthService } from '@infrastructure/oauth/google/google-oauth.service';
+import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
 
 
 @Injectable()
@@ -41,6 +42,7 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly config: ConfigService,
     private readonly googleOAuthService: GoogleOAuthService,
+    private readonly s3StorageService: S3StorageService,
 
     @InjectRepository(UserOrmEntity)
     private readonly userRepo: Repository<UserOrmEntity>,
@@ -92,7 +94,11 @@ export class AuthService {
   }
 
   // COMPLETION OF REGISTRATION
-  async completeRegistration(userId: string, dto: RegCompleteDto) {
+  async completeRegistration(
+    userId: string,
+    dto: RegCompleteDto,
+    documents?: Express.Multer.File[]
+  ) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
     if (user.regComplete) throw new BadRequestException('Registration already completed');
@@ -121,6 +127,27 @@ export class AuthService {
     if (role === 'supplier') {
       const supplierProfile = profile as RegSupplierProfileDto;
 
+      let documentUrls: string[] = [];
+
+      if (documents && documents.length > 0) {
+        const uploadPromises = documents.map(async (file) => {
+          const result = await this.s3StorageService.uploadSupplierDocument(
+            {
+              buffer: file.buffer,
+              originalname: file.originalname,
+              mimetype: file.mimetype,
+            },
+            supplierProfile.companyName,
+            'registration'
+          );
+          return result.url;
+        });
+
+        documentUrls = await Promise.all(uploadPromises);
+      }
+
+      const allDocuments = [...documentUrls, ...(supplierProfile.documents ?? [])];
+
       const supplier = this.supplierRepo.create({
         user_id: user.id,
         companyName: supplierProfile.companyName,
@@ -128,8 +155,9 @@ export class AuthService {
         address: supplierProfile.address,
         email: user.email,
         phone: supplierProfile.phone || '',
-        documents: supplierProfile.documents ?? [],
+        documents: allDocuments,
       });
+
       await this.supplierRepo.save(supplier);
     }
 

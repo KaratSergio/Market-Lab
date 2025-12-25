@@ -1,20 +1,50 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
-import { PostgresSupplierRepository } from '@infrastructure/database/postgres/suppliers/supplier.repository';
+import { ConfigModule } from '@nestjs/config';
+
+// Domain services
 import { SupplierService } from '@domain/suppliers/supplier.service';
+
+// Controllers
 import { SuppliersController } from '../controller/suppliers.controller';
 
+// Database infrastructure
+import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
+import { PostgresSupplierRepository } from '@infrastructure/database/postgres/suppliers/supplier.repository';
+
+// S3 Storage
+import { S3StorageModule } from '@infrastructure/storage/s3-storage.module';
+import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([SupplierProfileOrmEntity])],
+  imports: [
+    TypeOrmModule.forFeature([SupplierProfileOrmEntity]),
+    ConfigModule.forRoot(),
+    S3StorageModule,
+  ],
   controllers: [SuppliersController],
   providers: [
+    // Main supplier service
     SupplierService,
+
+    // Supplier repository
     {
       provide: 'SupplierRepository',
       useClass: PostgresSupplierRepository,
     },
+
+    // S3 storage via abstract interface
+    {
+      provide: 'FileStorage',
+      useExisting: S3StorageService,
+    },
+
+    // Direct access to the S3 service
+    S3StorageService,
   ],
-  exports: ['SupplierRepository', SupplierService],
+  exports: [
+    SupplierService,
+    S3StorageService,
+  ],
 })
 export class SuppliersModule { }

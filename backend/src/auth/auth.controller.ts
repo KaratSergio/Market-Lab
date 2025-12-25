@@ -2,9 +2,9 @@ import {
   Controller,
   Post, Body,
   HttpCode, Req, Res,
-  UseGuards, Get,
+  UseGuards, Get, Query,
   UnauthorizedException,
-  Query,
+  UseInterceptors, UploadedFiles
 } from '@nestjs/common';
 
 import type {
@@ -17,6 +17,7 @@ import type {
   GoogleAuthDto,
 } from './types';
 
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { AuthLocalGuard } from './guard/auth-local.guard';
 import { AuthJwtGuard } from './guard/auth-jwt.guard';
@@ -46,15 +47,17 @@ export class AuthController {
 
   @Post('register-complete')
   @UseGuards(AuthJwtGuard)
+  @UseInterceptors(FilesInterceptor('documents', 10))
   @HttpCode(200)
   async completeRegistration(
     @Req() req: AuthRequest,
     @Body() dto: RegCompleteDto,
-    @Res({ passthrough: true }) res: Response
+    @Res({ passthrough: true }) res: Response,
+    @UploadedFiles() documents?: Express.Multer.File[]
   ) {
     if (!req.user) throw new UnauthorizedException();
 
-    const result = await this.auth.completeRegistration(req.user.id, dto);
+    const result = await this.auth.completeRegistration(req.user.id, dto, documents);
 
     res.cookie('authToken', result.access_token, {
       httpOnly: true,

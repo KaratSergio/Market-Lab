@@ -18,13 +18,15 @@ import {
 import { Role } from '@shared/types';
 import { ProductRepository } from "./product.repository";
 import { ProductDomainEntity } from "./product.entity";
+import { ProductFileService } from "./product-file.service";
 
 
 @Injectable()
 export class ProductService {
   constructor(
     @Inject('ProductRepository')
-    private readonly productRepository: ProductRepository
+    private readonly productRepository: ProductRepository,
+    private readonly productFileService: ProductFileService
   ) { }
 
   // Public methods
@@ -61,31 +63,79 @@ export class ProductService {
 
   // Methods for Suppliers
 
-  async create(dto: CreateProductDto, supplierId: string): Promise<ProductDomainEntity> {
-    // Checking the uniqueness of the name with the supplier
+  async create(
+    dto: CreateProductDto,
+    supplierId: string,
+    images?: Express.Multer.File[]
+  ): Promise<ProductDomainEntity> {
+    // Проверяем уникальность имени у поставщика
     const exists = await this.productRepository.existsBySupplierAndName(supplierId, dto.name);
     if (exists) {
       throw new BadRequestException('Product with this name already exists for your supplier account');
     }
 
+    // Создаем продукт (пока без изображений)
     const product = ProductDomainEntity.create(dto, supplierId);
+
+    // Валидируем продукт
     const errors = product.validate();
     if (errors.length > 0) throw new BadRequestException(errors.join(', '));
 
-    return this.productRepository.create(product);
+    const savedProduct = await this.productRepository.create(product);
+
+    if (images && images.length > 0) {
+      try {
+        const imageUrls = await this.productFileService.uploadProductImages(
+          images,
+          supplierId,
+          savedProduct.id
+        );
+
+        if (imageUrls.length > 0) {
+          await this.productRepository.update(savedProduct.id, {
+            images: imageUrls
+          });
+
+          savedProduct.images = imageUrls;
+        }
+      } catch (error) {
+        console.error('Failed to upload product images:', error);
+      }
+    }
+
+    return savedProduct;
   }
 
   async update(
     id: string,
     dto: UpdateProductDto,
     userId: string,
-    userRoles: string[]
+    userRoles: string[],
+    newImages?: Express.Multer.File[]
   ): Promise<ProductDomainEntity> {
     const product = await this.productRepository.findById(id);
     if (!product) throw new NotFoundException(`Product ${id} not found`);
     // Checking rights
     this._checkProductOwnership(product, userId, userRoles, 'update');
-    // Update product
+    // If there are new images, load them
+    let allImageUrls = [...product.images];
+
+    if (newImages && newImages.length > 0) {
+      try {
+        const newImageUrls = await this.productFileService.uploadProductImages(
+          newImages,
+          product.supplierId,
+          id
+        );
+
+        allImageUrls = [...allImageUrls, ...newImageUrls];
+
+        dto.images = allImageUrls;
+      } catch (error) {
+        console.error('Failed to upload new images:', error);
+      }
+    }
+
     const updatedProduct = await this.productRepository.update(id, dto);
     if (!updatedProduct) throw new NotFoundException(`Product ${id} not found after update`);
 
@@ -99,10 +149,65 @@ export class ProductService {
   ): Promise<void> {
     const product = await this.productRepository.findById(id);
     if (!product) throw new NotFoundException(`Product ${id} not found`);
-    // product ownership
+
     this._checkProductOwnership(product, userId, userRoles, 'delete');
 
+    // Delete images from storage
+    try {
+      await this.productFileService.deleteProductImages(product.supplierId, id);
+    } catch (error) {
+      console.error(`Failed to delete product images: ${error.message}`);
+    }
+
     return this.productRepository.delete(id);
+  }
+
+  async addImages(
+    productId: string,
+    userId: string,
+    userRoles: string[],
+    images: Express.Multer.File[]
+  ): Promise<string[]> {
+    const product = await this.productRepository.findById(productId);
+    if (!product) throw new NotFoundException(`Product ${productId} not found`);
+
+    this._checkProductOwnership(product, userId, userRoles, 'add images');
+
+    const uploadedUrls = await this.productFileService.uploadProductImages(
+      images,
+      product.supplierId,
+      productId
+    );
+
+    // Update the array of images in the product
+    if (uploadedUrls.length > 0) {
+      const updatedImages = [...product.images, ...uploadedUrls];
+      await this.productRepository.update(productId, {
+        images: updatedImages
+      });
+    }
+
+    return uploadedUrls;
+  }
+
+  async removeImage(
+    productId: string,
+    userId: string,
+    userRoles: string[],
+    imageUrl: string
+  ): Promise<void> {
+    const product = await this.productRepository.findById(productId);
+    if (!product) throw new NotFoundException(`Product ${productId} not found`);
+
+    this._checkProductOwnership(product, userId, userRoles, 'remove image');
+
+    const updatedImages = product.images.filter(img => img !== imageUrl);
+    await this.productRepository.update(productId, {
+      images: updatedImages
+    });
+
+    // TODO: удалить файл из хранилища
+    // Нужно извлечь key из URL и вызвать storage.delete(key)
   }
 
   async getSupplierProducts(

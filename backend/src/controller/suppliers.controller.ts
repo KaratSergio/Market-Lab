@@ -3,13 +3,11 @@ import {
   Get, Post, Put, Delete,
   Param, Body,
   Request, Query,
-  ParseUUIDPipe
+  ParseUUIDPipe,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException
 } from '@nestjs/common';
-
-import type {
-  // CreateSupplierDto,
-  UpdateSupplierDto
-} from '@domain/suppliers/types';
 
 import {
   Auth,
@@ -19,9 +17,12 @@ import {
   AuthenticatedOnly
 } from '../auth/decorators';
 
-import { SupplierService } from '@domain/suppliers/supplier.service';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import type { AuthRequest } from '../auth/types';
+import type { UpdateSupplierDto } from '@domain/suppliers/types';
+import { SupplierService } from '@domain/suppliers/supplier.service';
 import { Permission, Role } from '@shared/types';
+
 
 @Controller('suppliers')
 export class SuppliersController {
@@ -101,6 +102,60 @@ export class SuppliersController {
     const userRoles = req.user.roles;
     return this.supplierService.delete(id, userId, userRoles);
   }
+
+  // Supplier upload docs
+  @Post(':id/documents')
+  @UseInterceptors(FilesInterceptor('files', 10))
+  @SupplierOrAdmin()
+  async uploadDocuments(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() body: { documentType: string },
+    @Request() req: AuthRequest
+  ) {
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    if (!body.documentType) {
+      throw new BadRequestException('Document type is required');
+    }
+
+    return this.supplierService.uploadDocuments(
+      id,
+      files,
+      body.documentType,
+      userId,
+      userRoles
+    );
+  }
+
+  @Get(':id/documents')
+  @SupplierOrAdmin()
+  async getDocuments(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: AuthRequest
+  ) {
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+    return this.supplierService.getDocuments(id, userId, userRoles);
+  }
+
+  @Delete(':id/documents/:documentKey')
+  @SupplierOrAdmin()
+  async deleteDocument(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('documentKey') documentKey: string,
+    @Request() req: AuthRequest
+  ) {
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+    return this.supplierService.deleteDocument(id, documentKey, userId, userRoles);
+  }
+
 
   // Administrative methods
 

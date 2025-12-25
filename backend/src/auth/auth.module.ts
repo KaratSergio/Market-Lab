@@ -21,6 +21,7 @@ import { PermissionsGuard } from './guard/permissions.guard';
 // Infrastructure modules
 import { MailModule } from '@infrastructure/mail/mail.module';
 import { GoogleOAuthModule } from '@infrastructure/oauth/google/google-oauth.module';
+import { S3StorageModule } from '@infrastructure/storage/s3-storage.module';
 
 // Infrastructure entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
@@ -39,6 +40,7 @@ import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.con
     MailModule,
     TokensModule,
     GoogleOAuthModule,
+    S3StorageModule,
 
     JwtModule.registerAsync({
       imports: [ConfigModule],

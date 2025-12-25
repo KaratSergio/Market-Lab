@@ -256,6 +256,158 @@ export class S3StorageService {
     }
   }
 
+  /**
+   * Uploads supplier document
+   */
+  async uploadSupplierDocument(
+    file: UploadFileDto,
+    supplierCompanyName: string,
+    documentType: string
+  ): Promise<UploadResult> {
+    const cleanName = supplierCompanyName
+      .replace(/[^a-zA-Z0-9а-яА-Я\s-]/g, '')
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+
+    const timestamp = Date.now();
+    const sanitizedFileName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const key = `suppliers/${cleanName}/documents/${documentType}/${timestamp}_${sanitizedFileName}`;
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      Metadata: {
+        supplierCompanyName,
+        documentType,
+        uploadedAt: new Date().toISOString(),
+      },
+    });
+
+    try {
+      await this.s3Client.send(command);
+      this.logger.log(`Supplier document uploaded: ${key}`);
+
+      return {
+        url: `${this.publicUrl}/${key}`,
+        key,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to upload supplier document: ${error.message}`);
+      throw new Error(`S3 upload failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Uploads multiple supplier documents
+   */
+  async uploadSupplierDocuments(
+    files: UploadFileDto[],
+    supplierCompanyName: string,
+    documentType: string
+  ): Promise<UploadResult[]> {
+    const uploadPromises = files.map(file =>
+      this.uploadSupplierDocument(file, supplierCompanyName, documentType)
+    );
+
+    return Promise.all(uploadPromises);
+  }
+
+  /**
+   * Gets all supplier documents URLs
+   */
+  async getSupplierDocumentUrls(supplierCompanyName: string): Promise<{ [key: string]: string[] }> {
+    const cleanName = supplierCompanyName
+      .replace(/[^a-zA-Z0-9а-яА-Я\s-]/g, '')
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+
+    const prefix = `suppliers/${cleanName}/documents/`;
+
+    try {
+      const command = new ListObjectsV2Command({
+        Bucket: this.bucket,
+        Prefix: prefix,
+      });
+
+      const response = await this.s3Client.send(command);
+      const files = response.Contents?.map(item => ({
+        key: item.Key || '',
+        url: `${this.publicUrl}/${item.Key}`
+      })) || [];
+
+      const documentsByType: { [key: string]: string[] } = {};
+
+      files.forEach(file => {
+        const parts = file.key.split('/');
+        if (parts.length >= 4) {
+          const type = parts[3]; // suppliers/{cleanName}/documents/{type}/{file}
+          if (!documentsByType[type]) {
+            documentsByType[type] = [];
+          }
+          documentsByType[type].push(file.url);
+        }
+      });
+
+      return documentsByType;
+    } catch (error) {
+      this.logger.error(`Failed to list supplier documents: ${error.message}`);
+      return {};
+    }
+  }
+
+  /**
+   * Deletes specific supplier document
+   */
+  async deleteSupplierDocument(
+    supplierCompanyName: string,
+    documentKey: string
+  ): Promise<void> {
+    const cleanName = supplierCompanyName
+      .replace(/[^a-zA-Z0-9а-яА-Я\s-]/g, '')
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+
+    const fullKey = `suppliers/${cleanName}/documents/${documentKey}`;
+
+    try {
+      await this.s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: fullKey,
+        })
+      );
+      this.logger.log(`Supplier document deleted: ${fullKey}`);
+    } catch (error) {
+      this.logger.error(`Failed to delete supplier document: ${error.message}`);
+      throw new Error(`S3 delete failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Deletes all supplier documents
+   */
+  async deleteAllSupplierDocuments(supplierCompanyName: string): Promise<void> {
+    const cleanName = supplierCompanyName
+      .replace(/[^a-zA-Z0-9а-яА-Я\s-]/g, '')
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+
+    const prefix = `suppliers/${cleanName}/documents/`;
+    const files = await this.listFiles(prefix);
+
+    for (const file of files) {
+      await this.s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: file,
+        })
+      );
+    }
+    this.logger.log(`Deleted all documents for supplier: ${supplierCompanyName}`);
+  }
+
   // Helper method for getting a list of files
   private async listFiles(prefix: string): Promise<string[]> {
     try {

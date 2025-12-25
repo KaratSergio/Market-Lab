@@ -13,15 +13,18 @@ import {
   SupplierStatus
 } from './types';
 
+import { Role, Permission } from '@shared/types';
 import { SupplierDomainEntity } from './supplier.entity';
 import { SupplierRepository } from './supplier.repository';
-import { Role, Permission } from '@shared/types';
+import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
+
 
 @Injectable()
 export class SupplierService {
   constructor(
     @Inject('SupplierRepository')
     private readonly supplierRepository: SupplierRepository,
+    private readonly s3StorageService: S3StorageService,
   ) { }
 
   async findAllActive(): Promise<SupplierDomainEntity[]> {
@@ -105,6 +108,80 @@ export class SupplierService {
 
     if (!updated) throw new NotFoundException('Supplier not found after update');
     return updated;
+  }
+
+  // Upload supplier documents
+  async uploadDocuments(
+    id: string,
+    files: Express.Multer.File[],
+    documentType: string,
+    userId: string,
+    userRoles: string[]
+  ): Promise<{ urls: string[] }> {
+    const supplier = await this.supplierRepository.findById(id);
+    if (!supplier) throw new NotFoundException('Supplier not found');
+
+    // Check access rights
+    this._checkSupplierAccess(supplier, userId, userRoles, 'upload documents');
+
+    const uploadResults = await this.s3StorageService.uploadSupplierDocuments(
+      files.map(file => ({
+        buffer: file.buffer,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+      })),
+      supplier.companyName,
+      documentType
+    );
+
+    // Update supplier documents list in database
+    const newDocumentUrls = uploadResults.map(result => result.url);
+    const updatedDocuments = [...supplier.documents, ...newDocumentUrls];
+
+    await this.supplierRepository.update(id, {
+      documents: updatedDocuments,
+      updatedAt: new Date()
+    });
+
+    return { urls: newDocumentUrls };
+  }
+
+  // Get supplier documents
+  async getDocuments(
+    id: string,
+    userId: string,
+    userRoles: string[]
+  ): Promise<{ [key: string]: string[] }> {
+    const supplier = await this.supplierRepository.findById(id);
+    if (!supplier) throw new NotFoundException('Supplier not found');
+
+    // Check access rights (admin or supplier owner)
+    this._checkSupplierAccess(supplier, userId, userRoles, 'view documents');
+
+    return await this.s3StorageService.getSupplierDocumentUrls(supplier.companyName);
+  }
+
+  //  Delete supplier document
+  async deleteDocument(
+    id: string,
+    documentKey: string,
+    userId: string,
+    userRoles: string[]
+  ): Promise<void> {
+    const supplier = await this.supplierRepository.findById(id);
+    if (!supplier) throw new NotFoundException('Supplier not found');
+
+    // Check access rights
+    this._checkSupplierAccess(supplier, userId, userRoles, 'delete documents');
+
+    await this.s3StorageService.deleteSupplierDocument(supplier.companyName, documentKey);
+
+    // Update documents list in database
+    const updatedDocuments = supplier.documents.filter(doc => !doc.includes(documentKey));
+    await this.supplierRepository.update(id, {
+      documents: updatedDocuments,
+      updatedAt: new Date()
+    });
   }
 
   // Supplier approval (admin)

@@ -15,7 +15,7 @@ import type {
 import { AuthJwtGuard } from '@auth/guard/auth-jwt.guard';
 import { PermissionsGuard } from '@auth/guard/permissions.guard';
 import { Permissions } from '@auth/decorators';
-import { PermissionsService } from '@auth/permissions/permissions.service';
+import { PermissionsService } from '@auth/services/permissions.service';
 import { PaymentService } from '@domain/payment/payment.service';
 import { Permission } from '@shared/types';
 

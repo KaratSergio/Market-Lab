@@ -54,3 +54,9 @@ export interface AdminResponse {
     updatedAt: Date;
   };
 }
+
+export interface GetAdminsListOptions {
+  page: number;
+  limit: number;
+  role?: string;
+}

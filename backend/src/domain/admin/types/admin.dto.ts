@@ -2,6 +2,14 @@
 import { AdminStatus } from "./admin.type";
 import { Role } from '@shared/types';
 
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
 export interface CreateAdminDto {
   email?: string;
   password?: string;
@@ -11,6 +19,7 @@ export interface CreateAdminDto {
   lastName: string;
   phone: string,
   roles: Role[];
+  address?: Partial<Address>;
   department?: string;
 }
 

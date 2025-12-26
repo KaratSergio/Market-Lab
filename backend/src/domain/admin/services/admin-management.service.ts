@@ -6,29 +6,29 @@ import {
   NotFoundException
 } from '@nestjs/common';
 
-import { AuthService } from '@auth/auth.service';
+// Import new services instead of old AuthService
+import { RegistrationService } from '@auth/services/registration.service';
+import { UserService } from '@auth/services/user.service';
 import { AdminService } from '@domain/admin/services/admin.service';
-import { PermissionsService } from '@auth/permissions/permissions.service';
-import { CreateAdminDto, AdminResponse, AdminStatus } from '../types';
+import { PermissionsService } from '@auth/services/permissions.service';
+
+// DTOs and types
+import { CreateAdminDto, AdminResponse, AdminStatus, GetAdminsListOptions } from '../types';
 import { Permission, Role } from '@shared/types';
 
-
-interface GetAdminsListOptions {
-  page: number;
-  limit: number;
-  role?: string;
-}
 
 @Injectable()
 export class AdminManagementService {
   constructor(
-    private readonly authService: AuthService,
+    // Use new services instead of old AuthService
+    private readonly registrationService: RegistrationService,
+    private readonly userService: UserService,
     private readonly adminService: AdminService,
     private readonly permissionsService: PermissionsService,
   ) { }
 
   async createAdmin(createdByUserId: string, createDto: CreateAdminDto): Promise<AdminResponse> {
-    const creatorPermissions = await this.getUserPermissions(createdByUserId);
+    const creatorPermissions = await this._getUserPermissions(createdByUserId);
     if (!this.permissionsService.hasAllPermissions(creatorPermissions, [
       Permission.ADMIN_ACCESS,
       Permission.ADMIN_USERS_MANAGE
@@ -40,7 +40,8 @@ export class AdminManagementService {
       throw new BadRequestException('Email and password are required for new admin');
     }
 
-    const existingUser = await this.authService.findByEmail(createDto.email);
+    // Check if user already exists using UserService
+    const existingUser = await this.userService.findByEmail(createDto.email);
     if (existingUser) {
       const existingAdmin = await this.adminService.findAdminByUserId(existingUser.id);
       if (existingAdmin) {
@@ -48,8 +49,8 @@ export class AdminManagementService {
       }
     }
 
-    // Create a user with roles
-    const authResult = await this.authService.register({
+    // Create a user with roles using RegistrationService
+    const authResult = await this.registrationService.registerAdmin({
       email: createDto.email,
       password: createDto.password,
       role: Role.ADMIN,
@@ -58,11 +59,11 @@ export class AdminManagementService {
         lastName: createDto.lastName,
         phone: createDto.phone,
         address: {
-          street: 'System Street',
-          city: 'System City',
-          state: 'System State',
-          zipCode: '00000',
-          country: 'System Country'
+          street: createDto.address?.street || 'System Street',
+          city: createDto.address?.city || 'System City',
+          state: createDto.address?.state || 'System State',
+          zipCode: createDto.address?.zipCode || '00000',
+          country: createDto.address?.country || 'System Country'
         }
       },
     });
@@ -72,10 +73,10 @@ export class AdminManagementService {
     // Update user roles if additional roles are specified
     if (createDto.roles && createDto.roles.length > 0) {
       const allRoles = ['admin', ...createDto.roles.map(r => r.toString())];
-      await this.authService.updateUserRoles(user.id, allRoles);
+      await this.userService.updateUserRoles(user.id, allRoles);
     }
 
-    // Create an administrator record
+    // Create an administrator
     const admin = await this.adminService.createAdmin({
       userId: user.id,
       firstName: createDto.firstName,
@@ -91,7 +92,7 @@ export class AdminManagementService {
         id: user.id,
         email: user.email,
         roles: user.roles,
-        status: user.status,
+        status: user.status || 'active',
         emailVerified: user.emailVerified,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
@@ -104,7 +105,7 @@ export class AdminManagementService {
     requestedByUserId: string,
     options: GetAdminsListOptions = { page: 1, limit: 10 }
   ) {
-    const requesterPermissions = await this.getUserPermissions(requestedByUserId);
+    const requesterPermissions = await this._getUserPermissions(requestedByUserId);
     if (!this.permissionsService.hasAllPermissions(requesterPermissions, [
       Permission.ADMIN_ACCESS,
       Permission.ADMIN_USERS_MANAGE
@@ -127,11 +128,21 @@ export class AdminManagementService {
     const end = start + options.limit;
     const paginatedAdmins = filteredAdmins.slice(start, end);
 
+    // Get user info for each admin
+    const enrichedAdmins = await Promise.all(
+      paginatedAdmins.map(async admin => {
+        const user = await this.userService.findById(admin.userId);
+        return {
+          ...admin,
+          email: user?.email || 'N/A',
+          userStatus: user?.status || 'active',
+          primaryRole: this._getPrimaryRole(admin.roles),
+        };
+      })
+    );
+
     return {
-      admins: paginatedAdmins.map(admin => ({
-        ...admin,
-        primaryRole: admin.getPrimaryRole(),
-      })),
+      admins: enrichedAdmins,
       pagination: {
         page: options.page,
         limit: options.limit,
@@ -142,7 +153,7 @@ export class AdminManagementService {
   }
 
   async getAdminDetails(requestedByUserId: string, targetAdminId: string) {
-    const requesterPermissions = await this.getUserPermissions(requestedByUserId);
+    const requesterPermissions = await this._getUserPermissions(requestedByUserId);
     if (!this.permissionsService.hasAllPermissions(requesterPermissions, [
       Permission.ADMIN_ACCESS,
       Permission.ADMIN_USERS_MANAGE
@@ -151,12 +162,13 @@ export class AdminManagementService {
     }
 
     const admin = await this.adminService.findAdminById(targetAdminId);
-    const user = await this.authService.findById(admin.userId);
+    const user = await this.userService.findById(admin.userId);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    // Get permissions dynamically from PermissionsService
     const userPermissions = this.permissionsService.getPermissionsByRoles(admin.roles);
 
     return {
@@ -166,8 +178,12 @@ export class AdminManagementService {
         email: user.email,
         roles: user.roles,
         status: user.status,
+        emailVerified: user.emailVerified,
+        lastLoginAt: user.lastLoginAt,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
-      permissions: userPermissions,
+      permissions: userPermissions, // Dynamic permissions, not from DB
       roles: admin.roles,
     };
   }
@@ -177,7 +193,7 @@ export class AdminManagementService {
     targetAdminId: string,
     roles: string[]
   ) {
-    const updaterPermissions = await this.getUserPermissions(updatedByUserId);
+    const updaterPermissions = await this._getUserPermissions(updatedByUserId);
     if (!this.permissionsService.hasAllPermissions(updaterPermissions, [
       Permission.ADMIN_ACCESS,
       Permission.ADMIN_ROLES_MANAGE
@@ -190,12 +206,16 @@ export class AdminManagementService {
     // Check that at least one role is admin
     const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR'];
     const hasAdminRole = roles.some(role =>
-      adminRoles.includes(role)
+      adminRoles.includes(role.toUpperCase())
     );
 
-    if (!hasAdminRole) throw new BadRequestException('Admin must have at least one admin role');
-    // Update roles via AuthService (they are already string[])
-    await this.authService.updateUserRoles(targetAdmin.userId, roles);
+    if (!hasAdminRole) {
+      throw new BadRequestException('Admin must have at least one admin role');
+    }
+
+    // Update roles in UserService
+    await this.userService.updateUserRoles(targetAdmin.userId, roles);
+
     // Update roles in the admin account
     const rolesAsEnum = roles.map(role => role as Role);
     await this.adminService.updateAdminRoles(targetAdminId, rolesAsEnum);
@@ -204,7 +224,7 @@ export class AdminManagementService {
   }
 
   async deleteAdmin(deletedByUserId: string, targetAdminId: string) {
-    const deleterPermissions = await this.getUserPermissions(deletedByUserId);
+    const deleterPermissions = await this._getUserPermissions(deletedByUserId);
     if (!this.permissionsService.hasAllPermissions(deleterPermissions, [
       Permission.ADMIN_ACCESS,
       Permission.ADMIN_USERS_MANAGE
@@ -215,30 +235,41 @@ export class AdminManagementService {
     const targetAdmin = await this.adminService.findAdminById(targetAdminId);
 
     // Cannot delete yourself
-    if (targetAdmin.userId === deletedByUserId) throw new ForbiddenException('Cannot delete your own account');
+    if (targetAdmin.userId === deletedByUserId) {
+      throw new ForbiddenException('Cannot delete your own account');
+    }
+
     // Cannot delete a super admin
-    if (targetAdmin.isSuperAdmin()) throw new ForbiddenException('Cannot delete super admin');
+    if (this._isSuperAdmin(targetAdmin.roles)) {
+      throw new ForbiddenException('Cannot delete super admin');
+    }
+
     // Delete the admin
     await this.adminService.deleteAdmin(targetAdminId);
-    // Deactivate the user
-    await this.authService.deactivateUser(targetAdmin.userId);
 
-    return { success: true, message: 'Admin deleted successfully' };
+    // Deactivate the user
+    await this.userService.deactivateUser(targetAdmin.userId);
+
+    return {
+      success: true,
+      message: 'Admin deleted successfully'
+    };
   }
 
   async getUsersList(
     requestedByUserId: string,
     options: GetAdminsListOptions = { page: 1, limit: 10 }
   ) {
-    const requesterPermissions = await this.getUserPermissions(requestedByUserId);
+    const requesterPermissions = await this._getUserPermissions(requestedByUserId);
     if (!this.permissionsService.hasPermission(requesterPermissions, Permission.USER_MANAGE)) {
       throw new ForbiddenException('Insufficient permissions to view users');
     }
 
-    const { users, total } = await this.authService.getAllUsers(
+    // Get paginated users from UserService
+    const { users, total } = await this.userService.getAllUsers(
       options.page,
       options.limit,
-      options.role?.toString()
+      options.role
     );
 
     // Enriching the data with information about admins
@@ -275,23 +306,18 @@ export class AdminManagementService {
     userId: string,
     roles: string[]
   ) {
-    const updaterPermissions = await this.getUserPermissions(updatedByUserId);
+    const updaterPermissions = await this._getUserPermissions(updatedByUserId);
     if (!this.permissionsService.hasPermission(updaterPermissions, Permission.USER_MANAGE)) {
       throw new ForbiddenException('Insufficient permissions to update user roles');
     }
-    // Convert Role[] to string[]
-    const rolesAsStrings = roles.map(role => role.toString());
 
-    await this.authService.updateUserRoles(userId, rolesAsStrings);
-    return { success: true, message: 'User roles updated successfully' };
-  }
+    // Update roles using UserService
+    await this.userService.updateUserRoles(userId, roles);
 
-  private async getUserPermissions(userId: string): Promise<Permission[]> {
-    const user = await this.authService.findById(userId);
-    if (!user) return [];
-    // Convert string[] to Role[]
-    const roles = user.roles.map(role => role as Role);
-    return this.permissionsService.getPermissionsByRoles(roles);
+    return {
+      success: true,
+      message: 'User roles updated successfully'
+    };
   }
 
   async updateAdminStatus(
@@ -299,7 +325,7 @@ export class AdminManagementService {
     targetAdminId: string,
     status: string
   ) {
-    const updaterPermissions = await this.getUserPermissions(updatedByUserId);
+    const updaterPermissions = await this._getUserPermissions(updatedByUserId);
     if (!this.permissionsService.hasAllPermissions(updaterPermissions, [
       Permission.ADMIN_ACCESS,
       Permission.ADMIN_USERS_MANAGE
@@ -308,8 +334,12 @@ export class AdminManagementService {
     }
 
     const targetAdmin = await this.adminService.findAdminById(targetAdminId);
+
     // You can't change the super-admin status
-    if (targetAdmin.isSuperAdmin()) throw new ForbiddenException('Cannot modify super admin status');
+    if (this._isSuperAdmin(targetAdmin.roles)) {
+      throw new ForbiddenException('Cannot modify super admin status');
+    }
+
     // Check the validity of the status
     const validStatuses = ['active', 'inactive', 'suspended'];
     if (!validStatuses.includes(status)) {
@@ -318,6 +348,53 @@ export class AdminManagementService {
 
     const adminStatus = status as AdminStatus;
 
-    return await this.adminService.updateAdmin(targetAdminId, { status: adminStatus });
+    return await this.adminService.updateAdmin(targetAdminId, {
+      status: adminStatus
+    });
+  }
+
+  /**
+   * Get user permissions
+   * @private Internal method for permission checking
+   */
+  private async _getUserPermissions(userId: string): Promise<Permission[]> {
+    const user = await this.userService.findById(userId);
+    if (!user) return [];
+
+    // Convert string[] to Role[]
+    const roles = user.roles.map(role => role as Role);
+    return this.permissionsService.getPermissionsByRoles(roles);
+  }
+
+  /**
+   * Get primary role from roles array
+   * @private Helper method for role hierarchy
+   */
+  private _getPrimaryRole(roles: Role[]): Role {
+    const roleHierarchy = [
+      Role.SUPER_ADMIN,
+      Role.ADMIN,
+      Role.MODERATOR,
+      Role.SUPPORT,
+      Role.SUPPLIER,
+      Role.CUSTOMER,
+      Role.GUEST
+    ];
+
+    for (const role of roleHierarchy) {
+      if (roles.includes(role)) {
+        return role;
+      }
+    }
+
+    return roles[0] || Role.CUSTOMER;
+  }
+
+  /**
+   * Check if user is super admin
+   * @private Helper method
+   */
+  private _isSuperAdmin(roles: Role[]): boolean {
+    return roles.includes(Role.SUPER_ADMIN);
   }
 }

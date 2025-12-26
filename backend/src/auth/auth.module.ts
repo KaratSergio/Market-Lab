@@ -4,32 +4,40 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 
-// Auth components
-import { AuthService } from './auth.service';
+// Main auth components
+import { AuthService } from './services/auth.service';
 import { AuthController } from './auth.controller';
+
+// Subservices
+import { RegistrationService } from './services/registration.service';
+import { EmailVerificationService } from './services/email-verification.service';
+import { PasswordResetService } from './services/password-reset.service';
+import { GoogleAuthService } from './services/google-auth.service';
+import { SupplierRequestService } from './services/supplier-request.service';
+import { UserService } from './services/user.service';
+
+// Auth strategies and guards
 import { AuthJwtConfig } from './config/auth-jwt.config';
 import { AuthLocalStrategy } from './strategy/auth-local.strategy';
 import { AuthJwtStrategy } from './strategy/auth-jwt.strategy';
 import { EncryptModule } from './encrypt/encrypt.module';
 import { TokensModule } from './tokens/token.module';
-
-// Permissions
-import { PermissionsService } from './permissions/permissions.service';
 import { RolesGuard } from './guard/roles.guard';
 import { PermissionsGuard } from './guard/permissions.guard';
+import { PermissionsService } from './services/permissions.service';
 
 // Infrastructure modules
 import { MailModule } from '@infrastructure/mail/mail.module';
 import { GoogleOAuthModule } from '@infrastructure/oauth/google/google-oauth.module';
 import { S3StorageModule } from '@infrastructure/storage/s3-storage.module';
 
-// Infrastructure entities
+// Database entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
-import { AuthTokenOrmEntity } from '../infrastructure/database/postgres/users/token.entity';
+import { AuthTokenOrmEntity } from '@infrastructure/database/postgres/users/token.entity';
 import { CustomerProfileOrmEntity } from '@infrastructure/database/postgres/customers/customer.entity';
 import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
 
-//! Test Controller
+// Test controller (for development only)
 import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.controller';
 
 @Module({
@@ -42,11 +50,13 @@ import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.con
     GoogleOAuthModule,
     S3StorageModule,
 
+    // Configure JWT module asynchronously
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useClass: AuthJwtConfig,
     }),
 
+    // Register TypeORM entities for dependency injection
     TypeOrmModule.forFeature([
       UserOrmEntity,
       AuthTokenOrmEntity,
@@ -55,17 +65,35 @@ import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.con
     ]),
   ],
   providers: [
+    // Main auth service (coordinator)
     AuthService,
+
+    // Subservices (each with single responsibility)
+    RegistrationService,
+    EmailVerificationService,
+    PasswordResetService,
+    GoogleAuthService,
+    SupplierRequestService,
+    UserService,
+
+    // Auth strategies
     AuthLocalStrategy,
     AuthJwtStrategy,
+
+    // Permissions and guards
     PermissionsService,
     RolesGuard,
     PermissionsGuard,
-    PermissionsService,
   ],
-  controllers: [AuthController, TestOAuthController],
+  controllers: [
+    AuthController,
+    TestOAuthController, // Development only, remove in production
+  ],
   exports: [
     AuthService,
+    UserService,
+    JwtModule,
+    RegistrationService,
     PermissionsService,
   ],
 })

@@ -20,7 +20,7 @@ import {
 
 import { PaymentDomainEntity } from './payment.entity';
 import { PaymentRepository } from './payment.repository';
-import { PermissionsService } from '@auth/permissions/permissions.service';
+import { PermissionsService } from '@auth/services/permissions.service';
 import { Permission } from '@shared/types';
 
 

@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { AdminRepository } from '@domain/admin/admin.repository';
 import { AdminDomainEntity } from '@domain/admin/admin.entity';
 import { ADMIN_STATUS, SystemStats, AdminDistribution } from '../types';
-import { PermissionsService } from '@auth/permissions/permissions.service';
+import { PermissionsService } from '@auth/services/permissions.service';
 import { Role } from '@shared/types';
 
 

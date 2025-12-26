@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { AdminDomainEntity } from '@domain/admin/admin.entity';
 import { AdminRepository } from '@domain/admin/admin.repository';
-import { PermissionsService } from '@auth/permissions/permissions.service';
+import { PermissionsService } from '@auth/services/permissions.service';
 import { CreateAdminDto, UpdateAdminDto, ADMIN_STATUS } from '../types';
 import { Permission, Role } from '@shared/types';
 

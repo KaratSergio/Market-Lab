@@ -4,7 +4,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { ConfigService } from "@nestjs/config";
 import { SessionUser, JwtPayload } from "@auth/types";
 import { Request } from 'express';
-import { PermissionsService } from "../permissions/permissions.service";
+import { PermissionsService } from "../services/permissions.service";
 import { Role } from '@shared/types';
 
 

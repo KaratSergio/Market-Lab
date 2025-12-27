@@ -1,14 +1,6 @@
 // Use it to type the incoming data
 import { AdminStatus } from "./admin.type";
-import { Role } from '@shared/types';
-
-export interface Address {
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-}
+import { Role, Address } from '@shared/types';
 
 export interface CreateAdminDto {
   email?: string;

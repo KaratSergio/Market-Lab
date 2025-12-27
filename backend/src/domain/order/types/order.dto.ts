@@ -1,16 +1,16 @@
 // Use it to type the incoming data
 import {
-  ShippingAddress,
   OrderItemModel,
   OrderStatus,
   PaymentStatus
 } from "./order.type";
 
+import { Address } from "@shared/types";
 
 export interface CreateOrderDto {
   userId: string;
   cartId: string;
-  shippingAddress: ShippingAddress;
+  shippingAddress: Address;
   notes?: string;
 }
 

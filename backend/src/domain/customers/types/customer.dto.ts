@@ -1,5 +1,6 @@
 // Use it to type the incoming data
-import { CustomerAddress, CustomerStatus } from "./customer.type";
+import { CustomerStatus } from "./customer.type";
+import { Address } from "@shared/types";
 
 export interface CreateCustomerDto {
   userId: string;
@@ -7,7 +8,7 @@ export interface CreateCustomerDto {
   lastName: string;
   phone: string;
   birthday: string | null;
-  address?: CustomerAddress;
+  address?: Address;
 }
 
 export interface UpdateCustomerDto extends Partial<Omit<CreateCustomerDto, 'userId'>> {

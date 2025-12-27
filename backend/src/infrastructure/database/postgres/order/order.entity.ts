@@ -1,8 +1,18 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity, Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany, ManyToOne,
+  JoinColumn
+} from 'typeorm';
+
 import { UserOrmEntity } from '../users/user.entity';
 import { OrderItemOrmEntity } from './order-item.entity';
 import { ORDER_STATUS, PAYMENT_STATUS } from '@domain/order/types';
 import type { OrderStatus, PaymentStatus } from '@domain/order/types';
+import type { Address } from '@shared/types';
+
 
 @Entity('orders')
 export class OrderOrmEntity {
@@ -51,23 +61,10 @@ export class OrderOrmEntity {
   paymentStatus: PaymentStatus;
 
   @Column({ type: 'jsonb' })
-  shippingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-    phone: string;
-  };
+  shippingAddress: Address;
 
   @Column({ type: 'jsonb', nullable: true })
-  billingAddress?: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
+  billingAddress?: Address;
 
   @Column({ nullable: true })
   notes: string;

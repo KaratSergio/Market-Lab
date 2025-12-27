@@ -1,7 +1,5 @@
 // Use only within the domain, internal typing..
-import { Entity } from "@shared/types/entity.interface";
-import { ProductItemModel } from '@shared/types/product-item.interface';
-
+import { Entity, Address, ProductItemModel } from "@shared/types";
 
 export const ORDER_STATUS = {
   PENDING: 'pending',
@@ -25,15 +23,6 @@ export type PaymentStatus = typeof PAYMENT_STATUS[keyof typeof PAYMENT_STATUS];
 
 export type OrderItemModel = ProductItemModel;
 
-export interface ShippingAddress {
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  phone: string;
-}
-
 export interface OrderModel extends Entity {
   userId: string;
   cartId: string;
@@ -47,6 +36,6 @@ export interface OrderModel extends Entity {
   currency: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
-  shippingAddress: ShippingAddress;
+  shippingAddress: Address;
   notes?: string;
 }

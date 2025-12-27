@@ -1,5 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity, Column,
+  PrimaryGeneratedColumn,
+  OneToOne, JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn
+} from 'typeorm';
+
 import { UserOrmEntity } from '../users/user.entity';
+import { Address } from '@shared/types';
 
 @Entity('customers')
 export class CustomerProfileOrmEntity {
@@ -32,13 +40,7 @@ export class CustomerProfileOrmEntity {
   status: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  } | null;
+  address: Address | null;
 
   @CreateDateColumn()
   createdAt: Date;

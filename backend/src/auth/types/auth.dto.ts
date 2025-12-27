@@ -1,8 +1,14 @@
-import { IsEmail, IsString, MinLength, IsEnum, ValidateNested, IsOptional, IsObject } from 'class-validator';
+import {
+  IsEmail, IsString,
+  MinLength, IsEnum,
+  ValidateNested,
+  IsOptional, IsObject
+} from 'class-validator';
+
 import { Type } from 'class-transformer';
 
 import { Role } from '@shared/types';
-import type { CustomerAddress } from '@domain/customers/types';
+import type { Address } from '@shared/types';
 
 
 export class RegCustomerProfileDto {
@@ -16,7 +22,7 @@ export class RegCustomerProfileDto {
   phone: string;
 
   @IsString()
-  address: CustomerAddress;
+  address: Address;
 }
 
 export class RegSupplierProfileDto {

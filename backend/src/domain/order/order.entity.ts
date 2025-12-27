@@ -5,10 +5,11 @@ import {
   OrderTotalsDto,
   CreateOrderDto,
   PaymentStatus,
-  ShippingAddress,
   ORDER_STATUS,
   PAYMENT_STATUS
 } from './types';
+
+import { Address } from '@shared/types';
 
 export class OrderItem implements OrderItemModel {
   constructor(
@@ -35,7 +36,7 @@ export class OrderDomainEntity implements OrderModel {
   public currency: string;
   public status: OrderStatus;
   public paymentStatus: PaymentStatus;
-  public shippingAddress: ShippingAddress;
+  public shippingAddress: Address;
   public notes?: string;
   public createdAt: Date;
   public updatedAt: Date;
@@ -46,7 +47,7 @@ export class OrderDomainEntity implements OrderModel {
     userId: string;
     cartId: string;
     orderNumber: string;
-    shippingAddress: ShippingAddress;
+    shippingAddress: Address;
     currency?: string;
     status?: OrderStatus;
     paymentStatus?: PaymentStatus;

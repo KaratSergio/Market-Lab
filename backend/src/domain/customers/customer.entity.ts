@@ -2,10 +2,11 @@ import {
   CreateCustomerDto,
   UpdateCustomerDto,
   CustomerModel,
-  CustomerAddress,
   CustomerStatus,
   CUSTOMER_STATUS
 } from './types';
+
+import { Address } from '@shared/types';
 
 export class CustomerDomainEntity implements CustomerModel {
   public id: string;
@@ -15,7 +16,7 @@ export class CustomerDomainEntity implements CustomerModel {
   public phone: string;
   public birthday: Date | null;
   public status: CustomerStatus;
-  public address?: CustomerAddress;
+  public address?: Address;
   public createdAt: Date;
   public updatedAt: Date;
 
@@ -27,7 +28,7 @@ export class CustomerDomainEntity implements CustomerModel {
     phone: string,
     birthday: Date | null = null,
     status: CustomerStatus = CUSTOMER_STATUS.ACTIVE,
-    address?: CustomerAddress,
+    address?: Address,
     createdAt: Date = new Date(),
     updatedAt: Date = new Date()
   ) {

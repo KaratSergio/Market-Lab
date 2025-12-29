@@ -1,13 +1,32 @@
 import {
   Controller,
-  Post, Body,
-  HttpCode, Req, Res,
-  UseGuards, Get, Query,
+  Post,
+  Body,
+  HttpCode,
+  Req,
+  Res,
+  UseGuards,
+  Get,
+  Query,
   UnauthorizedException,
   UseInterceptors,
   UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiQuery,
+  ApiConsumes,
+  ApiCookieAuth,
+  ApiExcludeEndpoint,
+  ApiCreatedResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 
 // Types and DTOs
 import type {
@@ -35,6 +54,23 @@ import { GoogleAuthService } from './services/google-auth.service';
 import { SupplierRequestService } from './services/supplier-request.service';
 import { UserService } from './services/user.service';
 
+// Swagger DTOs
+import {
+  RegisterInitialDtoSwagger,
+  LoginDto,
+  RegCompleteDtoSwagger,
+  RegSupplierProfileDtoSwagger,
+  GoogleAuthDtoSwagger,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  EmailResponseDto,
+  SuccessResponseDto,
+  AuthResponseDto,
+} from './types/auth.swagger.dto';
+
+
+@ApiTags('auth')
+@ApiCookieAuth('authToken')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -51,11 +87,29 @@ export class AuthController {
   ) { }
 
   /**
-   * INITIAL REGISTRATION
-   * Creates user with basic info, sends verification email for non-Google registration
+   * INITIAL REGISTRATION - Creates user with basic info
+   * @description Creates a new user account with email and password, sends verification email.
+   * User receives immediate JWT token for authentication.
    */
   @Post('register-initial')
   @HttpCode(201)
+  @ApiOperation({
+    summary: 'Initial user registration',
+    description: 'Creates a new user account with basic information and sends verification email.'
+  })
+  @ApiBody({ type: RegisterInitialDtoSwagger })
+  @ApiCreatedResponse({
+    description: 'User registered successfully',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid data or email already exists',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   async registerInitial(
     @Body() dto: RegisterInitialDto,
     @Res({ passthrough: true }) res: Response
@@ -73,21 +127,40 @@ export class AuthController {
   }
 
   /**
-   * COMPLETE REGISTRATION
-   * Finishes registration with role selection and profile details
-   * Supports file uploads for supplier documents
+   * COMPLETE REGISTRATION - Finishes user profile
+   * @description Completes user registration with role selection, profile details, 
+   * and optional document uploads for supplier accounts.
    */
   @Post('register-complete')
   @UseGuards(AuthJwtGuard)
   @UseInterceptors(FilesInterceptor('documents', 10)) // Max 10 documents
   @HttpCode(200)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Complete user registration',
+    description: 'Finishes user registration with role selection and profile details. Supports file uploads for supplier documents.'
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: RegCompleteDtoSwagger })
+  @ApiOkResponse({
+    description: 'Registration completed successfully',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - JWT token missing or invalid',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - user already completed registration',
+  })
   async completeRegistration(
     @Req() req: AuthRequest,
     @Body() dto: RegCompleteDto,
     @Res({ passthrough: true }) res: Response,
     @UploadedFiles() documents?: Express.Multer.File[]
   ) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('User not found in request');
 
     // Use registration service for completion
     const result = await this.registrationService.completeRegistration(
@@ -106,17 +179,30 @@ export class AuthController {
   }
 
   /**
-   * LOGIN
-   * Authenticates user with email/password using local strategy
+   * LOGIN - Authenticates user with credentials
+   * @description Authenticates user using email and password with local strategy.
    */
   @UseGuards(AuthLocalGuard)
   @Post('login')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'User login',
+    description: 'Authenticates user with email and password credentials.'
+  })
+  @ApiBody({ type: LoginDto })
+  @ApiOkResponse({
+    description: 'Login successful',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid credentials',
+  })
   async login(
     @Req() req: AuthRequest,
     @Res({ passthrough: true }) res: Response
   ) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('Invalid credentials');
 
     // Use main auth service for login
     const result = await this.authService.login(req.user.id);
@@ -128,37 +214,78 @@ export class AuthController {
   }
 
   /**
-   * LOGOUT
-   * Clears authentication cookie
+   * LOGOUT - Clears user authentication
+   * @description Logs out user by clearing authentication cookies.
    */
   @Post('logout')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'User logout',
+    description: 'Clears authentication cookie and logs out user.'
+  })
+  @ApiOkResponse({
+    description: 'Logout successful',
+    type: SuccessResponseDto,
+  })
   async logout(@Res({ passthrough: true }) res: Response) {
     this._clearAuthCookie(res);
-    return { message: 'Logged out successfully' };
+    return {
+      success: true,
+      message: 'Logged out successfully'
+    };
   }
 
   /**
-   * GET SESSION USER
-   * Returns current authenticated user info
+   * GET CURRENT SESSION USER
+   * @description Returns information about currently authenticated user.
    */
   @UseGuards(AuthJwtGuard)
   @Get('session/user')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Get current session user',
+    description: 'Returns information about currently authenticated user.'
+  })
+  @ApiOkResponse({
+    description: 'User session retrieved successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - no valid JWT token',
+  })
   async getSession(@Req() req: AuthRequest) {
     return req.user || null;
   }
 
   /**
    * REQUEST SUPPLIER ROLE
-   * Allows existing users to request supplier status
+   * @description Allows existing users to request supplier account status.
    */
   @UseGuards(AuthJwtGuard)
   @Post('request-supplier')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Request supplier role',
+    description: 'Allows existing users to request supplier account status.'
+  })
+  @ApiBody({ type: RegSupplierProfileDtoSwagger })
+  @ApiOkResponse({
+    description: 'Supplier request submitted successfully',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - user already has supplier role',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - JWT token missing or invalid',
+  })
   async requestSupplier(
     @Req() req: AuthRequest,
     @Body() dto: RegSupplierProfileDto,
   ) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('User not authenticated');
 
     // Use supplier request service
     const result = await this.supplierRequestService.requestSupplier(
@@ -174,15 +301,30 @@ export class AuthController {
 
   /**
    * GET REGISTRATION STATUS
-   * Checks if user has completed registration
+   * @description Checks if user has completed registration process.
    */
   @UseGuards(AuthJwtGuard)
   @Get('reg-status')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Get registration status',
+    description: 'Checks if user has completed registration process.'
+  })
+  @ApiOkResponse({
+    description: 'Registration status retrieved successfully',
+    schema: {
+      properties: {
+        regComplete: { type: 'boolean' },
+        roles: { type: 'array', items: { type: 'string' } },
+        emailVerified: { type: 'boolean' },
+      },
+    },
+  })
   async getRegistrationStatus(@Req() req: AuthRequest) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('User not authenticated');
 
     const user = await this.userService.findByEmail(req.user.email);
-    if (!user) throw new UnauthorizedException();
+    if (!user) throw new UnauthorizedException('User not found');
 
     return {
       regComplete: user.regComplete,
@@ -192,12 +334,17 @@ export class AuthController {
   }
 
   /**
-   * ADMIN REGISTRATION
-   * Creates fully registered user (admin-only in production)
+   * ADMIN REGISTRATION - Creates admin user
+   * @description Creates fully registered admin user (admin-only in production).
    * NOTE: Add @Roles('admin', 'super_admin') guard in production
    */
   @Post('register-admin')
   @HttpCode(201)
+  @ApiExcludeEndpoint() // Exclude from Swagger in production or add proper security
+  @ApiOperation({
+    summary: 'Register admin user (internal use)',
+    description: 'Creates fully registered admin user. Internal use only.'
+  })
   async registerAdmin(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response
@@ -218,22 +365,45 @@ export class AuthController {
 
   /**
    * SEND VERIFICATION EMAIL
-   * Sends verification link to user's email
+   * @description Sends email verification link to user's email address.
    */
   @Post('send-verification')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Send verification email',
+    description: 'Sends verification link to user\'s email address.'
+  })
+  @ApiBody({ type: ForgotPasswordDto }) // Reuse DTO for email field
+  @ApiOkResponse({
+    description: 'Verification email sent if email exists',
+    type: EmailResponseDto,
+  })
   async sendVerification(@Body('email') email: string) {
     await this.emailVerificationService.sendVerificationEmail(email);
     return {
+      success: true,
       message: 'If the email exists, verification instructions have been sent'
     };
   }
 
   /**
    * VERIFY EMAIL WITH TOKEN
-   * Verifies user's email using token from verification link
+   * @description Verifies user's email using token from verification link.
    */
   @Get('verify-email')
+  @ApiOperation({
+    summary: 'Verify email with token',
+    description: 'Verifies user\'s email using token from verification link.'
+  })
+  @ApiQuery({ name: 'token', required: true, description: 'Verification token from email' })
+  @ApiOkResponse({
+    description: 'Email verified successfully',
+    type: SuccessResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid or expired token',
+  })
   async verifyEmail(@Query('token') token: string) {
     const result = await this.emailVerificationService.verifyEmail(token);
 
@@ -243,37 +413,60 @@ export class AuthController {
         message: 'Email verified successfully'
       };
     } else {
-      return {
-        success: false,
-        message: result.message
-      };
+      throw new BadRequestException(result.message);
     }
   }
 
   /**
    * RESEND VERIFICATION EMAIL (for authenticated users)
-   * Resends verification email to currently logged in user
+   * @description Resends verification email to currently logged in user.
    */
   @UseGuards(AuthJwtGuard)
   @Post('resend-verification')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Resend verification email',
+    description: 'Resends verification email to currently logged in user.'
+  })
+  @ApiOkResponse({
+    description: 'Verification email sent',
+    type: EmailResponseDto,
+  })
   async resendVerification(@Req() req: AuthRequest) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('User not authenticated');
 
     const user = await this.userService.findByEmail(req.user.email);
-    if (!user) throw new UnauthorizedException();
+    if (!user) throw new UnauthorizedException('User not found');
 
     await this.emailVerificationService.sendVerificationEmail(user.email);
-    return { message: 'Verification email sent' };
+    return {
+      success: true,
+      message: 'Verification email sent'
+    };
   }
 
   /**
    * CHECK EMAIL VERIFICATION STATUS
-   * Returns whether current user's email is verified
+   * @description Returns whether current user's email is verified.
    */
   @UseGuards(AuthJwtGuard)
   @Get('check-email-verification')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Check email verification status',
+    description: 'Returns whether current user\'s email is verified.'
+  })
+  @ApiOkResponse({
+    description: 'Email verification status',
+    schema: {
+      properties: {
+        verified: { type: 'boolean' },
+        email: { type: 'string' },
+      },
+    },
+  })
   async checkEmailVerification(@Req() req: AuthRequest) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('User not authenticated');
 
     return this.emailVerificationService.checkEmailVerification(req.user.id);
   }
@@ -282,23 +475,46 @@ export class AuthController {
 
   /**
    * REQUEST PASSWORD RESET
-   * Sends password reset link to user's email
+   * @description Sends password reset link to user's email address.
    */
   @Post('forgot-password')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Request password reset',
+    description: 'Sends password reset link to user\'s email address.'
+  })
+  @ApiBody({ type: ForgotPasswordDto })
+  @ApiOkResponse({
+    description: 'Password reset email sent if email exists',
+    type: EmailResponseDto,
+  })
   async forgotPassword(@Body('email') email: string) {
     await this.passwordResetService.requestPasswordReset(email);
     return {
+      success: true,
       message: 'If the email exists, password reset instructions have been sent'
     };
   }
 
   /**
    * RESET PASSWORD WITH TOKEN
-   * Sets new password using token from reset link
+   * @description Sets new password using token from reset link.
    */
   @Post('reset-password')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Reset password with token',
+    description: 'Sets new password using token from reset link.'
+  })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiOkResponse({
+    description: 'Password reset successful',
+    type: SuccessResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid or expired token',
+  })
   async resetPassword(
     @Body('token') token: string,
     @Body('newPassword') newPassword: string,
@@ -314,10 +530,7 @@ export class AuthController {
         message: 'Password reset successful'
       };
     } else {
-      return {
-        success: false,
-        message: result.message
-      };
+      throw new BadRequestException(result.message);
     }
   }
 
@@ -325,19 +538,45 @@ export class AuthController {
 
   /**
    * GET GOOGLE AUTH URL
-   * Returns Google OAuth URL for frontend redirection
+   * @description Returns Google OAuth URL for frontend redirection.
    */
   @Get('google/url')
+  @ApiOperation({
+    summary: 'Get Google OAuth URL',
+    description: 'Returns Google OAuth URL for frontend redirection.'
+  })
+  @ApiOkResponse({
+    description: 'Google OAuth URL',
+    schema: {
+      properties: {
+        url: { type: 'string', description: 'Google OAuth authorization URL' },
+      },
+    },
+  })
   async getGoogleAuthUrl() {
-    return this.googleAuthService.getGoogleAuthUrl();
+    const url = await this.googleAuthService.getGoogleAuthUrl();
+    return { url };
   }
 
   /**
    * HANDLE GOOGLE OAUTH CALLBACK (server-side flow)
-   * Processes authorization code from Google redirect
+   * @description Processes authorization code from Google redirect.
    */
   @Get('google/callback')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Google OAuth callback',
+    description: 'Processes authorization code from Google redirect.'
+  })
+  @ApiQuery({ name: 'code', required: true, description: 'Authorization code from Google' })
+  @ApiOkResponse({
+    description: 'Google authentication successful',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid authorization code',
+  })
   async googleCallbackFrontend(
     @Query('code') code: string,
     @Res({ passthrough: true }) res: Response
@@ -355,10 +594,19 @@ export class AuthController {
 
   /**
    * AUTHENTICATE WITH GOOGLE ID TOKEN
-   * For mobile apps using Google Sign-In
+   * @description For mobile apps using Google Sign-In with ID token.
    */
   @Post('google')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Authenticate with Google ID token',
+    description: 'Authenticates user using Google ID token (for mobile apps).'
+  })
+  @ApiBody({ type: GoogleAuthDtoSwagger })
+  @ApiOkResponse({
+    description: 'Google authentication successful',
+    type: AuthResponseDto,
+  })
   async googleAuth(
     @Body() dto: GoogleAuthDto,
     @Res({ passthrough: true }) res: Response
@@ -376,27 +624,46 @@ export class AuthController {
 
   /**
    * LINK GOOGLE ACCOUNT TO EXISTING USER
-   * Connects Google account to authenticated user
+   * @description Connects Google account to authenticated user account.
    */
   @UseGuards(AuthJwtGuard)
   @Post('google/link')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Link Google account',
+    description: 'Connects Google account to authenticated user account.'
+  })
+  @ApiBody({ type: GoogleAuthDtoSwagger })
+  @ApiOkResponse({
+    description: 'Google account linked successfully',
+    type: SuccessResponseDto,
+  })
   async linkGoogleAccount(
     @Req() req: AuthRequest,
     @Body() dto: GoogleAuthDto
   ) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('User not authenticated');
 
     return this.googleAuthService.linkGoogleAccount(req.user.id, dto);
   }
 
   /**
    * UNLINK GOOGLE ACCOUNT
-   * Disconnects Google account from authenticated user
+   * @description Disconnects Google account from authenticated user.
    */
   @UseGuards(AuthJwtGuard)
   @Post('google/unlink')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Unlink Google account',
+    description: 'Disconnects Google account from authenticated user.'
+  })
+  @ApiOkResponse({
+    description: 'Google account unlinked successfully',
+    type: SuccessResponseDto,
+  })
   async unlinkGoogleAccount(@Req() req: AuthRequest) {
-    if (!req.user) throw new UnauthorizedException();
+    if (!req.user) throw new UnauthorizedException('User not authenticated');
 
     return this.googleAuthService.unlinkGoogleAccount(req.user.id);
   }

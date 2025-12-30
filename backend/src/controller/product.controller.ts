@@ -61,7 +61,7 @@ import {
   CategoryResponseDtoSwagger,
   AddImagesDtoSwagger,
   RemoveImageDtoSwagger,
-  UpdateStatusDtoSwagger,
+  UpdateProductStatusDtoSwagger,
   SuccessResponseDtoSwagger
 } from '@domain/products/types/product.swagger.dto';
 
@@ -521,7 +521,7 @@ export class ProductController {
     description: 'Product ID (UUID format)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiBody({ type: UpdateStatusDtoSwagger })
+  @ApiBody({ type: UpdateProductStatusDtoSwagger })
   @ApiOkResponse({
     description: 'Product status updated successfully',
     type: ProductResponseDtoSwagger,

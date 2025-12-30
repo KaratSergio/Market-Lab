@@ -85,7 +85,7 @@ export class UpdateRolesDtoSwagger {
   roles: string[];
 }
 
-export class UpdateStatusDtoSwagger {
+export class UpdateAdminStatusDtoSwagger {
   @ApiProperty({
     description: 'User status',
     example: 'active',

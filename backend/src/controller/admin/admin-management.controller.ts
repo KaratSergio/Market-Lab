@@ -26,7 +26,7 @@ import { Permission } from '@shared/types';
 import {
   CreateAdminDtoSwagger,
   UpdateRolesDtoSwagger,
-  UpdateStatusDtoSwagger,
+  UpdateAdminStatusDtoSwagger,
   AdminResponseDtoSwagger,
   AdminsListResponseDtoSwagger,
   UsersListResponseDtoSwagger,
@@ -177,7 +177,7 @@ export class AdminManagementController {
     description: 'Updates status (active/inactive) for a specific admin user. Requires ADMIN_USERS_MANAGE permission.'
   })
   @ApiParam({ name: 'id', description: 'Admin user ID', example: '507f1f77bcf86cd799439011' })
-  @ApiBody({ type: UpdateStatusDtoSwagger })
+  @ApiBody({ type: UpdateAdminStatusDtoSwagger })
   @ApiOkResponse({
     description: 'Admin status updated successfully',
     type: AdminResponseDtoSwagger,

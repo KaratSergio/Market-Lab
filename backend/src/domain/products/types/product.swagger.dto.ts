@@ -253,7 +253,7 @@ export class RemoveImageDtoSwagger {
   imageUrl: string;
 }
 
-export class UpdateStatusDtoSwagger {
+export class UpdateProductStatusDtoSwagger {
   @ApiProperty({
     description: 'New product status',
     example: 'inactive',

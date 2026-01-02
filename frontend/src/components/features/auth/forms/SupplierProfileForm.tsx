@@ -5,10 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierProfileSchema, SupplierProfileFormData } from '@/core/utils/zod-schemas';
 import { useRegisterComplete } from '@/core/hooks/useAuth';
+import { createSupplierFormData } from '@/core/utils/api-utils';
 import { FileUpload, ProgressBar, Button, Input, Textarea } from '@/components/ui';
 
 const steps = ['Personal Info', 'Farm Details', 'Documents', 'Confirmation'];
-
 
 export function SupplierProfileForm() {
   const completeRegistration = useRegisterComplete();
@@ -45,23 +45,8 @@ export function SupplierProfileForm() {
   };
 
   const onSubmit = async (data: SupplierProfileFormData) => {
-    const formData = new FormData();
-
-    // Adding text fields
-    Object.entries(data).forEach(([key, value]) => {
-      if (key !== 'documents' && value) {
-        formData.append(key, value.toString());
-      }
-    });
-
-    // Adding files
-    uploadedFiles.forEach((file) => {
-      formData.append('documents', file);
-    });
-
-    completeRegistration.mutate({
-      role: 'supplier',
-      profile: {
+    const formData = createSupplierFormData(
+      {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
@@ -69,9 +54,11 @@ export function SupplierProfileForm() {
         companyName: data.companyName,
         description: data.description,
         registrationNumber: data.registrationNumber,
-        documents: uploadedFiles,
       },
-    });
+      uploadedFiles
+    );
+
+    completeRegistration.mutate(formData);
   };
 
   // Checking the validity of the current step

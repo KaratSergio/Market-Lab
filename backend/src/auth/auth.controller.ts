@@ -1,28 +1,20 @@
 import {
   Controller,
-  Post,
-  Body,
-  HttpCode,
-  Req,
-  Res,
-  UseGuards,
-  Get,
-  Query,
+  Post, Body, HttpCode,
+  Req, Res, UseGuards,
+  Get, Query,
   UnauthorizedException,
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiBody,
-  ApiQuery,
-  ApiConsumes,
-  ApiCookieAuth,
+  ApiTags, ApiOperation,
+  ApiResponse, ApiBearerAuth,
+  ApiBody, ApiQuery,
+  ApiConsumes, ApiCookieAuth,
   ApiExcludeEndpoint,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -30,13 +22,16 @@ import {
 
 // Types and DTOs
 import type {
+  AuthRequest,
+  Response,
+  GoogleAuthDto,
+} from './types';
+
+import {
   RegisterDto,
   RegisterInitialDto,
   RegCompleteDto,
   RegSupplierProfileDto,
-  AuthRequest,
-  Response,
-  GoogleAuthDto,
 } from './types';
 
 // Guards

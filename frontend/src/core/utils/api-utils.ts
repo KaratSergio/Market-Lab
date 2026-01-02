@@ -262,32 +262,36 @@ export const apiFetch = async <T>(
 };
 
 /**
- * Creates FormData from object, handling files and nested objects
+ * Creates FormData for supplier registration with correct structure
  */
-export const createFormData = <T extends Record<string, any>>(
-  data: T,
-  fileFields: (keyof T)[] = []
+export const createSupplierFormData = (
+  profileData: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    address: string;
+    companyName: string;
+    description: string;
+    registrationNumber: string;
+  },
+  files: File[] = []
 ): FormData => {
   const formData = new FormData();
 
-  Object.entries(data).forEach(([key, value]) => {
-    if (value === undefined || value === null) return;
+  // Role
+  formData.append('role', 'supplier');
 
-    if (fileFields.includes(key as keyof T) && value instanceof File) {
-      formData.append(key, value);
-    } else if (Array.isArray(value) && value[0] instanceof File) {
-      // Handle file arrays
-      value.forEach((file, index) => {
-        formData.append(`${key}[${index}]`, file);
-      });
-    } else if (typeof value === 'object' && !(value instanceof File)) {
-      // Stringify nested objects
-      formData.append(key, JSON.stringify(value));
-    } else {
-      // Convert other values to string
-      formData.append(key, String(value));
-    }
-  });
+  // Profile fields
+  formData.append('profile[firstName]', profileData.firstName);
+  formData.append('profile[lastName]', profileData.lastName);
+  formData.append('profile[phone]', profileData.phone);
+  formData.append('profile[address]', profileData.address);
+  formData.append('profile[companyName]', profileData.companyName);
+  formData.append('profile[description]', profileData.description);
+  formData.append('profile[registrationNumber]', profileData.registrationNumber);
+
+  // Files
+  files.forEach(file => formData.append('documents', file));
 
   return formData;
 };

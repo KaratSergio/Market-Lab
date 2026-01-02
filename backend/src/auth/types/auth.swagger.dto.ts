@@ -23,22 +23,6 @@ export class RegisterInitialDtoSwagger {
   @MinLength(6)
   @IsNotEmpty()
   password: string;
-
-  @ApiPropertyOptional({
-    description: 'User first name',
-    example: 'John',
-  })
-  @IsOptional()
-  @IsString()
-  firstName?: string;
-
-  @ApiPropertyOptional({
-    description: 'User last name',
-    example: 'Doe',
-  })
-  @IsOptional()
-  @IsString()
-  lastName?: string;
 }
 
 export class LoginDto {
@@ -99,6 +83,18 @@ export class RegCompleteDtoSwagger {
 
 export class RegSupplierProfileDtoSwagger {
   @ApiProperty({
+    required: true,
+    description: 'Contact person name'
+  })
+  firstName: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Contact person surname'
+  })
+  lastName: string;
+
+  @ApiProperty({
     description: 'Company name',
     example: 'Tech Corp Ltd.',
     required: true,
@@ -114,23 +110,34 @@ export class RegSupplierProfileDtoSwagger {
   })
   @IsString()
   @IsNotEmpty()
-  taxId: string;
+  registrationNumber: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Phone number'
+  })
+  phone: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Company address'
+  })
+  address: string;
 
   @ApiPropertyOptional({
+    required: true,
     description: 'Business description',
     example: 'Technology solutions provider',
   })
-  @IsOptional()
   @IsString()
-  businessDescription?: string;
+  description: string;
 
-  @ApiPropertyOptional({
-    description: 'Website URL',
-    example: 'https://example.com',
+  @ApiProperty({
+    required: true,
+    type: [String],
+    description: 'URL company documents'
   })
-  @IsOptional()
-  @IsString()
-  website?: string;
+  documents: string[];
 }
 
 export class GoogleAuthDtoSwagger {

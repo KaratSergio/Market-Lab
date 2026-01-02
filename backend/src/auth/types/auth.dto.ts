@@ -1,8 +1,8 @@
 import {
   IsEmail, IsString,
   MinLength, IsEnum,
-  ValidateNested,
-  IsOptional, IsObject
+  ValidateNested, IsOptional,
+  IsObject, IsArray
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
@@ -27,6 +27,12 @@ export class RegCustomerProfileDto {
 
 export class RegSupplierProfileDto {
   @IsString()
+  firstName: string;
+
+  @IsString()
+  lastName: string;
+
+  @IsString()
   companyName: string;
 
   @IsString()
@@ -36,10 +42,14 @@ export class RegSupplierProfileDto {
   phone: string;
 
   @IsString()
-  address: string;
+  address: Address;
+
+  @IsString()
+  description: string;
 
   @IsOptional()
-  @IsObject()
+  @IsArray()
+  @IsString({ each: true })
   documents?: string[];
 }
 
@@ -87,14 +97,6 @@ export class RegisterInitialDto {
   @IsOptional()
   @IsString()
   facebookId?: string;
-
-  @IsOptional()
-  @IsString()
-  firstName?: string;
-
-  @IsOptional()
-  @IsString()
-  lastName?: string;
 }
 
 export class RegCompleteDto {

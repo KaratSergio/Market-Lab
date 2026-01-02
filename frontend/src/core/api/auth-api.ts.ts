@@ -1,4 +1,4 @@
-import { apiFetch, createFormData } from '../utils/api-utils';
+import { apiFetch, createSupplierFormData } from '../utils/api-utils';
 import { AUTH_ENDPOINTS } from '../constants/api-config';
 
 import {
@@ -58,26 +58,36 @@ export const authApi = {
    * @returns Complete authentication response
    */
   async registerComplete(
-    dto: RegisterCompleteDto & { documents?: File[] }
+    data: RegisterCompleteDto & { documents?: File[] } | FormData
   ): Promise<AuthResponse> {
-    const isSupplierWithDocs =
-      dto.role === 'supplier' && dto.documents?.length;
+    const isFormData = data instanceof FormData;
 
-    if (!isSupplierWithDocs) {
-      // Simple JSON request for non-suppliers or suppliers without docs
+    if (isFormData) {
+      return apiFetch<AuthResponse>(AUTH_ENDPOINTS.REGISTER_COMPLETE, {
+        method: 'POST',
+        body: data,
+      });
+    }
+
+    const dto = data as RegisterCompleteDto & { documents?: File[] };
+
+    const isSupplier = dto.role === 'supplier';
+    const hasFiles = dto.documents && dto.documents.length > 0;
+
+    if (isSupplier && hasFiles) {
+      const supplierProfile = dto.profile as any;
+      const formData = createSupplierFormData(supplierProfile, dto.documents);
+
+      return apiFetch<AuthResponse>(AUTH_ENDPOINTS.REGISTER_COMPLETE, {
+        method: 'POST',
+        body: formData,
+      });
+    } else {
       return apiFetch<AuthResponse>(AUTH_ENDPOINTS.REGISTER_COMPLETE, {
         method: 'POST',
         body: JSON.stringify(dto),
       });
     }
-
-    // FormData request for suppliers with documents
-    const formData = createFormData(dto, ['documents']);
-
-    return apiFetch<AuthResponse>(AUTH_ENDPOINTS.REGISTER_COMPLETE, {
-      method: 'POST',
-      body: formData,
-    });
   },
 
   /**

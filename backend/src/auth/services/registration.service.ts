@@ -217,6 +217,8 @@ export class RegistrationService {
       user_id: userId,
       companyName: profile.companyName,
       registrationNumber: profile.registrationNumber,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
       address: profile.address,
       email: email,
       phone: profile.phone || '',

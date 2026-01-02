@@ -13,8 +13,13 @@ export const registerSchema = z.object({
 
 export const requestSupplierSchema = z.object({
   companyName: z.string().min(2, 'Company name is required'),
-  taxId: z.string().min(1, 'Tax ID is required'),
-  contactPhone: z.string().min(1, 'Contact phone number is required'),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  phone: z.string().regex(/^\+?[0-9\s\-\(\)]{10,}$/, 'Invalid phone number'),
+  address: z.string().min(5, 'Address is required'),
+  description: z.string().min(10, 'Description is required'),
+  registrationNumber: z.string().min(1, 'Tax ID is required'),
+  documents: z.instanceof(File),
 });
 
 export const adminCreateSchema = z.object({

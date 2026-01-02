@@ -27,10 +27,10 @@ export class GoogleAuthService {
   /**
    * Generate Google OAuth URL for frontend redirection
    */
-  async getGoogleAuthUrl(): Promise<{ url: string }> {
+  async getGoogleAuthUrl(): Promise<string> {
     try {
       const url = this.googleOAuthService.getAuthUrl();
-      return { url };
+      return url;
     } catch (error) {
       throw new InternalServerErrorException('Failed to generate Google auth URL');
     }

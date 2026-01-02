@@ -115,6 +115,18 @@ export class PostgresSupplierRepository extends DomainSupplierRepository {
       queryBuilder.andWhere('supplier.phone = :phone', { phone: filter.phone });
     }
 
+    if (filter.firstName) {
+      queryBuilder.andWhere('supplier.firstName = :firstName', { firstName: filter.firstName });
+    }
+
+    if (filter.lastName) {
+      queryBuilder.andWhere('supplier.lastName = :lastName', { lastName: filter.lastName });
+    }
+
+    if (filter.description) {
+      queryBuilder.andWhere('supplier.description = :description', { description: filter.description });
+    }
+
     const ormEntity = await queryBuilder.getOne();
     return ormEntity ? this.toDomainEntity(ormEntity) : null;
   }
@@ -154,6 +166,18 @@ export class PostgresSupplierRepository extends DomainSupplierRepository {
       queryBuilder.andWhere('supplier.phone = :phone', { phone: filter.phone });
     }
 
+    if (filter.firstName) {
+      queryBuilder.andWhere('supplier.firstName = :firstName', { firstName: filter.firstName });
+    }
+
+    if (filter.lastName) {
+      queryBuilder.andWhere('supplier.lastName = :lastName', { lastName: filter.lastName });
+    }
+
+    if (filter.description) {
+      queryBuilder.andWhere('supplier.description = :description', { description: filter.description });
+    }
+
     if (filter.companyName && filter.companyName.includes('%')) {
       queryBuilder.andWhere('supplier.companyName LIKE :companyName', { companyName: filter.companyName });
     }
@@ -171,7 +195,10 @@ export class PostgresSupplierRepository extends DomainSupplierRepository {
       ormEntity.address,
       ormEntity.email,
       ormEntity.phone,
-      ormEntity.documents || [],
+      ormEntity.firstName,
+      ormEntity.lastName,
+      ormEntity.description,
+      ormEntity.documents,
       ormEntity.status as SupplierStatus,
       ormEntity.createdAt,
       ormEntity.updatedAt
@@ -188,6 +215,9 @@ export class PostgresSupplierRepository extends DomainSupplierRepository {
     if (domainEntity.address) ormEntity.address = domainEntity.address;
     if (domainEntity.email) ormEntity.email = domainEntity.email;
     if (domainEntity.phone) ormEntity.phone = domainEntity.phone;
+    if (domainEntity.firstName !== undefined) ormEntity.firstName = domainEntity.firstName;
+    if (domainEntity.lastName !== undefined) ormEntity.lastName = domainEntity.lastName;
+    if (domainEntity.description !== undefined) ormEntity.description = domainEntity.description;
     if (domainEntity.documents) ormEntity.documents = domainEntity.documents;
     if (domainEntity.status) ormEntity.status = domainEntity.status;
     if (domainEntity.createdAt) ormEntity.createdAt = domainEntity.createdAt;

@@ -25,57 +25,61 @@ export const API_RETRY_CONFIG = {
 } as const;
 
 /**
+ * API prefix constant
+ */
+export const API_PREFIX = '/api';
+
+/**
  * Authentication API endpoints
  */
 export const AUTH_ENDPOINTS = {
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
-  REGISTER_INITIAL: '/auth/register-initial',
-  REGISTER_COMPLETE: '/auth/register-complete',
-  SESSION: '/auth/session/user',
-  REQUEST_SUPPLIER: '/auth/request-supplier',
-  LOGOUT: '/auth/logout',
-  REFRESH_TOKEN: '/auth/refresh',
-  FORGOT_PASSWORD: '/auth/forgot-password',
-  RESET_PASSWORD: '/auth/reset-password',
+  LOGIN: `${API_PREFIX}/auth/login`,
+  REGISTER: `${API_PREFIX}/auth/register`,
+  REGISTER_INITIAL: `${API_PREFIX}/auth/register-initial`,
+  REGISTER_COMPLETE: `${API_PREFIX}/auth/register-complete`,
+  SESSION: `${API_PREFIX}/auth/session/user`,
+  REQUEST_SUPPLIER: `${API_PREFIX}/auth/request-supplier`,
+  LOGOUT: `${API_PREFIX}/auth/logout`,
+  REFRESH_TOKEN: `${API_PREFIX}/auth/refresh`,
+  FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
+  RESET_PASSWORD: `${API_PREFIX}/auth/reset-password`,
   // for google
-  GOOGLE_URL: '/auth/google/url',
-  GOOGLE_AUTH: '/auth/google',
-  GOOGLE_CALLBACK: '/auth/google/callback',
-  GOOGLE_LINK: '/auth/google/link',
-  GOOGLE_UNLINK: '/auth/google/unlink',
+  GOOGLE_URL: `${API_PREFIX}/auth/google/url`,
+  GOOGLE_AUTH: `${API_PREFIX}/auth/google`,
+  GOOGLE_CALLBACK: `${API_PREFIX}/auth/google/callback`,
+  GOOGLE_LINK: `${API_PREFIX}/auth/google/link`,
+  GOOGLE_UNLINK: `${API_PREFIX}/auth/google/unlink`,
 } as const;
 
 /**
  * Admin management API endpoints
  */
 export const ADMIN_ENDPOINTS = {
-  ADMINS: '/admin/management/admins',
-  ADMIN_BY_ID: (adminId: string) => `/admin/management/admins/${adminId}`,
-  ADMIN_PERMISSIONS: (adminId: string) => `/admin/management/admins/${adminId}/permissions`,
-  ADMIN_STATS: '/admin/management/stats',
-  ADMIN_LOGS: '/admin/management/logs',
+  ADMINS: `${API_PREFIX}/admin/management/admins`,
+  ADMIN_BY_ID: (adminId: string) => `${API_PREFIX}/admin/management/admins/${adminId}`,
+  ADMIN_PERMISSIONS: (adminId: string) => `${API_PREFIX}/admin/management/admins/${adminId}/permissions`,
+  ADMIN_STATS: `${API_PREFIX}/admin/management/stats`,
+  ADMIN_LOGS: `${API_PREFIX}/admin/management/logs`,
 } as const;
-
 
 /**
  * User management API endpoints
  */
 export const CUSTOMER_ENDPOINTS = {
-  PROFILE: '/customer/profile',
-  PROFILE_UPDATE: '/customer/profile',
-  AVATAR_UPLOAD: '/customer/avatar',
-  PREFERENCES: '/customer/preferences',
+  PROFILE: `${API_PREFIX}/customer/profile`,
+  PROFILE_UPDATE: `${API_PREFIX}/customer/profile`,
+  AVATAR_UPLOAD: `${API_PREFIX}/customer/avatar`,
+  PREFERENCES: `${API_PREFIX}/customer/preferences`,
 } as const;
 
 /**
  * Supplier management API endpoints
  */
 export const SUPPLIER_ENDPOINTS = {
-  SUPPLIERS: '/suppliers',
-  SUPPLIER_BY_ID: (id: string) => `/suppliers/${id}`,
-  SUPPLIER_DOCUMENTS: (id: string) => `/suppliers/${id}/documents`,
-  SUPPLIER_VERIFICATION: (id: string) => `/suppliers/${id}/verify`,
+  SUPPLIERS: `${API_PREFIX}/suppliers`,
+  SUPPLIER_BY_ID: (id: string) => `${API_PREFIX}/suppliers/${id}`,
+  SUPPLIER_DOCUMENTS: (id: string) => `${API_PREFIX}/suppliers/${id}/documents`,
+  SUPPLIER_VERIFICATION: (id: string) => `${API_PREFIX}/suppliers/${id}/verify`,
 } as const;
 
 /**
@@ -88,7 +92,12 @@ export const buildApiUrl = (endpoint: string): string => {
 
   // Remove leading/trailing slashes for consistency
   const base = API_BASE_URL.replace(/\/$/, '');
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  // Ensure endpoint has the API prefix if it doesn't already
+  let path = endpoint;
+  if (!endpoint.startsWith(API_PREFIX)) {
+    path = endpoint.startsWith('/') ? `${API_PREFIX}${endpoint}` : `${API_PREFIX}/${endpoint}`;
+  }
 
   return `${base}${path}`;
 };

@@ -6,14 +6,19 @@ import {
   SUPPLIER_STATUS
 } from './types';
 
+import { Address } from '@shared/types';
+
 export class SupplierDomainEntity implements SupplierModel {
   public id: string;
   public userId: string;
   public companyName: string;
   public registrationNumber: string;
-  public address: string;
+  public address: Address;
   public email: string;
   public phone: string;
+  public firstName: string;
+  public lastName: string;
+  public description: string;
   public documents: string[];
   public status: SupplierStatus;
   public createdAt: Date;
@@ -24,9 +29,12 @@ export class SupplierDomainEntity implements SupplierModel {
     userId: string,
     companyName: string,
     registrationNumber: string,
-    address: string,
+    address: Address,
     email: string,
     phone: string,
+    firstName: string,
+    lastName: string,
+    description: string,
     documents: string[] = [],
     status: SupplierStatus = SUPPLIER_STATUS.PENDING,
     createdAt: Date = new Date(),
@@ -39,6 +47,9 @@ export class SupplierDomainEntity implements SupplierModel {
     this.address = address;
     this.email = email;
     this.phone = phone;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.description = description;
     this.documents = documents;
     this.status = status;
     this.createdAt = createdAt;
@@ -54,19 +65,25 @@ export class SupplierDomainEntity implements SupplierModel {
       createDto.address,
       createDto.email,
       createDto.phone,
-      createDto.documents || [],
+      createDto.firstName,
+      createDto.lastName,
+      createDto.description,
+      createDto.documents,
       SUPPLIER_STATUS.PENDING
     );
   }
 
   update(updateDto: UpdateSupplierDto): void {
-    if (updateDto.companyName) this.companyName = updateDto.companyName;
-    if (updateDto.registrationNumber) this.registrationNumber = updateDto.registrationNumber;
-    if (updateDto.address) this.address = updateDto.address;
-    if (updateDto.email) this.email = updateDto.email;
-    if (updateDto.phone) this.phone = updateDto.phone;
-    if (updateDto.documents) this.documents = updateDto.documents;
-    if (updateDto.status) this.status = updateDto.status;
+    if (updateDto.companyName !== undefined) this.companyName = updateDto.companyName;
+    if (updateDto.registrationNumber !== undefined) this.registrationNumber = updateDto.registrationNumber;
+    if (updateDto.address !== undefined) this.address = updateDto.address;
+    if (updateDto.email !== undefined) this.email = updateDto.email;
+    if (updateDto.phone !== undefined) this.phone = updateDto.phone;
+    if (updateDto.firstName !== undefined) this.firstName = updateDto.firstName;
+    if (updateDto.lastName !== undefined) this.lastName = updateDto.lastName;
+    if (updateDto.description !== undefined) this.description = updateDto.description;
+    if (updateDto.documents !== undefined) this.documents = updateDto.documents;
+    if (updateDto.status !== undefined) this.status = updateDto.status;
 
     this.updatedAt = new Date();
   }
@@ -109,5 +126,16 @@ export class SupplierDomainEntity implements SupplierModel {
       this.documents.splice(index, 1);
       this.updatedAt = new Date();
     }
+  }
+
+  hasContactInfo(): boolean {
+    return !!(this.firstName || this.lastName || this.phone);
+  }
+
+  updateContactInfo(firstName: string, lastName: string, phone: string): void {
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.phone = phone;
+    this.updatedAt = new Date();
   }
 }

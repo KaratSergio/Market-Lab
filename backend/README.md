@@ -16,31 +16,50 @@ BACKEND
 │   │   └── 📁 cache/                             # Cache configuration
 │   │       └── 📄 cache.module.ts                # Cache module
 │   │
-│   ├── 📁 auth/                                  # Authentication & authorization module
+│   ├── 📁 auth/                                  # AUTHENTICATION & AUTHORIZATION MODULE
 │   │   ├── 📁 config/
 │   │   │   └── 📄 auth-jwt.config.ts             # JWT configuration
 │   │   ├── 📁 encrypt/
 │   │   │   ├── 📄 encrypt.module.ts              # Encryption module
 │   │   │   └── 📄 encrypt.service.ts             # Password encryption service
 │   │   ├── 📁 decorators/
-│   │   │   ├── 📄 user.decorator.ts              # User decorator
-│   │   │   └── 📄 roles.decorator.ts             # Roles decorator
+│   │   │   ├── 📄 user.decorator.ts              # User decorator for extracting a user
+│   │   │   ├── 📄 auth.decorator.ts              # Combined decorator for protecting routes
+│   │   │   ├── 📄 permission.decorator.ts        # Permission decorator for access restriction
+│   │   │   ├── 📄 roles.decorator.ts             # Roles decorator for role check
+│   │   │   └── 📄 index.ts                       # Export of decorators
 │   │   ├── 📁 guard/
-│   │   │   ├── 📄 auth-jwt.guard.ts              # JWT authentication guard
-│   │   │   ├── 📄 roles.guard.ts                 # Roles guard
-│   │   │   └── 📄 auth-local.guard.ts            # Local authentication guard
+│   │   │   ├── 📄 auth-jwt.guard.ts              # JWT token verification
+│   │   │   ├── 📄 roles.guard.ts                 # Checking user roles
+│   │   │   ├── 📄 permissions.guard.ts           # Checking access permissions
+│   │   │   ├── 📄 auth-local.guard.ts            # Local authentication login/password verification
+│   │   │   └── 📄 index.ts                       # Export of guards
 │   │   ├── 📁 strategy/
-│   │   │   ├── 📄 auth-jwt.strategy.ts           # JWT strategy
-│   │   │   └── 📄 auth-local.strategy.ts         # Local authentication strategy
+│   │   │   ├── 📄 auth-jwt.strategy.ts           # JWT verification and processing
+│   │   │   └── 📄 auth-local.strategy.ts         # Checking login and password
 │   │   ├── 📁 tokens/
-│   │   │   ├── 📄 token.service.ts               # Token service
-│   │   │   └── 📄 token.module.ts                # Token module
+│   │   │   ├── 📄 token.service.ts               # Managing temporary tokens
+│   │   │   └── 📄 token.module.ts                # Registering a token service
 │   │   ├── 📁 types/
 │   │   │   ├── 📄 auth.dto.ts                    # Authentication DTO
-│   │   │   └── 📄 auth.type.ts                   # Authentication types
-│   │   ├── 📄 auth.controller.ts                 # Authentication controller
-│   │   ├── 📄 auth.module.ts                     # Authentication module
-│   │   └── 📄 auth.service.ts                    # Authentication service
+│   │   │   ├── 📄 auth.swagger.dto.ts            # Authentication swagger DTO
+│   │   │   ├── 📄 auth.type.ts                   # Authentication types
+│   │   │   └── 📄 index.ts                       # Export of types
+│   │   ├── 📁 types/
+│   │   │   ├── 📄 auth.dto.ts                    # Authentication DTO
+│   │   │   ├── 📄 auth.swagger.dto.ts            # Authentication swagger DTO
+│   │   │   ├── 📄 auth.type.ts                   # Authentication types
+│   │   │   └── 📄 index.ts                       # Export of types
+│   │   ├── 📁 services/
+│   │   │   ├── 📄 auth.service.ts                # Main authentication coordination service
+│   │   │   ├── 📄 email-verification.service.ts  # Email verification and confirmation logic
+│   │   │   ├── 📄 google-auth.service.ts         # Google OAuth authentication implementation
+│   │   │   ├── 📄 password-reset.service.ts      # Password reset and recovery functionality
+│   │   │   ├── 📄 permissions.service.ts         # Role-based permissions management
+│   │   │   ├── 📄 registration.service.ts        # User registration and role assignment
+│   │   │   └── 📄 user.service.ts                # Core user management operations
+│   │   ├── 📄 auth.controller.ts                 # Receiving and processing authentication requests
+│   │   └── 📄 auth.module.ts                     # Organization of authentication components
 │   │
 │   ├── 📁 shared/                                # SHARED UTILITIES
 │   │   ├── 📁 interfaces/

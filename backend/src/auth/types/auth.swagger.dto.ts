@@ -1,6 +1,5 @@
-// src/auth/dto/auth.swagger.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, IsOptional, IsArray, IsEnum, IsNotEmpty, IsBoolean } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsEnum, IsNotEmpty } from 'class-validator';
 import { Role } from '@shared/types';
 
 export class RegisterInitialDtoSwagger {
@@ -25,7 +24,7 @@ export class RegisterInitialDtoSwagger {
   password: string;
 }
 
-export class LoginDto {
+export class LoginDtoSwagger {
   @ApiProperty({
     description: 'User email address',
     example: 'user@example.com',
@@ -159,7 +158,7 @@ export class GoogleAuthDtoSwagger {
   accessToken?: string;
 }
 
-export class ForgotPasswordDto {
+export class ForgotPasswordDtoSwagger {
   @ApiProperty({
     description: 'User email address',
     example: 'user@example.com',
@@ -170,7 +169,7 @@ export class ForgotPasswordDto {
   email: string;
 }
 
-export class ResetPasswordDto {
+export class ResetPasswordDtoSwagger {
   @ApiProperty({
     description: 'Password reset token',
     example: 'abc123def456',
@@ -192,7 +191,7 @@ export class ResetPasswordDto {
   newPassword: string;
 }
 
-export class EmailResponseDto {
+export class EmailResponseDtoSwagger {
   @ApiProperty({
     description: 'Success status',
     example: true,
@@ -206,7 +205,7 @@ export class EmailResponseDto {
   message: string;
 }
 
-export class SuccessResponseDto {
+export class SuccessResponseDtoSwagger {
   @ApiProperty({
     description: 'Success status',
     example: true,
@@ -220,7 +219,7 @@ export class SuccessResponseDto {
   message: string;
 }
 
-export class AuthResponseDto {
+export class AuthResponseDtoSwagger {
   @ApiProperty({
     description: 'JWT access token',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',

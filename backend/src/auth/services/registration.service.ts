@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 
-// DTOs and entities
+// DTOs
 import {
   RegisterDto,
   RegisterInitialDto,
@@ -16,6 +16,8 @@ import {
   RegSupplierProfileDto,
   RegCustomerProfileDto,
 } from '../types';
+
+// Entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
 import { CustomerProfileOrmEntity } from '@infrastructure/database/postgres/customers/customer.entity';
 import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
@@ -25,6 +27,7 @@ import { EncryptService } from '../encrypt/encrypt.service';
 import { TokenService } from '../tokens/token.service';
 import { MailService } from '@infrastructure/mail/mail.service';
 import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
+import { Role } from '@shared/types';
 
 
 @Injectable()
@@ -91,6 +94,8 @@ export class RegistrationService {
 
   /**
    * Complete registration process with user details and documents
+   * @description For new users: completes registration with role selection
+   * @description For existing users: adds new roles and creates profiles
    */
   async completeRegistration(
     userId: string,
@@ -99,22 +104,34 @@ export class RegistrationService {
   ) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
-    if (user.regComplete) throw new BadRequestException('Registration already completed');
 
     const { role, profile } = dto;
 
-    // Update user with selected role
-    user.roles = [role];
-    user.regComplete = true;
+    // Check if user already has this role
+    if (user.roles.includes(role)) {
+      throw new BadRequestException(`User already has ${role} role`);
+    }
+
+    // If user is completing registration for the first time
+    if (!user.regComplete) {
+      user.regComplete = true;
+      user.roles = [role]; // Set initial role
+    }
+    // If user is adding a new role (e.g., customer becoming supplier)
+    else {
+      // Add new role to existing roles
+      user.roles = [...user.roles, role];
+    }
+
     await this.userRepo.save(user);
 
     // Handle customer profile creation
-    if (role === 'customer') {
+    if (role === Role.CUSTOMER) {
       await this._createCustomerProfile(user.id, profile as RegCustomerProfileDto);
     }
 
     // Handle supplier profile creation with document upload
-    if (role === 'supplier') {
+    if (role === Role.SUPPLIER) {
       await this._createSupplierProfile(
         user.id,
         user.email,
@@ -148,9 +165,9 @@ export class RegistrationService {
     await this.userRepo.save(user);
 
     // Create profile based on role
-    if (role === 'customer') {
+    if (role === Role.CUSTOMER) {
       await this._createCustomerProfile(user.id, profile as RegCustomerProfileDto);
-    } else if (role === 'supplier') {
+    } else if (role === Role.SUPPLIER) {
       await this._createSupplierProfile(
         user.id,
         user.email,
@@ -170,6 +187,12 @@ export class RegistrationService {
     userId: string,
     profile: RegCustomerProfileDto
   ) {
+    // Check if customer profile already exists
+    const existingProfile = await this.customerRepo.findOne({ where: { user_id: userId } });
+    if (existingProfile) {
+      throw new BadRequestException('Customer profile already exists');
+    }
+
     const customer = this.customerRepo.create({
       user_id: userId,
       firstName: profile.firstName,
@@ -190,6 +213,12 @@ export class RegistrationService {
     profile: RegSupplierProfileDto,
     documents?: Express.Multer.File[]
   ) {
+    // Check if supplier profile already exists
+    const existingProfile = await this.supplierRepo.findOne({ where: { user_id: userId } });
+    if (existingProfile) {
+      throw new BadRequestException('Supplier profile already exists');
+    }
+
     let documentUrls: string[] = [];
 
     // Upload documents to S3 if provided

@@ -1,3 +1,5 @@
+import { FilesInterceptor } from '@nestjs/platform-express';
+
 import {
   Controller,
   Post, Body, HttpCode,
@@ -8,7 +10,6 @@ import {
   UploadedFiles,
   BadRequestException,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
 
 import {
   ApiTags, ApiOperation,
@@ -32,11 +33,22 @@ import {
   RegisterInitialDto,
   RegCompleteDto,
   RegSupplierProfileDto,
+
+  // Swagger DTOs
+  RegisterInitialDtoSwagger,
+  LoginDtoSwagger,
+  RegCompleteDtoSwagger,
+  RegSupplierProfileDtoSwagger,
+  GoogleAuthDtoSwagger,
+  ForgotPasswordDtoSwagger,
+  ResetPasswordDtoSwagger,
+  EmailResponseDtoSwagger,
+  SuccessResponseDtoSwagger,
+  AuthResponseDtoSwagger,
 } from './types';
 
 // Guards
-import { AuthLocalGuard } from './guard/auth-local.guard';
-import { AuthJwtGuard } from './guard/auth-jwt.guard';
+import { AuthLocalGuard, AuthJwtGuard } from './guard';
 
 // Main auth service (coordinator)
 import { AuthService } from './services/auth.service';
@@ -46,22 +58,7 @@ import { RegistrationService } from './services/registration.service';
 import { EmailVerificationService } from './services/email-verification.service';
 import { PasswordResetService } from './services/password-reset.service';
 import { GoogleAuthService } from './services/google-auth.service';
-import { SupplierRequestService } from './services/supplier-request.service';
 import { UserService } from './services/user.service';
-
-// Swagger DTOs
-import {
-  RegisterInitialDtoSwagger,
-  LoginDto,
-  RegCompleteDtoSwagger,
-  RegSupplierProfileDtoSwagger,
-  GoogleAuthDtoSwagger,
-  ForgotPasswordDto,
-  ResetPasswordDto,
-  EmailResponseDto,
-  SuccessResponseDto,
-  AuthResponseDto,
-} from './types/auth.swagger.dto';
 
 
 @ApiTags('auth')
@@ -77,7 +74,6 @@ export class AuthController {
     private readonly emailVerificationService: EmailVerificationService,
     private readonly passwordResetService: PasswordResetService,
     private readonly googleAuthService: GoogleAuthService,
-    private readonly supplierRequestService: SupplierRequestService,
     private readonly userService: UserService,
   ) { }
 
@@ -95,7 +91,7 @@ export class AuthController {
   @ApiBody({ type: RegisterInitialDtoSwagger })
   @ApiCreatedResponse({
     description: 'User registered successfully',
-    type: AuthResponseDto,
+    type: AuthResponseDtoSwagger,
   })
   @ApiResponse({
     status: 400,
@@ -122,9 +118,9 @@ export class AuthController {
   }
 
   /**
-   * COMPLETE REGISTRATION - Finishes user profile
-   * @description Completes user registration with role selection, profile details, 
-   * and optional document uploads for supplier accounts.
+   * COMPLETE/UPDATE REGISTRATION - Finishes user profile or adds new role
+   * @description For new users: completes registration with role selection
+   * @description For existing users: adds new roles and creates profiles
    */
   @Post('register-complete')
   @UseGuards(AuthJwtGuard)
@@ -132,22 +128,22 @@ export class AuthController {
   @HttpCode(200)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Complete user registration',
-    description: 'Finishes user registration with role selection and profile details. Supports file uploads for supplier documents.'
+    summary: 'Complete registration or add new role',
+    description: 'For new users: completes registration with role. For existing users: adds new role and profile. Supports file uploads for supplier documents.'
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: RegCompleteDtoSwagger })
   @ApiOkResponse({
-    description: 'Registration completed successfully',
-    type: AuthResponseDto,
+    description: 'Registration completed or role added successfully',
+    type: AuthResponseDtoSwagger,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid data or role already exists',
   })
   @ApiResponse({
     status: 401,
     description: 'Unauthorized - JWT token missing or invalid',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - user already completed registration',
   })
   async completeRegistration(
     @Req() req: AuthRequest,
@@ -184,10 +180,10 @@ export class AuthController {
     summary: 'User login',
     description: 'Authenticates user with email and password credentials.'
   })
-  @ApiBody({ type: LoginDto })
+  @ApiBody({ type: LoginDtoSwagger })
   @ApiOkResponse({
     description: 'Login successful',
-    type: AuthResponseDto,
+    type: AuthResponseDtoSwagger,
   })
   @ApiResponse({
     status: 401,
@@ -220,7 +216,7 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: 'Logout successful',
-    type: SuccessResponseDto,
+    type: SuccessResponseDtoSwagger,
   })
   async logout(@Res({ passthrough: true }) res: Response) {
     this._clearAuthCookie(res);
@@ -250,48 +246,6 @@ export class AuthController {
   })
   async getSession(@Req() req: AuthRequest) {
     return req.user || null;
-  }
-
-  /**
-   * REQUEST SUPPLIER ROLE
-   * @description Allows existing users to request supplier account status.
-   */
-  @UseGuards(AuthJwtGuard)
-  @Post('request-supplier')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Request supplier role',
-    description: 'Allows existing users to request supplier account status.'
-  })
-  @ApiBody({ type: RegSupplierProfileDtoSwagger })
-  @ApiOkResponse({
-    description: 'Supplier request submitted successfully',
-    type: AuthResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - user already has supplier role',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - JWT token missing or invalid',
-  })
-  async requestSupplier(
-    @Req() req: AuthRequest,
-    @Body() dto: RegSupplierProfileDto,
-  ) {
-    if (!req.user) throw new UnauthorizedException('User not authenticated');
-
-    // Use supplier request service
-    const result = await this.supplierRequestService.requestSupplier(
-      req.user.id,
-      dto
-    );
-
-    // Generate new token with updated roles
-    const authResponse = await this.authService.login(result.user.id);
-
-    return authResponse;
   }
 
   /**
@@ -368,10 +322,10 @@ export class AuthController {
     summary: 'Send verification email',
     description: 'Sends verification link to user\'s email address.'
   })
-  @ApiBody({ type: ForgotPasswordDto }) // Reuse DTO for email field
+  @ApiBody({ type: ForgotPasswordDtoSwagger }) // Reuse DTO for email field
   @ApiOkResponse({
     description: 'Verification email sent if email exists',
-    type: EmailResponseDto,
+    type: EmailResponseDtoSwagger,
   })
   async sendVerification(@Body('email') email: string) {
     await this.emailVerificationService.sendVerificationEmail(email);
@@ -393,7 +347,7 @@ export class AuthController {
   @ApiQuery({ name: 'token', required: true, description: 'Verification token from email' })
   @ApiOkResponse({
     description: 'Email verified successfully',
-    type: SuccessResponseDto,
+    type: SuccessResponseDtoSwagger,
   })
   @ApiResponse({
     status: 400,
@@ -425,7 +379,7 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: 'Verification email sent',
-    type: EmailResponseDto,
+    type: EmailResponseDtoSwagger,
   })
   async resendVerification(@Req() req: AuthRequest) {
     if (!req.user) throw new UnauthorizedException('User not authenticated');
@@ -478,10 +432,10 @@ export class AuthController {
     summary: 'Request password reset',
     description: 'Sends password reset link to user\'s email address.'
   })
-  @ApiBody({ type: ForgotPasswordDto })
+  @ApiBody({ type: ForgotPasswordDtoSwagger })
   @ApiOkResponse({
     description: 'Password reset email sent if email exists',
-    type: EmailResponseDto,
+    type: EmailResponseDtoSwagger,
   })
   async forgotPassword(@Body('email') email: string) {
     await this.passwordResetService.requestPasswordReset(email);
@@ -501,10 +455,10 @@ export class AuthController {
     summary: 'Reset password with token',
     description: 'Sets new password using token from reset link.'
   })
-  @ApiBody({ type: ResetPasswordDto })
+  @ApiBody({ type: ResetPasswordDtoSwagger })
   @ApiOkResponse({
     description: 'Password reset successful',
-    type: SuccessResponseDto,
+    type: SuccessResponseDtoSwagger,
   })
   @ApiResponse({
     status: 400,
@@ -566,7 +520,7 @@ export class AuthController {
   @ApiQuery({ name: 'code', required: true, description: 'Authorization code from Google' })
   @ApiOkResponse({
     description: 'Google authentication successful',
-    type: AuthResponseDto,
+    type: AuthResponseDtoSwagger,
   })
   @ApiResponse({
     status: 400,
@@ -600,7 +554,7 @@ export class AuthController {
   @ApiBody({ type: GoogleAuthDtoSwagger })
   @ApiOkResponse({
     description: 'Google authentication successful',
-    type: AuthResponseDto,
+    type: AuthResponseDtoSwagger,
   })
   async googleAuth(
     @Body() dto: GoogleAuthDto,
@@ -631,7 +585,7 @@ export class AuthController {
   @ApiBody({ type: GoogleAuthDtoSwagger })
   @ApiOkResponse({
     description: 'Google account linked successfully',
-    type: SuccessResponseDto,
+    type: SuccessResponseDtoSwagger,
   })
   async linkGoogleAccount(
     @Req() req: AuthRequest,
@@ -655,7 +609,7 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: 'Google account unlinked successfully',
-    type: SuccessResponseDto,
+    type: SuccessResponseDtoSwagger,
   })
   async unlinkGoogleAccount(@Req() req: AuthRequest) {
     if (!req.user) throw new UnauthorizedException('User not authenticated');

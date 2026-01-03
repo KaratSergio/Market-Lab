@@ -13,7 +13,6 @@ import { RegistrationService } from './services/registration.service';
 import { EmailVerificationService } from './services/email-verification.service';
 import { PasswordResetService } from './services/password-reset.service';
 import { GoogleAuthService } from './services/google-auth.service';
-import { SupplierRequestService } from './services/supplier-request.service';
 import { UserService } from './services/user.service';
 
 // Auth strategies and guards
@@ -73,7 +72,6 @@ import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.con
     EmailVerificationService,
     PasswordResetService,
     GoogleAuthService,
-    SupplierRequestService,
     UserService,
 
     // Auth strategies

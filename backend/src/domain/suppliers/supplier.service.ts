@@ -194,93 +194,26 @@ export class SupplierService {
     });
   }
 
-  // Supplier approval (admin)
-  async approve(
+
+  async updateStatus(
     id: string,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_APPROVE, 'approve suppliers');
-
-    const supplier = await this.supplierRepository.findById(id);
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    supplier.approve();
-
-    const updated = await this.supplierRepository.update(id, {
-      status: supplier.status,
-      updatedAt: supplier.updatedAt
-    });
-
-    if (!updated) throw new NotFoundException('Supplier not found after approval');
-    return updated;
-  }
-
-  // Supplier Rejection (admin)
-  async reject(
-    id: string,
+    status: SupplierStatus,
     reason: string,
-    userId: string,
-    userRoles: string[]
+    userRoles: Role[]
   ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_MANAGE, 'reject suppliers');
-
+    this._checkStatusPermission(status, userRoles);
     const supplier = await this.supplierRepository.findById(id);
     if (!supplier) throw new NotFoundException('Supplier not found');
 
-    supplier.reject();
+    supplier.update({ status });
+    if (reason) console.log(`Supplier ${id} status changed to ${status}. Reason: ${reason}`);
 
     const updated = await this.supplierRepository.update(id, {
       status: supplier.status,
-      updatedAt: supplier.updatedAt
+      updatedAt: new Date()
     });
 
-    if (!updated) throw new NotFoundException('Supplier not found after rejection');
-    return updated;
-  }
-
-  // Supplier blocking (admin)
-  async suspend(
-    id: string,
-    reason: string,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_SUSPEND, 'suspend suppliers');
-
-    const supplier = await this.supplierRepository.findById(id);
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    supplier.suspend();
-
-    const updated = await this.supplierRepository.update(id, {
-      status: supplier.status,
-      updatedAt: supplier.updatedAt
-    });
-
-    if (!updated) throw new NotFoundException('Supplier not found after suspension');
-    return updated;
-  }
-
-  // Activation (unblocking) of the supplier (admin)
-  async activate(
-    id: string,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_MANAGE, 'activate suppliers');
-
-    const supplier = await this.supplierRepository.findById(id);
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    supplier.approve();
-
-    const updated = await this.supplierRepository.update(id, {
-      status: supplier.status,
-      updatedAt: supplier.updatedAt
-    });
-
-    if (!updated) throw new NotFoundException('Supplier not found after activation');
+    if (!updated) throw new NotFoundException('Supplier not found');
     return updated;
   }
 
@@ -298,32 +231,23 @@ export class SupplierService {
   }
 
   // Search for suppliers (admin)
-  async findOne(
-    filter: Partial<SupplierDomainEntity>,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity | null> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_READ, 'search suppliers');
-    return this.supplierRepository.findOne(filter);
-  }
-
-  async findMany(
-    filter: Partial<SupplierDomainEntity>,
-    userId: string,
-    userRoles: string[]
+  async searchSuppliers(
+    filter: {
+      status?: SupplierStatus;
+      companyName?: string;
+      email?: string;
+      registrationNumber?: string;
+    },
+    userRoles: Role[]
   ): Promise<SupplierDomainEntity[]> {
     this._checkSupplierPermission(userRoles, Permission.SUPPLIER_READ, 'search suppliers');
-    return this.supplierRepository.findMany(filter);
-  }
+    const repoFilter: Partial<SupplierDomainEntity> = {};
 
-  // Getting suppliers by status (admin)
-  async findByStatus(
-    status: SupplierStatus,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity[]> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_READ, 'view suppliers by status');
-    return this.supplierRepository.findByStatus(status);
+    if (filter.status) repoFilter.status = filter.status;
+    if (filter.companyName) repoFilter.companyName = filter.companyName;
+    if (filter.registrationNumber) repoFilter.registrationNumber = filter.registrationNumber;
+
+    return this.supplierRepository.findMany(repoFilter);
   }
 
   // Public information about the supplier
@@ -383,5 +307,20 @@ export class SupplierService {
     const supplier = await this.supplierRepository.findById(supplierId);
     if (!supplier) return false;
     return supplier.canSupply();
+  }
+
+  // Check status, activate supplier account
+  private _checkStatusPermission(status: SupplierStatus, userRoles: Role[]) {
+    const permissionMap = {
+      [SUPPLIER_STATUS.APPROVED]: Permission.SUPPLIER_APPROVE,
+      [SUPPLIER_STATUS.REJECTED]: Permission.SUPPLIER_MANAGE,
+      [SUPPLIER_STATUS.SUSPENDED]: Permission.SUPPLIER_SUSPEND,
+      [SUPPLIER_STATUS.PENDING]: null,
+    };
+
+    const requiredPermission = permissionMap[status];
+    if (requiredPermission) {
+      this._checkSupplierPermission(userRoles, requiredPermission, `change status to ${status}`);
+    }
   }
 }

@@ -1,5 +1,5 @@
-import { apiFetch, createSupplierFormData } from '../utils/api-utils';
-import { AUTH_ENDPOINTS } from '../constants/api-config';
+import { apiFetch, createSupplierFormData } from '@/core/utils/api-utils';
+import { AUTH_ENDPOINTS } from '@/core/constants/api-config';
 
 import {
   User,
@@ -9,7 +9,7 @@ import {
   RequestSupplierDto,
   RegisterInitialDto,
   RegisterCompleteDto,
-} from '../types/authType';
+} from '@/core/types/authType';
 
 /**
  * Authentication API client

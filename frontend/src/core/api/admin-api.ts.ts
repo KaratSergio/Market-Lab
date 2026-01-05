@@ -1,12 +1,12 @@
-import { apiFetch } from '../utils/api-utils';
-import { ADMIN_ENDPOINTS } from '../constants/api-config';
+import { apiFetch } from '@/core/utils/api-utils';
+import { ADMIN_ENDPOINTS } from '@/core/constants/api-config';
 
 import {
   Admin,
   CreateAdminDto,
   AdminResponse,
   AdminPermissions,
-} from '../types/adminTypes';
+} from '@/core/types/adminTypes';
 
 /**
  * Admin management API client

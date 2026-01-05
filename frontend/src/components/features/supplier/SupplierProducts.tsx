@@ -178,7 +178,7 @@ export function SupplierProducts() {
 // Product Form Component
 interface ProductFormProps {
   product?: Product | null;
-  onSubmit: (product: Product | Omit<Product, 'id'>) => void;
+  onSubmit: (product: Product) => void;
   onCancel: () => void;
 }
 
@@ -194,11 +194,11 @@ function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (product) {
-      onSubmit({ ...formData, id: product.id, images: product.images });
-    } else {
-      onSubmit({ ...formData, images: [] });
-    }
+    onSubmit({
+      ...formData,
+      id: product?.id || Date.now().toString(),
+      images: product?.images || []
+    });
   };
 
   return (

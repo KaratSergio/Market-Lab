@@ -34,16 +34,25 @@ export const API_PREFIX = '/api';
  */
 export const AUTH_ENDPOINTS = {
   LOGIN: `${API_PREFIX}/auth/login`,
-  REGISTER: `${API_PREFIX}/auth/register`,
   REGISTER_INITIAL: `${API_PREFIX}/auth/register-initial`,
   REGISTER_COMPLETE: `${API_PREFIX}/auth/register-complete`,
   SESSION: `${API_PREFIX}/auth/session/user`,
-  REQUEST_SUPPLIER: `${API_PREFIX}/auth/request-supplier`,
   LOGOUT: `${API_PREFIX}/auth/logout`,
-  REFRESH_TOKEN: `${API_PREFIX}/auth/refresh`,
+
+  // Email verification
+  SEND_VERIFICATION: `${API_PREFIX}/auth/send-verification`,
+  VERIFY_EMAIL: `${API_PREFIX}/auth/verify-email`,
+  RESEND_VERIFICATION: `${API_PREFIX}/auth/resend-verification`,
+  CHECK_EMAIL_VERIFICATION: `${API_PREFIX}/auth/check-email-verification`,
+
+  // Registration status
+  REG_STATUS: `${API_PREFIX}/auth/reg-status`,
+
+  // Password reset
   FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
   RESET_PASSWORD: `${API_PREFIX}/auth/reset-password`,
-  // for google
+
+  // Google OAuth
   GOOGLE_URL: `${API_PREFIX}/auth/google/url`,
   GOOGLE_AUTH: `${API_PREFIX}/auth/google`,
   GOOGLE_CALLBACK: `${API_PREFIX}/auth/google/callback`,
@@ -76,10 +85,27 @@ export const CUSTOMER_ENDPOINTS = {
  * Supplier management API endpoints
  */
 export const SUPPLIER_ENDPOINTS = {
+  // Public endpoints
+  PUBLIC_ACTIVE: `${API_PREFIX}/suppliers/public/active`,
+  PUBLIC_BY_ID: (id: string) => `${API_PREFIX}/suppliers/public/${id}`,
+
+  // Protected endpoints
   SUPPLIERS: `${API_PREFIX}/suppliers`,
   SUPPLIER_BY_ID: (id: string) => `${API_PREFIX}/suppliers/${id}`,
-  SUPPLIER_DOCUMENTS: (id: string) => `${API_PREFIX}/suppliers/${id}/documents`,
-  SUPPLIER_VERIFICATION: (id: string) => `${API_PREFIX}/suppliers/${id}/verify`,
+  PROFILE_MY: `${API_PREFIX}/suppliers/profile/my`,
+  PROFILE_UPDATE: `${API_PREFIX}/suppliers/profile/update`,
+
+  // Document management
+  DOCUMENTS_UPLOAD: (id: string) => `${API_PREFIX}/suppliers/${id}/documents`,
+  DOCUMENTS: (id: string) => `${API_PREFIX}/suppliers/${id}/documents`,
+  DOCUMENT_DELETE: (id: string, documentKey: string) =>
+    `${API_PREFIX}/suppliers/${id}/documents/${documentKey}`,
+
+  // Admin for supplier
+  UPDATE_STATUS: (id: string) => `${API_PREFIX}/suppliers/admin/${id}/status`,
+
+  // Search
+  SEARCH: `${API_PREFIX}/suppliers/search`,
 } as const;
 
 /**

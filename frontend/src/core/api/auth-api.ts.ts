@@ -29,18 +29,6 @@ export const authApi = {
   },
 
   /**
-   * Register new user account
-   * @param userData User registration data
-   * @returns Authentication response
-   */
-  async register(userData: RegisterFormData): Promise<AuthResponse> {
-    return apiFetch<AuthResponse>(AUTH_ENDPOINTS.REGISTER, {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
-  },
-
-  /**
    * Initial step of multi-step registration process
    * @param dto Initial registration data
    * @returns Partial authentication response
@@ -114,17 +102,6 @@ export const authApi = {
   },
 
   /**
-   * Request supplier account status
-   * @param dto Supplier request data
-   */
-  async requestSupplier(dto: RequestSupplierDto): Promise<void> {
-    return apiFetch<void>(AUTH_ENDPOINTS.REQUEST_SUPPLIER, {
-      method: 'POST',
-      body: JSON.stringify(dto),
-    });
-  },
-
-  /**
    * Logout current user and clear session
    */
   async logout(): Promise<void> {
@@ -133,15 +110,6 @@ export const authApi = {
     });
   },
 
-  /**
-   * Refresh authentication tokens
-   * @returns New authentication response
-   */
-  async refreshToken(): Promise<AuthResponse> {
-    return apiFetch<AuthResponse>(AUTH_ENDPOINTS.REFRESH_TOKEN, {
-      method: 'POST',
-    });
-  },
 
   /**
    * Request password reset email

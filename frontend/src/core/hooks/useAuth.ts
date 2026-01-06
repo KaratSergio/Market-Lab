@@ -3,7 +3,6 @@ import { authApi } from '@/core/api/auth-api.ts';
 import { useAuthStore } from '@/core/store/authStore';
 import { useRouter } from 'next/navigation';
 
-
 export const useRegisterInitial = () => {
   const queryClient = useQueryClient();
   const { setAuth } = useAuthStore();
@@ -13,48 +12,17 @@ export const useRegisterInitial = () => {
     mutationFn: authApi.registerInitial,
     onSuccess: (data) => {
       setAuth(data.user, data.access_token);
-
       queryClient.invalidateQueries({ queryKey: ['session'] });
 
-      if (!data.user.regComplete) {
-        router.push('/register/role');
-      } else {
+      if (!data.user.regComplete) router.push('/register/role');
+      else {
         const role = data.user.roles[0];
-        if (role === 'customer') {
-          router.push('/customer-dashboard');
-        } else {
-          router.push('/supplier-dashboard');
-        }
+        router.push(role === 'customer' ? '/customer-dashboard' : '/supplier-dashboard');
       }
     },
   });
 };
 
-// Hook for completing registration
-export const useRegisterComplete = () => {
-  const queryClient = useQueryClient();
-  const { setUser, setRegComplete } = useAuthStore();
-  const router = useRouter();
-
-  return useMutation({
-    mutationFn: authApi.registerComplete,
-    onSuccess: (data) => {
-      setUser(data.user);
-      setRegComplete(data.user.regComplete ?? true);
-
-      queryClient.invalidateQueries({ queryKey: ['session'] });
-
-      const role = data.user.roles[0];
-      if (role === 'customer') {
-        router.push('/customer-dashboard');
-      } else if (role === 'supplier') {
-        router.push('/supplier-dashboard');
-      }
-    },
-  });
-};
-
-// Entry hook (login)
 export const useLogin = () => {
   const queryClient = useQueryClient();
   const { setUser, setIsAuthenticated, setToken } = useAuthStore();
@@ -63,9 +31,10 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (data) => {
+      setToken(data.access_token);
       setUser(data.user);
       setIsAuthenticated(true);
-      setToken(data.access_token);
+
       queryClient.invalidateQueries({ queryKey: ['session'] });
 
       if (data.user.roles.includes('admin')) {
@@ -79,31 +48,8 @@ export const useLogin = () => {
   });
 };
 
-// Hook for registration(for super-admin)
-export const useRegister = () => {
-  const queryClient = useQueryClient();
-  const { setUser, setIsAuthenticated } = useAuthStore();
-  const router = useRouter();
-
-  return useMutation({
-    mutationFn: authApi.register,
-    onSuccess: (data) => {
-      setUser(data.user);
-      setIsAuthenticated(true);
-      queryClient.invalidateQueries({ queryKey: ['session'] });
-
-      if (data.user.roles.includes('customer')) {
-        router.push('/customer-dashboard');
-      } else {
-        router.push('/supplier-dashboard');
-      }
-    },
-  });
-};
-
-// Hook for getting a session
 export const useSession = () => {
-  const { setUser, setIsAuthenticated } = useAuthStore();
+  const { setUser, setIsAuthenticated, token } = useAuthStore();
 
   return useQuery({
     queryKey: ['session'],
@@ -121,33 +67,10 @@ export const useSession = () => {
       return user;
     },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
 
-// Hook for requesting supplier status
-export const useRequestSupplier = () => {
-  return useMutation({
-    mutationFn: authApi.requestSupplier,
-  });
-};
-
-// Exit hook (logout)
-export const useLogout = () => {
-  const queryClient = useQueryClient();
-  const { setUser, setIsAuthenticated } = useAuthStore();
-
-  return useMutation({
-    mutationFn: authApi.logout,
-    onSuccess: () => {
-      setUser(null);
-      setIsAuthenticated(false);
-      queryClient.clear();
-    },
-  });
-};
-
-// Hook for Google OAuth
 export const useGoogleAuth = () => {
   const queryClient = useQueryClient();
   const { setAuth } = useAuthStore();
@@ -159,12 +82,44 @@ export const useGoogleAuth = () => {
       setAuth(data.user, data.access_token);
       queryClient.invalidateQueries({ queryKey: ['session'] });
 
-      if (!data.user.regComplete) {
-        router.push('/register/role');
-      } else {
+      if (!data.user.regComplete) router.push('/register/role');
+      else {
         const role = data.user.roles[0];
         router.push(role === 'customer' ? '/customer-dashboard' : '/supplier-dashboard');
       }
+    },
+  });
+};
+
+export const useRegisterComplete = () => {
+  const queryClient = useQueryClient();
+  const { setUser, setRegComplete } = useAuthStore();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: authApi.registerComplete,
+    onSuccess: (data) => {
+      setUser(data.user);
+      setRegComplete(data.user.regComplete ?? true);
+
+      queryClient.invalidateQueries({ queryKey: ['session'] });
+
+      const role = data.user.roles[0];
+      router.push(role === 'customer' ? '/customer-dashboard' : '/supplier-dashboard');
+    },
+  });
+};
+
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  const { setUser, setIsAuthenticated } = useAuthStore();
+
+  return useMutation({
+    mutationFn: authApi.logout,
+    onSuccess: () => {
+      setUser(null);
+      setIsAuthenticated(false);
+      queryClient.clear();
     },
   });
 };

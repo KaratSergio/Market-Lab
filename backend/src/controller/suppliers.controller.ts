@@ -1,32 +1,20 @@
 import {
   Controller,
   Get, Post, Put, Delete,
-  Param, Body,
-  Request, Query,
-  ParseUUIDPipe,
-  UseInterceptors,
-  UploadedFiles,
-  BadRequestException,
-  HttpCode,
-  HttpStatus,
+  Param, Body, Request, Query,
+  ParseUUIDPipe, UseInterceptors,
+  UploadedFiles, BadRequestException,
+  HttpCode, HttpStatus,
   UseInterceptors as UseCustomInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiBody,
-  ApiParam,
-  ApiQuery,
-  ApiOkResponse,
-  ApiNotFoundResponse,
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
-  ApiBadRequestResponse,
-  ApiConsumes,
-  ApiCreatedResponse,
+  ApiTags, ApiOperation, ApiResponse,
+  ApiBearerAuth, ApiBody, ApiParam, ApiQuery,
+  ApiOkResponse, ApiNotFoundResponse,
+  ApiForbiddenResponse, ApiUnauthorizedResponse,
+  ApiBadRequestResponse, ApiConsumes, ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
@@ -39,7 +27,7 @@ import {
 } from '../auth/decorators';
 
 import type { AuthRequest } from '../auth/types';
-import type { UpdateSupplierDto } from '@domain/suppliers/types';
+import type { UpdateSupplierDto, SupplierStatus } from '@domain/suppliers/types';
 import { SupplierService } from '@domain/suppliers/supplier.service';
 import { Permission, Role } from '@shared/types';
 
@@ -47,8 +35,6 @@ import { Permission, Role } from '@shared/types';
 import {
   UpdateSupplierDtoSwagger,
   UploadDocumentsDtoSwagger,
-  RejectSupplierDtoSwagger,
-  SuspendSupplierDtoSwagger,
   SupplierResponseDtoSwagger,
   SupplierPublicResponseDtoSwagger,
   SuppliersListResponseDtoSwagger,
@@ -440,241 +426,85 @@ export class SuppliersController {
   // ================= ADMINISTRATIVE METHODS =================
 
   /**
-   * APPROVE SUPPLIER (Admin Only)
-   * @description Approves a pending supplier application.
-   * Admin-only endpoint requiring ADMIN role and SUPPLIER_APPROVE permission.
+   * UPDATE SUPPLIER STATUS (Admin Only)
+   * @description Updates supplier status (approve, reject, suspend, or reset to pending)
+   * Admin-only endpoint requiring ADMIN role with appropriate permissions.
    */
-  @Put('admin/:id/approve')
+  @Put('admin/:id/status')
   @Auth([Role.ADMIN], [Permission.SUPPLIER_APPROVE])
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Approve supplier (Admin Only)',
-    description: 'Approves a pending supplier application. Admin-only endpoint requiring ADMIN role and SUPPLIER_APPROVE permission.'
+    summary: 'Update supplier status (Admin Only)',
+    description: 'Updates supplier status: approve, reject, suspend, or set to pending.'
   })
   @ApiParam({
     name: 'id',
     description: 'Supplier ID (UUID format)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['approved', 'rejected', 'suspended', 'pending'],
+          description: 'New status for the supplier'
+        },
+        reason: {
+          type: 'string',
+          description: 'Reason for status change (optional, recommended for reject/suspend)'
+        }
+      },
+      required: ['status']
+    }
+  })
   @ApiOkResponse({
-    description: 'Supplier approved successfully',
+    description: 'Supplier status updated successfully',
     type: SupplierResponseDtoSwagger,
   })
-  @ApiNotFoundResponse({
-    description: 'Supplier not found',
+  @ApiBadRequestResponse({
+    description: 'Invalid status value',
   })
   @ApiForbiddenResponse({
-    description: 'User lacks required permissions',
+    description: 'User lacks required permissions for this status change',
   })
-  async approveSupplier(
+  async updateSupplierStatus(
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: { status: string; reason: string },
     @Request() req: AuthRequest
   ) {
-    const userId = req.user.id;
     const userRoles = req.user.roles;
-    return this.supplierService.approve(id, userId, userRoles);
-  }
+    const validStatuses = ['pending', 'approved', 'rejected', 'suspended'];
+    if (!validStatuses.includes(dto.status)) throw new BadRequestException(`Invalid status`);
 
-  /**
-   * REJECT SUPPLIER (Admin Only)
-   * @description Rejects a pending supplier application with a reason.
-   * Admin-only endpoint requiring ADMIN role.
-   */
-  @Put('admin/:id/reject')
-  @AdminOnly()
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Reject supplier (Admin Only)',
-    description: 'Rejects a pending supplier application with a reason. Admin-only endpoint requiring ADMIN role.'
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Supplier ID (UUID format)',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiBody({ type: RejectSupplierDtoSwagger })
-  @ApiOkResponse({
-    description: 'Supplier rejected successfully',
-    type: SupplierResponseDtoSwagger,
-  })
-  @ApiBadRequestResponse({
-    description: 'Rejection reason is required',
-  })
-  async rejectSupplier(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: { reason: string },
-    @Request() req: AuthRequest
-  ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.supplierService.reject(id, dto.reason, userId, userRoles);
-  }
-
-  /**
-   * SUSPEND SUPPLIER (Admin Only)
-   * @description Suspends an active supplier account with a reason.
-   * Admin-only endpoint requiring ADMIN role and SUPPLIER_SUSPEND permission.
-   */
-  @Put('admin/:id/suspend')
-  @Auth([Role.ADMIN], [Permission.SUPPLIER_SUSPEND])
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Suspend supplier (Admin Only)',
-    description: 'Suspends an active supplier account with a reason. Admin-only endpoint requiring ADMIN role and SUPPLIER_SUSPEND permission.'
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Supplier ID (UUID format)',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiBody({ type: SuspendSupplierDtoSwagger })
-  @ApiOkResponse({
-    description: 'Supplier suspended successfully',
-    type: SupplierResponseDtoSwagger,
-  })
-  @ApiBadRequestResponse({
-    description: 'Suspension reason is required',
-  })
-  async suspendSupplier(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: { reason: string },
-    @Request() req: AuthRequest
-  ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.supplierService.suspend(id, dto.reason, userId, userRoles);
-  }
-
-  /**
-   * ACTIVATE SUPPLIER (Admin Only)
-   * @description Reactivates a suspended supplier account.
-   * Admin-only endpoint requiring ADMIN role.
-   */
-  @Put('admin/:id/activate')
-  @AdminOnly()
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Activate supplier (Admin Only)',
-    description: 'Reactivates a suspended supplier account. Admin-only endpoint requiring ADMIN role.'
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Supplier ID (UUID format)',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiOkResponse({
-    description: 'Supplier activated successfully',
-    type: SupplierResponseDtoSwagger,
-  })
-  @ApiNotFoundResponse({
-    description: 'Supplier not found',
-  })
-  async activateSupplier(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: AuthRequest
-  ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.supplierService.activate(id, userId, userRoles);
+    return this.supplierService.updateStatus(
+      id,
+      dto.status as SupplierStatus,
+      dto.reason,
+      userRoles
+    );
   }
 
   // ================= SEARCH METHODS =================
-
-  /**
-   * SEARCH FOR SINGLE SUPPLIER (Admin Only)
-   * @description Searches for a single supplier based on filter criteria.
-   * Admin-only endpoint requiring ADMIN role.
-   */
-  @Get('search/find-one')
-  @AdminOnly()
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Search for single supplier (Admin Only)',
-    description: 'Searches for a single supplier based on filter criteria. Admin-only endpoint requiring ADMIN role.'
-  })
-  @ApiQuery({
-    name: 'filter',
-    type: 'object',
-    description: 'Search filter criteria (supports companyName, email, taxId, status)',
-    required: false,
-    example: { companyName: 'Tech Corp', status: 'approved' },
-  })
-  @ApiOkResponse({
-    description: 'Supplier found successfully',
-    type: SupplierResponseDtoSwagger,
-  })
-  @ApiNotFoundResponse({
-    description: 'No supplier matches the search criteria',
-  })
-  async findOne(
-    @Query() filter: any,
-    @Request() req: AuthRequest
-  ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.supplierService.findOne(filter, userId, userRoles);
-  }
 
   /**
    * SEARCH FOR MULTIPLE SUPPLIERS (Admin Only)
    * @description Searches for multiple suppliers based on filter criteria.
    * Admin-only endpoint requiring ADMIN role.
    */
-  @Get('search/find-many')
+  @Get('search')
   @AdminOnly()
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Search for multiple suppliers (Admin Only)',
-    description: 'Searches for multiple suppliers based on filter criteria. Admin-only endpoint requiring ADMIN role.'
-  })
-  @ApiQuery({
-    name: 'filter',
-    type: 'object',
-    description: 'Search filter criteria',
-    required: false,
-    example: { status: 'pending', createdFrom: '2024-01-01' },
-  })
-  @ApiOkResponse({
-    description: 'Suppliers found successfully',
-    type: SuppliersListResponseDtoSwagger,
-  })
-  async findMany(
-    @Query() filter: any,
+  async searchSuppliers(
+    @Query() query: {
+      status?: SupplierStatus;
+      companyName?: string;
+      registrationNumber?: string;
+      limit?: number;
+      page?: number;
+    },
     @Request() req: AuthRequest
   ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.supplierService.findMany(filter, userId, userRoles);
-  }
-
-  /**
-   * GET SUPPLIERS BY STATUS (Admin Only)
-   * @description Retrieves suppliers filtered by their approval status.
-   * Admin-only endpoint requiring ADMIN role.
-   */
-  @Get('status/:status')
-  @AdminOnly()
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get suppliers by status (Admin Only)',
-    description: 'Retrieves suppliers filtered by their approval status. Admin-only endpoint requiring ADMIN role.'
-  })
-  @ApiParam({
-    name: 'status',
-    description: 'Supplier status',
-    enum: ['pending', 'approved', 'rejected', 'suspended', 'active'],
-    example: 'pending',
-  })
-  @ApiOkResponse({
-    description: 'Suppliers by status retrieved successfully',
-    type: SuppliersListResponseDtoSwagger,
-  })
-  async findByStatus(
-    @Param('status') status: string,
-    @Request() req: AuthRequest
-  ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.supplierService.findByStatus(status as any, userId, userRoles);
+    return this.supplierService.searchSuppliers(query, req.user.roles);
   }
 }

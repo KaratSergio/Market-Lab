@@ -237,7 +237,7 @@ export function SupplierProfileForm() {
 
               <FileUpload
                 onFilesChange={handleFileUpload}
-                acceptedTypes=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                acceptedTypes=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
                 maxSize={10 * 1024 * 1024}
                 maxFiles={10}
                 error={errors.documents?.message}
@@ -245,7 +245,7 @@ export function SupplierProfileForm() {
 
               <div className="bg-yellow-50 rounded-lg p-4">
                 <p className="text-sm text-yellow-700">
-                  Supported formats: PDF, JPG, PNG, DOC. Max file size: 10MB
+                  Supported formats: PDF, JPG, PNG, WEBP, DOC. Max file size: 10MB
                 </p>
               </div>
             </div>

@@ -1,23 +1,28 @@
 import {
-  Injectable,
-  Inject,
+  Injectable, Inject,
   ConflictException,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
 
 import {
+  SupplierPublicDto,
+  SupplierProfileDto,
   CreateSupplierDto,
   UpdateSupplierDto,
   SUPPLIER_STATUS,
   SupplierStatus
 } from './types';
+import { AddressResponseDto } from '@domain/addresses/types/address.dto';
 
 import { Role, Permission } from '@shared/types';
 import { SupplierDomainEntity } from './supplier.entity';
 import { SupplierRepository } from './supplier.repository';
 import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
+import { UserRepository } from '@domain/users/user.repository';
+
 import { AddressService } from '@domain/addresses/address.service';
+import { Address } from '@domain/addresses/address.entity';
 
 
 @Injectable()
@@ -25,6 +30,10 @@ export class SupplierService {
   constructor(
     @Inject('SupplierRepository')
     private readonly supplierRepository: SupplierRepository,
+
+    @Inject('UserRepository')
+    private readonly userRepository: UserRepository,
+
     private readonly s3StorageService: S3StorageService,
     private readonly addressService: AddressService,
   ) { }
@@ -59,13 +68,23 @@ export class SupplierService {
     userId: string,
     requestUserId?: string,
     userRoles?: string[]
-  ): Promise<SupplierDomainEntity> {
+  ): Promise<SupplierProfileDto> {
     const supplier = await this.supplierRepository.findByUserId(userId);
-    if (!supplier) throw new NotFoundException('Supplier not found');
+    const user = await this.userRepository.findById(userId);
+    if (!supplier || !user) throw new NotFoundException('Supplier not found');
     // Check access
     this._checkSupplierAccess(supplier, requestUserId, userRoles, 'view');
 
-    return supplier;
+    const primaryAddress = await this.addressService.getPrimaryAddress(supplier.id, 'supplier');
+    const addresses = await this.addressService.getEntityAddresses(supplier.id, 'supplier');
+
+    return {
+      ...supplier,
+      email: user.email,
+      primaryAddress: primaryAddress ? this._mapAddressToResponse(primaryAddress) : null,
+      addresses: addresses.map(addr => this._mapAddressToResponse(addr)),
+    };
+
   }
 
   async create(createDto: CreateSupplierDto): Promise<SupplierDomainEntity> {
@@ -203,93 +222,25 @@ export class SupplierService {
     });
   }
 
-  // Supplier approval (admin)
-  async approve(
+  async updateStatus(
     id: string,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_APPROVE, 'approve suppliers');
-
-    const supplier = await this.supplierRepository.findById(id);
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    supplier.approve();
-
-    const updated = await this.supplierRepository.update(id, {
-      status: supplier.status,
-      updatedAt: supplier.updatedAt
-    });
-
-    if (!updated) throw new NotFoundException('Supplier not found after approval');
-    return updated;
-  }
-
-  // Supplier Rejection (admin)
-  async reject(
-    id: string,
+    status: SupplierStatus,
     reason: string,
-    userId: string,
-    userRoles: string[]
+    userRoles: Role[]
   ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_MANAGE, 'reject suppliers');
-
+    this._checkStatusPermission(status, userRoles);
     const supplier = await this.supplierRepository.findById(id);
     if (!supplier) throw new NotFoundException('Supplier not found');
 
-    supplier.reject();
+    supplier.update({ status });
+    if (reason) console.log(`Supplier ${id} status changed to ${status}. Reason: ${reason}`);
 
     const updated = await this.supplierRepository.update(id, {
       status: supplier.status,
-      updatedAt: supplier.updatedAt
+      updatedAt: new Date()
     });
 
-    if (!updated) throw new NotFoundException('Supplier not found after rejection');
-    return updated;
-  }
-
-  // Supplier blocking (admin)
-  async suspend(
-    id: string,
-    reason: string,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_SUSPEND, 'suspend suppliers');
-
-    const supplier = await this.supplierRepository.findById(id);
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    supplier.suspend();
-
-    const updated = await this.supplierRepository.update(id, {
-      status: supplier.status,
-      updatedAt: supplier.updatedAt
-    });
-
-    if (!updated) throw new NotFoundException('Supplier not found after suspension');
-    return updated;
-  }
-
-  // Activation (unblocking) of the supplier (admin)
-  async activate(
-    id: string,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_MANAGE, 'activate suppliers');
-
-    const supplier = await this.supplierRepository.findById(id);
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    supplier.approve();
-
-    const updated = await this.supplierRepository.update(id, {
-      status: supplier.status,
-      updatedAt: supplier.updatedAt
-    });
-
-    if (!updated) throw new NotFoundException('Supplier not found after activation');
+    if (!updated) throw new NotFoundException('Supplier not found');
     return updated;
   }
 
@@ -307,73 +258,44 @@ export class SupplierService {
   }
 
   // Search for suppliers (admin)
-  async findOne(
-    filter: Partial<SupplierDomainEntity>,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity | null> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_READ, 'search suppliers');
-    return this.supplierRepository.findOne(filter);
-  }
-
-  async findMany(
-    filter: Partial<SupplierDomainEntity>,
-    userId: string,
-    userRoles: string[]
+  async searchSuppliers(
+    filter: {
+      status?: SupplierStatus;
+      companyName?: string;
+      email?: string;
+      registrationNumber?: string;
+    },
+    userRoles: Role[]
   ): Promise<SupplierDomainEntity[]> {
     this._checkSupplierPermission(userRoles, Permission.SUPPLIER_READ, 'search suppliers');
-    return this.supplierRepository.findMany(filter);
-  }
+    const repoFilter: Partial<SupplierDomainEntity> = {};
 
-  // Getting suppliers by status (admin)
-  async findByStatus(
-    status: SupplierStatus,
-    userId: string,
-    userRoles: string[]
-  ): Promise<SupplierDomainEntity[]> {
-    this._checkSupplierPermission(userRoles, Permission.SUPPLIER_READ, 'view suppliers by status');
-    return this.supplierRepository.findByStatus(status);
+    if (filter.status) repoFilter.status = filter.status;
+    if (filter.companyName) repoFilter.companyName = filter.companyName;
+    if (filter.registrationNumber) repoFilter.registrationNumber = filter.registrationNumber;
+
+    return this.supplierRepository.findMany(repoFilter);
   }
 
   // Public information about the supplier
-  async getPublicSupplierInfo(id: string): Promise<any> {
-    const supplier = await this.supplierRepository.findById(id);
+  async getPublicSupplierInfo(supplierId: string): Promise<SupplierPublicDto> {
+    const supplier = await this.supplierRepository.findById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found');
 
-    const primaryAddress = await this.addressService.getPrimaryAddress(id, 'supplier');
+    const user = await this.userRepository.findById(supplier.userId);
+    const primaryAddress = await this.addressService.getPrimaryAddress(supplierId, 'supplier');
 
     return {
       id: supplier.id,
       companyName: supplier.companyName,
+      email: user?.email || '',
+      phone: supplier.phone,
+      status: supplier.status,
       address: primaryAddress ? {
         country: primaryAddress.country,
         city: primaryAddress.city,
-        street: primaryAddress.street,
-        building: primaryAddress.building,
-        postalCode: primaryAddress.postalCode,
-        state: primaryAddress.state,
         fullAddress: primaryAddress.fullAddress,
-      } : null,
-      phone: supplier.phone,
-      status: supplier.status,
-      createdAt: supplier.createdAt,
-      isActive: supplier.isActive(),
-      canSupply: supplier.canSupply(),
-    };
-  }
-
-  // Limited information for buyers
-  async getLimitedSupplierInfo(id: string): Promise<any> {
-    const supplier = await this.supplierRepository.findById(id);
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    return {
-      id: supplier.id,
-      companyName: supplier.companyName,
-      status: supplier.status,
-      isActive: supplier.isActive(),
-      canSupply: supplier.canSupply(),
-      // You can add rating, number of reviews, etc.
+      } : undefined,
     };
   }
 
@@ -418,5 +340,39 @@ export class SupplierService {
     const supplier = await this.supplierRepository.findById(supplierId);
     if (!supplier) return false;
     return supplier.canSupply();
+  }
+
+  // Check status, activate supplier account
+  private _checkStatusPermission(status: SupplierStatus, userRoles: Role[]) {
+    const permissionMap = {
+      [SUPPLIER_STATUS.APPROVED]: Permission.SUPPLIER_APPROVE,
+      [SUPPLIER_STATUS.REJECTED]: Permission.SUPPLIER_MANAGE,
+      [SUPPLIER_STATUS.SUSPENDED]: Permission.SUPPLIER_SUSPEND,
+      [SUPPLIER_STATUS.PENDING]: null,
+    };
+
+    const requiredPermission = permissionMap[status];
+    if (requiredPermission) {
+      this._checkSupplierPermission(userRoles, requiredPermission, `change status to ${status}`);
+    }
+  }
+
+  //address mapping
+  private _mapAddressToResponse(address: Address): AddressResponseDto {
+    return {
+      id: address.id,
+      country: address.country,
+      city: address.city,
+      street: address.street,
+      building: address.building,
+      postalCode: address.postalCode,
+      state: address.state,
+      lat: address.lat,
+      lng: address.lng,
+      isPrimary: address.isPrimary,
+      fullAddress: address.fullAddress,
+      createdAt: address.createdAt,
+      updatedAt: address.updatedAt,
+    };
   }
 }

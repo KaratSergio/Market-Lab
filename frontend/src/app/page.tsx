@@ -1,10 +1,12 @@
+import { HomeBanner } from "@/components/home/HomeBanner"
+
 export default function HomePage() {
   return (
-    <div>
-      <p>Home page</p>
+    <section>
+      <HomeBanner />
       {/* <HeroSection /> */}
       {/* <FeaturedProducts /> */}
       {/* <CategoriesSection /> */}
-    </div>
+    </section>
   )
 }

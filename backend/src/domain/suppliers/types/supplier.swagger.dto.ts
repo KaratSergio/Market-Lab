@@ -220,41 +220,35 @@ export class SupplierResponseDtoSwagger {
   })
   companyName: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Company description',
     example: 'Leading provider of technology solutions',
   })
-  description?: string;
+  description: string;
 
   @ApiProperty({
-    description: 'Contact email',
-    example: 'contact@techsolutions.example.com',
-  })
-  email: string;
-
-  @ApiPropertyOptional({
     description: 'Contact phone number',
     example: '+1234567890',
   })
-  phone?: string;
+  phone: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Company website URL',
     example: 'https://techsolutions.example.com',
   })
   website?: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Business address',
     example: '123 Business St, New York, NY 10001',
   })
-  address?: string;
+  address: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Tax identification number',
     example: '123-45-6789',
   })
-  taxId?: string;
+  registrationNumber: string;
 
   @ApiProperty({
     description: 'Supplier status',
@@ -262,13 +256,6 @@ export class SupplierResponseDtoSwagger {
     enum: ['pending', 'approved', 'rejected', 'suspended', 'active', 'inactive'],
   })
   status: string;
-
-  @ApiProperty({
-    description: 'Approval status',
-    example: 'approved',
-    enum: ['pending', 'approved', 'rejected'],
-  })
-  approvalStatus: string;
 
   @ApiProperty({
     description: 'Average rating',
@@ -329,11 +316,11 @@ export class SupplierPublicResponseDtoSwagger {
   })
   companyName: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Company description',
     example: 'Leading provider of technology solutions',
   })
-  description?: string;
+  description: string;
 
   @ApiPropertyOptional({
     description: 'Company website URL',
@@ -386,11 +373,11 @@ export class SupplierProfileResponseDtoSwagger {
   })
   companyName: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Company description',
     example: 'Leading provider of technology solutions',
   })
-  description?: string;
+  description: string;
 
   @ApiProperty({
     description: 'Contact email',
@@ -398,11 +385,11 @@ export class SupplierProfileResponseDtoSwagger {
   })
   email: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Contact phone number',
     example: '+1234567890',
   })
-  phone?: string;
+  phone: string;
 
   @ApiPropertyOptional({
     description: 'Company website URL',
@@ -410,29 +397,23 @@ export class SupplierProfileResponseDtoSwagger {
   })
   website?: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Business address',
     example: '123 Business St, New York, NY 10001',
   })
-  address?: string;
+  address: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Tax identification number',
     example: '123-45-6789',
   })
-  taxId?: string;
+  registrationNumber: string;
 
   @ApiProperty({
     description: 'Supplier status',
     example: 'approved',
   })
   status: string;
-
-  @ApiProperty({
-    description: 'Approval status',
-    example: 'approved',
-  })
-  approvalStatus: string;
 
   @ApiProperty({
     description: 'Average rating',

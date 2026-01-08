@@ -1,3 +1,4 @@
+export { Spinner } from './Spinner'
 export { FileUpload } from './FileUpload'
 export { ProgressBar } from './ProgressBar'
 export { DatePicker } from './DatePicker'
@@ -7,3 +8,7 @@ export { Dropdown } from './dropdown/Dropdown'
 export { DropdownItem } from './dropdown/DropdownItem'
 export { Input } from './input/Input'
 export { Button } from './button/Button'
+export { TabButton } from './button/TabButton'
+export { TabNavigation } from './TabNavigation'
+
+

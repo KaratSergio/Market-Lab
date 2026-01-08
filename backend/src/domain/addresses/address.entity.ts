@@ -2,17 +2,14 @@ import { AddressModel } from './types/address.type';
 
 export class Address implements AddressModel {
   constructor(
-    // Immutable core fields
     public readonly id: string,
     public readonly entityId: string,
     public readonly entityType: 'supplier' | 'customer',
-    public readonly country: string,
-    public readonly city: string,
-    public readonly street: string,
-    public readonly building: string,
+    public country: string,
+    public city: string,
+    public street: string,
+    public building: string,
     public readonly createdAt: Date = new Date(),
-
-    // Mutable fields
     public updatedAt: Date = new Date(),
     public postalCode?: string,
     public state?: string,

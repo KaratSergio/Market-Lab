@@ -268,8 +268,8 @@ export class RegistrationService {
       registrationNumber: profile.registrationNumber,
       firstName: profile.firstName,
       lastName: profile.lastName,
-      email: email,
-      phone: profile.phone || '',
+      phone: profile.phone,
+      description: profile.description,
       documents: allDocuments,
       status: 'pending',
     });

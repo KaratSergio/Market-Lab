@@ -12,7 +12,7 @@ interface FileUploadProps {
 
 export function FileUpload({
   onFilesChange,
-  acceptedTypes = '.pdf,.jpg,.jpeg,.png,.doc,.docx',
+  acceptedTypes = '.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx',
   maxSize = 10 * 1024 * 1024, // 10MB default
   maxFiles = 10,
   error,

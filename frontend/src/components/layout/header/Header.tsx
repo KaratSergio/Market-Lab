@@ -8,7 +8,7 @@ export function Header() {
     <header className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Logo href="/" size="lg" />
+          <Logo href="/" size="sm" />
 
           <DesktopNav />
 

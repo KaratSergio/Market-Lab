@@ -1,32 +1,20 @@
 import {
   Controller,
   Get, Post, Put, Delete,
-  Param, Body,
-  Request, Query,
-  ParseUUIDPipe,
-  BadRequestException,
-  UploadedFiles,
-  UseInterceptors,
-  HttpCode,
-  HttpStatus,
+  Param, Body, Request, Query,
+  ParseUUIDPipe, BadRequestException,
+  UploadedFiles, UseInterceptors,
+  HttpCode, HttpStatus,
   ClassSerializerInterceptor,
   UseInterceptors as UseCustomInterceptors,
 } from '@nestjs/common';
 
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiBody,
-  ApiParam,
-  ApiQuery,
-  ApiOkResponse,
-  ApiNotFoundResponse,
-  ApiForbiddenResponse,
-  ApiBadRequestResponse,
-  ApiConsumes,
-  ApiCreatedResponse,
+  ApiTags, ApiOperation, ApiResponse,
+  ApiBearerAuth, ApiBody, ApiParam,
+  ApiQuery, ApiOkResponse, ApiNotFoundResponse,
+  ApiForbiddenResponse, ApiBadRequestResponse,
+  ApiConsumes, ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 

@@ -38,7 +38,6 @@ import {
   RegisterInitialDtoSwagger,
   LoginDtoSwagger,
   RegCompleteDtoSwagger,
-  RegSupplierProfileDtoSwagger,
   GoogleAuthDtoSwagger,
   ForgotPasswordDtoSwagger,
   ResetPasswordDtoSwagger,

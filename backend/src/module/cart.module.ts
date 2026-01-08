@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+// Auth
 import { AuthModule } from '@auth/auth.module';
 
 // ORM Entities
@@ -15,6 +17,7 @@ import { CartService } from '@domain/cart/cart.service';
 // Controller
 import { CartController } from '@controller/cart.controller';
 
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([CartOrmEntity, CartItemOrmEntity]),
@@ -22,7 +25,10 @@ import { CartController } from '@controller/cart.controller';
   ],
   controllers: [CartController],
   providers: [
+    // Main cart service
     CartService,
+
+    // Cart repository
     {
       provide: 'CartRepository',
       useClass: PostgresCartRepository,

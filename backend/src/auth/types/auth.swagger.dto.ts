@@ -80,65 +80,6 @@ export class RegCompleteDtoSwagger {
   taxId?: string;
 }
 
-export class RegSupplierProfileDtoSwagger {
-  @ApiProperty({
-    required: true,
-    description: 'Contact person name'
-  })
-  firstName: string;
-
-  @ApiProperty({
-    required: true,
-    description: 'Contact person surname'
-  })
-  lastName: string;
-
-  @ApiProperty({
-    description: 'Company name',
-    example: 'Tech Corp Ltd.',
-    required: true,
-  })
-  @IsString()
-  @IsNotEmpty()
-  companyName: string;
-
-  @ApiProperty({
-    description: 'Tax ID number',
-    example: '123456789',
-    required: true,
-  })
-  @IsString()
-  @IsNotEmpty()
-  registrationNumber: string;
-
-  @ApiProperty({
-    required: true,
-    description: 'Phone number'
-  })
-  phone: string;
-
-  @ApiProperty({
-    required: true,
-    description: 'Company address'
-  })
-  address: string;
-
-  @ApiPropertyOptional({
-    required: true,
-    description: 'Business description',
-    example: 'Technology solutions provider',
-  })
-  @IsString()
-  description: string;
-
-  @ApiProperty({
-    required: true,
-    type: [String],
-    description: 'URL company documents'
-  })
-  documents: string[];
-}
-
 export class GoogleAuthDtoSwagger {
   @ApiProperty({
     description: 'Google ID token',

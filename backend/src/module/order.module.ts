@@ -16,6 +16,7 @@ import { OrderService } from '@domain/order/order.service';
 // Controllers
 import { OrderController } from '@controller/order.controller';
 
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([OrderOrmEntity, OrderItemOrmEntity]),

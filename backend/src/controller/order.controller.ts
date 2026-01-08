@@ -8,17 +8,10 @@ import {
 } from '@nestjs/common';
 
 import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-  ApiBody,
-  ApiParam,
-  ApiQuery,
-  ApiOkResponse,
-  ApiNotFoundResponse,
-  ApiForbiddenResponse,
-  ApiBadRequestResponse,
-  ApiCreatedResponse,
+  ApiTags, ApiOperation, ApiBearerAuth,
+  ApiBody, ApiParam, ApiQuery, ApiOkResponse,
+  ApiNotFoundResponse, ApiForbiddenResponse,
+  ApiBadRequestResponse, ApiCreatedResponse,
 } from '@nestjs/swagger';
 
 import type {

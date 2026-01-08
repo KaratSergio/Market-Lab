@@ -27,9 +27,6 @@ export class SupplierProfileOrmEntity {
   registrationNumber: string;
 
   @Column()
-  email: string;
-
-  @Column()
   phone: string;
 
   @Column({ nullable: true })

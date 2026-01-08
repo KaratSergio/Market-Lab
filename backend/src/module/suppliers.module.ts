@@ -17,6 +17,8 @@ import { PostgresSupplierRepository } from '@infrastructure/database/postgres/su
 // S3 Storage
 import { S3StorageModule } from '@infrastructure/storage/s3-storage.module';
 import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
+import { UsersModule } from './users.module';
+
 
 
 @Module({
@@ -26,6 +28,7 @@ import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
     AuthModule,
     AddressModule,
     S3StorageModule,
+    UsersModule,
   ],
   controllers: [SuppliersController],
   providers: [

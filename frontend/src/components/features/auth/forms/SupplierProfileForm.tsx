@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supplierProfileSchema, SupplierProfileFormData } from '@/core/utils/zod-schemas';
+import { supplierProfileSchema, SupplierProfileFormData } from '@/core/schemas/auth-schemas';
 import { useRegisterComplete } from '@/core/hooks/useAuth';
 import { createSupplierFormData } from '@/core/utils/api-utils';
 import { FileUpload, ProgressBar, Button, Input, Textarea } from '@/components/ui';

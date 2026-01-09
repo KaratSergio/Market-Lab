@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { customerProfileSchema, CustomerProfileFormData } from '@/core/utils/zod-schemas';
+import { customerProfileSchema, CustomerProfileFormData } from '@/core/schemas/auth-schemas';
 import { useRegisterComplete } from '@/core/hooks/useAuth';
 import { DatePicker, Input, Button, ProgressBar } from '@/components/ui';
 

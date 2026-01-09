@@ -17,12 +17,12 @@ export interface Supplier {
   lastName: string;
   registrationNumber: string;
   address: Address;
+  primaryAddress: Address;
   phone: string;
   documents: string[];
   status: SupplierStatus;
   email?: string;
   description?: string;
-  website?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,7 +36,6 @@ export interface CreateSupplierDto {
   phone: string;
   email: string;
   description?: string;
-  website?: string;
 }
 
 export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {

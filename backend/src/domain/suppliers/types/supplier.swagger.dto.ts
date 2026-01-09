@@ -36,14 +36,6 @@ export class UpdateSupplierDtoSwagger {
   phone?: string;
 
   @ApiPropertyOptional({
-    description: 'Company website URL',
-    example: 'https://techsolutions.example.com',
-  })
-  @IsOptional()
-  @IsString()
-  website?: string;
-
-  @ApiPropertyOptional({
     description: 'Business address',
     example: '123 Business St, New York, NY 10001',
   })
@@ -233,12 +225,6 @@ export class SupplierResponseDtoSwagger {
   phone: string;
 
   @ApiProperty({
-    description: 'Company website URL',
-    example: 'https://techsolutions.example.com',
-  })
-  website?: string;
-
-  @ApiProperty({
     description: 'Business address',
     example: '123 Business St, New York, NY 10001',
   })
@@ -322,12 +308,6 @@ export class SupplierPublicResponseDtoSwagger {
   })
   description: string;
 
-  @ApiPropertyOptional({
-    description: 'Company website URL',
-    example: 'https://techsolutions.example.com',
-  })
-  website?: string;
-
   @ApiProperty({
     description: 'Average rating',
     example: 4.5,
@@ -390,12 +370,6 @@ export class SupplierProfileResponseDtoSwagger {
     example: '+1234567890',
   })
   phone: string;
-
-  @ApiPropertyOptional({
-    description: 'Company website URL',
-    example: 'https://techsolutions.example.com',
-  })
-  website?: string;
 
   @ApiProperty({
     description: 'Business address',

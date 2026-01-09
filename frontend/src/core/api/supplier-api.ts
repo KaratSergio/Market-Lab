@@ -92,7 +92,7 @@ export const supplierApi = {
     return apiFetch<Supplier>(
       SUPPLIER_ENDPOINTS.PROFILE_UPDATE,
       {
-        method: 'PATCH',
+        method: 'PUT',
         body: JSON.stringify(data),
       },
       { token }

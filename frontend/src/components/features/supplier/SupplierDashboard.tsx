@@ -5,7 +5,8 @@ import { useAuthStore } from '@/core/store/authStore';
 import { TabNavigation } from '@/components/ui';
 
 import { SupplierOverview } from './SupplierOverview';
-import { SupplierProfile } from './SupplierProfile';
+// import { SupplierProfile } from './SupplierProfile';
+import { SupplierProfile } from './profile/SupplierProfile';
 import { SupplierProducts } from './SupplierProducts';
 
 type ActiveTab = 'dashboard' | 'profile' | 'products';

@@ -269,7 +269,16 @@ export const createSupplierFormData = (
     firstName: string;
     lastName: string;
     phone: string;
-    address: string;
+    address: {
+      country: string;
+      city: string;
+      street: string;
+      building: string;
+      postalCode?: string;
+      state?: string;
+      lat?: number;
+      lng?: number;
+    };
     companyName: string;
     description: string;
     registrationNumber: string;
@@ -278,17 +287,28 @@ export const createSupplierFormData = (
 ): FormData => {
   const formData = new FormData();
 
-  // Role
-  formData.append('role', 'supplier');
-
-  // Profile fields
-  formData.append('profile[firstName]', profileData.firstName);
-  formData.append('profile[lastName]', profileData.lastName);
-  formData.append('profile[phone]', profileData.phone);
-  formData.append('profile[address]', profileData.address);
-  formData.append('profile[companyName]', profileData.companyName);
-  formData.append('profile[description]', profileData.description);
-  formData.append('profile[registrationNumber]', profileData.registrationNumber);
+  const data = {
+    role: 'supplier' as const,
+    profile: {
+      firstName: profileData.firstName,
+      lastName: profileData.lastName,
+      phone: profileData.phone,
+      address: {
+        country: profileData.address.country,
+        city: profileData.address.city,
+        street: profileData.address.street,
+        building: profileData.address.building,
+        ...(profileData.address.postalCode && { postalCode: profileData.address.postalCode }),
+        ...(profileData.address.state && { state: profileData.address.state }),
+        ...(profileData.address.lat !== undefined && { lat: profileData.address.lat }),
+        ...(profileData.address.lng !== undefined && { lng: profileData.address.lng }),
+      },
+      companyName: profileData.companyName,
+      description: profileData.description,
+      registrationNumber: profileData.registrationNumber,
+    },
+  };
+  formData.append('data', JSON.stringify(data));
 
   // Files
   files.forEach(file => formData.append('documents', file));

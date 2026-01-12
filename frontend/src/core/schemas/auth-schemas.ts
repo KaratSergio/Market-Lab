@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { ADMIN_ROLES } from '@/core/types/adminTypes';
 
+export const addressSchema = z.object({
+  country: z.string().min(1, 'Country is required'),
+  city: z.string().min(1, 'City is required'),
+  street: z.string().min(1, 'Street is required'),
+  building: z.string().min(1, 'Building number is required'),
+  postalCode: z.string().optional(),
+  state: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+});
+
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').pipe(z.email('Enter a valid email address')),
   password: z.string().min(1, 'Password is required'),
@@ -37,7 +48,7 @@ export const customerProfileSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
   phone: z.string().regex(/^\+?[0-9\s\-\(\)]{10,}$/, 'Invalid phone number'),
-  address: z.string().min(5, 'Address must be at least 5 characters'),
+  address: addressSchema,
   birthDate: z.date().optional(),
 });
 
@@ -46,7 +57,7 @@ export const supplierProfileSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
   phone: z.string().regex(/^\+?[0-9\s\-\(\)]{10,}$/, 'Invalid phone number'),
-  address: z.string().min(5, 'Address must be at least 5 characters'),
+  address: addressSchema,
   companyName: z.string().min(2, 'Company name must be at least 2 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   registrationNumber: z.string().min(5, 'Registration number is required'),
@@ -71,6 +82,7 @@ export const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
+export type AddressFormData = z.infer<typeof addressSchema>;
 export type AdminCreateFormData = z.infer<typeof adminCreateSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;

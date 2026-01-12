@@ -1,8 +1,3 @@
-export { Logo } from './Logo'
-export { BannerLogo } from './BannerLogo'
-export { FARM_ICONS } from './constants'
-
-
 // EXAMPLE OF USE
 
 // import { Logo, BannerLogo, FARM_ICONS } from '@/components/ui/logo'

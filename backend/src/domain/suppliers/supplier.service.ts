@@ -14,11 +14,12 @@ import {
   SupplierStatus
 } from './types';
 import { AddressResponseDto } from '@domain/addresses/types/address.dto';
-
+import type { DocumentStorage } from '@domain/suppliers/types';
 import { Role, Permission } from '@shared/types';
+
 import { SupplierDomainEntity } from './supplier.entity';
 import { SupplierRepository } from './supplier.repository';
-import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
+
 import { UserRepository } from '@domain/users/user.repository';
 
 import { AddressService } from '@domain/addresses/address.service';
@@ -34,7 +35,9 @@ export class SupplierService {
     @Inject('UserRepository')
     private readonly userRepository: UserRepository,
 
-    private readonly s3StorageService: S3StorageService,
+    @Inject('DocumentStorage')
+    private readonly documentStorage: DocumentStorage,
+
     private readonly addressService: AddressService,
   ) { }
 
@@ -152,7 +155,6 @@ export class SupplierService {
   async uploadDocuments(
     id: string,
     files: Express.Multer.File[],
-    documentType: string,
     userId: string,
     userRoles: string[]
   ): Promise<{ urls: string[] }> {
@@ -162,26 +164,15 @@ export class SupplierService {
     // Check access rights
     this._checkSupplierAccess(supplier, userId, userRoles, 'upload documents');
 
-    const uploadResults = await this.s3StorageService.uploadSupplierDocuments(
-      files.map(file => ({
-        buffer: file.buffer,
-        originalname: file.originalname,
-        mimetype: file.mimetype,
-      })),
-      supplier.companyName,
-      documentType
-    );
-
-    // Update supplier documents list in database
-    const newDocumentUrls = uploadResults.map(result => result.url);
-    const updatedDocuments = [...supplier.documents, ...newDocumentUrls];
+    const urls = await this.documentStorage.uploadMany(files, supplier.companyName);
+    supplier.documents = [...supplier.documents, ...urls];
 
     await this.supplierRepository.update(id, {
-      documents: updatedDocuments,
+      documents: supplier.documents,
       updatedAt: new Date()
     });
 
-    return { urls: newDocumentUrls };
+    return { urls };
   }
 
   // Get supplier documents
@@ -189,20 +180,20 @@ export class SupplierService {
     id: string,
     userId: string,
     userRoles: string[]
-  ): Promise<{ [key: string]: string[] }> {
+  ): Promise<string[]> {
     const supplier = await this.supplierRepository.findById(id);
     if (!supplier) throw new NotFoundException('Supplier not found');
 
     // Check access rights (admin or supplier owner)
     this._checkSupplierAccess(supplier, userId, userRoles, 'view documents');
 
-    return await this.s3StorageService.getSupplierDocumentUrls(supplier.companyName);
+    return await this.documentStorage.getAll(supplier.companyName);
   }
 
   //  Delete supplier document
   async deleteDocument(
     id: string,
-    documentKey: string,
+    documentUrl: string,
     userId: string,
     userRoles: string[]
   ): Promise<void> {
@@ -211,13 +202,16 @@ export class SupplierService {
 
     // Check access rights
     this._checkSupplierAccess(supplier, userId, userRoles, 'delete documents');
+    if (!supplier.documents.includes(documentUrl)) {
+      throw new NotFoundException('Document not found for this supplier');
+    }
 
-    await this.s3StorageService.deleteSupplierDocument(supplier.companyName, documentKey);
+    await this.documentStorage.delete(documentUrl, supplier.companyName);
 
-    // Update documents list in database
-    const updatedDocuments = supplier.documents.filter(doc => !doc.includes(documentKey));
+    supplier.removeDocument(documentUrl);
+
     await this.supplierRepository.update(id, {
-      documents: updatedDocuments,
+      documents: supplier.documents,
       updatedAt: new Date()
     });
   }

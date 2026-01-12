@@ -33,12 +33,15 @@ export function SupplierOverview({ user }: { user: User }) {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-linear-to-r from-blue-600 to-blue-800 rounded-lg shadow-sm p-6 text-white">
+      {/* <div className="bg-linear-to-br from-green-50 via-amber-50 to-amber-100 rounded-lg shadow-sm p-6 text-gray-800"> */}
+      <div className="p-6 text-gray-800">
         <h1 className="text-2xl font-bold mb-2">
-          Welcome back, {user?.companyName || user?.email}!
+          {/* Welcome back, {user?.companyName || user?.email}! */}
+          Ласкаво просимо, {user?.companyName || user?.email}!
         </h1>
-        <p className="text-blue-100">
-          Here's what's happening with your business today.
+        <p className="text-gray-600">
+          {/* Here's what's happening with your business today. */}
+          Ось що відбувається з вашим бізнесом сьогодні.
         </p>
       </div>
 

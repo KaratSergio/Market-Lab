@@ -1,9 +1,6 @@
 import {
-  CreateSupplierDto,
-  UpdateSupplierDto,
-  SupplierModel,
-  SupplierStatus,
-  SUPPLIER_STATUS
+  CreateSupplierDto, UpdateSupplierDto,
+  SupplierModel, SupplierStatus, SUPPLIER_STATUS
 } from './types';
 
 

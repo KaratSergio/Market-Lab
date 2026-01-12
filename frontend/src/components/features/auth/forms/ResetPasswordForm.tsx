@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/core/api/auth-api.ts';
 import { Input, Button } from '@/components/ui';
-import { resetPasswordSchema, ResetPasswordFormData } from '@/core/utils/zod-schemas';
+import { resetPasswordSchema, ResetPasswordFormData } from '@/core/schemas/auth-schemas';
 
 
 export function ResetPasswordForm({ token }: { token?: string }) {

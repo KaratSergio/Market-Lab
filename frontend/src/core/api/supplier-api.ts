@@ -92,7 +92,7 @@ export const supplierApi = {
     return apiFetch<Supplier>(
       SUPPLIER_ENDPOINTS.PROFILE_UPDATE,
       {
-        method: 'PATCH',
+        method: 'PUT',
         body: JSON.stringify(data),
       },
       { token }
@@ -137,22 +137,22 @@ export const supplierApi = {
   /**
    * Upload document for supplier
    */
-  uploadDocument: async (
+  uploadDocuments: async (
     supplierId: string,
-    file: File,
+    files: File[],
     token: string
-  ): Promise<SupplierDocument> => {
+  ): Promise<string[]> => {
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach(file => { formData.append('files', file) });
 
-    return apiFetch<SupplierDocument>(
+    return apiFetch<{ urls: string[] }>(
       SUPPLIER_ENDPOINTS.DOCUMENTS_UPLOAD(supplierId),
       {
         method: 'POST',
         body: formData,
       },
       { token }
-    );
+    ).then(response => response.urls);
   },
 
   /**
@@ -161,8 +161,8 @@ export const supplierApi = {
   getDocuments: async (
     supplierId: string,
     token: string
-  ): Promise<SupplierDocument[]> => {
-    return apiFetch<SupplierDocument[]>(
+  ): Promise<string[]> => {
+    return apiFetch<string[]>(
       SUPPLIER_ENDPOINTS.DOCUMENTS(supplierId),
       { method: 'GET' },
       { token }
@@ -174,11 +174,13 @@ export const supplierApi = {
    */
   deleteDocument: async (
     supplierId: string,
-    documentKey: string,
+    documentUrl: string,
     token: string
   ): Promise<void> => {
+    const encodedUrl = encodeURIComponent(documentUrl);
+
     return apiFetch<void>(
-      SUPPLIER_ENDPOINTS.DOCUMENT_DELETE(supplierId, documentKey),
+      SUPPLIER_ENDPOINTS.DOCUMENT_DELETE(supplierId, encodedUrl),
       { method: 'DELETE' },
       { token }
     );

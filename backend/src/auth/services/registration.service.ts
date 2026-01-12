@@ -1,14 +1,12 @@
 import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
+  BadRequestException, ConflictException,
+  Injectable, Inject, NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 
-// DTOs
+// DTOs & types
 import {
   RegisterDto,
   RegisterInitialDto,
@@ -17,17 +15,19 @@ import {
   RegCustomerProfileDto,
 } from '../types';
 import { Role } from '@shared/types';
+import type { DocumentStorage } from '@domain/suppliers/types';
 
 // Entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
 import { CustomerProfileOrmEntity } from '@infrastructure/database/postgres/customers/customer.entity';
 import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
 
-// Infrastructure services
+// auth services
 import { EncryptService } from '../encrypt/encrypt.service';
 import { TokenService } from '../tokens/token.service';
-import { MailService } from '@infrastructure/mail/mail.service';
-import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
+
+import { MailService } from '@infrastructure/mail/mail.service'; //! reconnect with adapter
+
 import { AddressService } from '@domain/addresses/address.service';
 
 
@@ -39,7 +39,6 @@ export class RegistrationService {
     private readonly encrypt: EncryptService,
     private readonly tokenService: TokenService,
     private readonly mailService: MailService,
-    private readonly s3StorageService: S3StorageService,
     private readonly addressService: AddressService,
     private readonly config: ConfigService,
 
@@ -51,6 +50,9 @@ export class RegistrationService {
 
     @InjectRepository(SupplierProfileOrmEntity)
     private readonly supplierRepo: Repository<SupplierProfileOrmEntity>,
+
+    @Inject('DocumentStorage')
+    private readonly documentStorage: DocumentStorage,
   ) {
     this.frontendUrl = this.config.get<string>('FRONTEND_URL')!;
   }
@@ -243,20 +245,10 @@ export class RegistrationService {
 
     // Upload documents to S3 if provided
     if (documents && documents.length > 0) {
-      const uploadPromises = documents.map(async (file) => {
-        const result = await this.s3StorageService.uploadSupplierDocument(
-          {
-            buffer: file.buffer,
-            originalname: file.originalname,
-            mimetype: file.mimetype,
-          },
-          profile.companyName,
-          'registration'
-        );
-        return result.url;
-      });
-
-      documentUrls = await Promise.all(uploadPromises);
+      documentUrls = await this.documentStorage.uploadMany(
+        documents,
+        profile.companyName
+      );
     }
 
     // Combine uploaded documents with any provided URLs

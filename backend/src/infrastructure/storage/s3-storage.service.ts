@@ -343,25 +343,14 @@ export class S3StorageService {
   /**
    * Delete specific supplier document
    */
-  async deleteSupplierDocument(
-    supplierCompanyName: string,
-    documentKey: string
-  ): Promise<void> {
-    const cleanName = this.sanitizeString(supplierCompanyName);
-    const fullKey = `suppliers/${cleanName}/documents/${documentKey}`;
-
-    try {
-      await this.s3Client.send(
-        new DeleteObjectCommand({
-          Bucket: this.bucket,
-          Key: fullKey,
-        })
-      );
-      this.logger.log(`Supplier document deleted: ${fullKey}`);
-    } catch (error) {
-      this.logger.error(`Failed to delete supplier document: ${error.message}`);
-      throw new Error(`S3 delete failed: ${error.message}`);
-    }
+  async deleteSupplierDocument(documentKey: string): Promise<void> {
+    await this.s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: this.bucket,
+        Key: documentKey,
+      })
+    );
+    this.logger.log(`Supplier document deleted: ${documentKey}`);
   }
 
   /**

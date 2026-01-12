@@ -18,7 +18,7 @@ interface SupplierState {
   selectedSupplier: Supplier | null;
 
   // Documents
-  documents: SupplierDocument[];
+  documents: string[];
 
   // UI state
   loading: boolean;
@@ -29,7 +29,7 @@ interface SupplierState {
   setSuppliers: (suppliers: Supplier[]) => void;
   setFilteredSuppliers: (suppliers: Supplier[]) => void;
   setSelectedSupplier: (supplier: Supplier | null) => void;
-  setDocuments: (documents: SupplierDocument[]) => void;
+  setDocuments: (documents: string[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 
@@ -39,8 +39,8 @@ interface SupplierState {
   clearFilters: () => void;
 
   // Document actions
-  addDocument: (document: SupplierDocument) => void;
-  removeDocument: (documentKey: string) => void;
+  addDocuments: (documentUrls: string[]) => void;
+  removeDocumentByUrl: (documentUrl: string) => void;
 
   // Reset
   reset: () => void;
@@ -120,17 +120,17 @@ export const useSupplierStore = create<SupplierState>()(
         set({ filteredSuppliers: suppliers });
       },
 
-      addDocument: (document) => {
+      addDocuments: (documentUrls) => {
         const { documents } = get();
         set({
-          documents: [...documents, document]
+          documents: [...documents, ...documentUrls]
         });
       },
 
-      removeDocument: (documentKey) => {
+      removeDocumentByUrl: (documentUrl) => {
         const { documents } = get();
         set({
-          documents: documents.filter(doc => doc.key !== documentKey)
+          documents: documents.filter(url => url !== documentUrl)
         });
       },
 

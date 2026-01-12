@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AddressModule } from './address.module';
 import { AuthModule } from '@auth/auth.module';
+import { UsersModule } from './users.module';
 
 // Domain services
 import { SupplierService } from '@domain/suppliers/supplier.service';
@@ -16,9 +17,7 @@ import { PostgresSupplierRepository } from '@infrastructure/database/postgres/su
 
 // S3 Storage
 import { S3StorageModule } from '@infrastructure/storage/s3-storage.module';
-import { S3StorageService } from '@infrastructure/storage/s3-storage.service';
-import { UsersModule } from './users.module';
-
+import { S3DocumentStorageAdapter } from '@infrastructure/storage/s3-document-storage.adapter';
 
 
 @Module({
@@ -43,16 +42,15 @@ import { UsersModule } from './users.module';
 
     // S3 storage via abstract interface
     {
-      provide: 'FileStorage',
-      useExisting: S3StorageService,
+      provide: 'DocumentStorage',
+      useClass: S3DocumentStorageAdapter,
     },
 
     // Direct access to the S3 service
-    S3StorageService,
+    S3DocumentStorageAdapter,
   ],
   exports: [
     SupplierService,
-    S3StorageService,
   ],
 })
 export class SuppliersModule { }

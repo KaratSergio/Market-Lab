@@ -29,6 +29,7 @@ import { PermissionsService } from './services/permissions.service';
 import { MailModule } from '@infrastructure/mail/mail.module';
 import { GoogleOAuthModule } from '@infrastructure/oauth/google/google-oauth.module';
 import { S3StorageModule } from '@infrastructure/storage/s3-storage.module';
+import { S3DocumentStorageAdapter } from '@infrastructure/storage/s3-document-storage.adapter';
 
 // Database entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
@@ -85,6 +86,13 @@ import { AddressModule } from '@module/address.module';
     PermissionsService,
     RolesGuard,
     PermissionsGuard,
+
+    // S3 storage upload documents
+    S3DocumentStorageAdapter,
+    {
+      provide: 'DocumentStorage',
+      useClass: S3DocumentStorageAdapter,
+    },
   ],
   controllers: [
     AuthController,

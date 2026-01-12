@@ -160,23 +160,24 @@ export const useUpdateSupplierStatus = () => {
 /**
  * Hook for uploading supplier document
  */
-export const useUploadSupplierDocument = () => {
+export const useUploadSupplierDocuments = () => {
   const { token } = useAuthStore();
-  const { currentSupplier, addDocument } = useSupplierStore();
+  const { currentSupplier, addDocuments } = useSupplierStore();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (file: File) => {
-      if (!currentSupplier) {
-        throw new Error('No current supplier');
-      }
-      return supplierApi.uploadDocument(currentSupplier.id, file, token!);
+    mutationFn: (files: File[]) => {
+      if (!currentSupplier) throw new Error('No current supplier');
+      return supplierApi.uploadDocuments(currentSupplier.id, files, token!);
     },
-    onSuccess: (document) => {
-      addDocument(document);
+    onSuccess: (urls) => {
+      addDocuments(urls);
       if (currentSupplier) {
         queryClient.invalidateQueries({
           queryKey: supplierKeys.documents(currentSupplier.id)
+        });
+        queryClient.invalidateQueries({
+          queryKey: supplierKeys.profile()
         });
       }
     },
@@ -198,6 +199,9 @@ export const useSupplierDocuments = (supplierId: string) => {
       return documents;
     },
     enabled: !!token && !!supplierId,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -206,25 +210,27 @@ export const useSupplierDocuments = (supplierId: string) => {
  */
 export const useDeleteSupplierDocument = () => {
   const { token } = useAuthStore();
-  const { currentSupplier, removeDocument } = useSupplierStore();
+  const { currentSupplier, removeDocumentByUrl } = useSupplierStore();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (documentKey: string) => {
-      if (!currentSupplier) {
-        throw new Error('No current supplier');
-      }
+    mutationFn: (documentUrl: string) => {
+      if (!currentSupplier) throw new Error('No current supplier');
+
       return supplierApi.deleteDocument(
         currentSupplier.id,
-        documentKey,
+        documentUrl,
         token!
       );
     },
-    onSuccess: (_, documentKey) => {
-      removeDocument(documentKey);
+    onSuccess: (_, documentUrl) => {
+      removeDocumentByUrl(documentUrl);
       if (currentSupplier) {
         queryClient.invalidateQueries({
           queryKey: supplierKeys.documents(currentSupplier.id)
+        });
+        queryClient.invalidateQueries({
+          queryKey: supplierKeys.profile()
         });
       }
     },

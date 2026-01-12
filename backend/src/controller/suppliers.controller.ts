@@ -42,6 +42,7 @@ import {
   SupplierDocumentResponseDtoSwagger,
 } from '@domain/suppliers/types/supplier.swagger.dto';
 
+
 @ApiTags('suppliers')
 @Controller('suppliers')
 @UseCustomInterceptors(ClassSerializerInterceptor)
@@ -299,7 +300,7 @@ export class SuppliersController {
 
   /**
    * UPLOAD SUPPLIER DOCUMENTS
-   * @description Uploads documents for supplier verification or compliance.
+   * @description Uploads documents for supplier.
    * Supports multiple file uploads (max 10 files). Supplier or admin access only.
    */
   @Post(':id/documents')
@@ -308,7 +309,7 @@ export class SuppliersController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Upload supplier documents',
-    description: 'Uploads documents for supplier verification or compliance. Supports multiple file uploads (max 10 files). Supplier or admin access only.'
+    description: 'Uploads documents for supplier. Supports multiple file uploads (max 10 files). Supplier or admin access only.'
   })
   @ApiParam({
     name: 'id',
@@ -316,13 +317,27 @@ export class SuppliersController {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: UploadDocumentsDtoSwagger })
+  @ApiBody({
+    description: 'Upload supplier documents',
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
   @ApiCreatedResponse({
     description: 'Documents uploaded successfully',
-    type: [SupplierDocumentResponseDtoSwagger],
+    type: [String],
   })
   @ApiBadRequestResponse({
-    description: 'No files uploaded or invalid document type',
+    description: 'No files uploaded',
   })
   @ApiForbiddenResponse({
     description: 'User not authorized to upload documents for this supplier',
@@ -330,7 +345,6 @@ export class SuppliersController {
   async uploadDocuments(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFiles() files: Express.Multer.File[],
-    @Body() body: { documentType: string },
     @Request() req: AuthRequest
   ) {
     const userId = req.user.id;
@@ -340,14 +354,9 @@ export class SuppliersController {
       throw new BadRequestException('No files uploaded');
     }
 
-    if (!body.documentType) {
-      throw new BadRequestException('Document type is required');
-    }
-
     return this.supplierService.uploadDocuments(
       id,
       files,
-      body.documentType,
       userId,
       userRoles
     );
@@ -372,7 +381,7 @@ export class SuppliersController {
   })
   @ApiOkResponse({
     description: 'Supplier documents retrieved successfully',
-    type: [SupplierDocumentResponseDtoSwagger],
+    type: [String],
   })
   async getDocuments(
     @Param('id', ParseUUIDPipe) id: string,
@@ -388,7 +397,7 @@ export class SuppliersController {
    * @description Deletes a specific document uploaded by a supplier.
    * Supplier can delete their own documents, admin can delete any document.
    */
-  @Delete(':id/documents/:documentKey')
+  @Delete(':id/documents/:documentUrl')
   @SupplierOrAdmin()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth('JWT-auth')
@@ -402,9 +411,9 @@ export class SuppliersController {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiParam({
-    name: 'documentKey',
-    description: 'Document key/identifier',
-    example: 'tax_certificate_2024.pdf',
+    name: 'documentUrl',
+    description: 'Document URL or filename',
+    example: 'https://s3.amazonaws.com/bucket/suppliers/company/documents/file.pdf',
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
@@ -415,12 +424,12 @@ export class SuppliersController {
   })
   async deleteDocument(
     @Param('id', ParseUUIDPipe) id: string,
-    @Param('documentKey') documentKey: string,
+    @Param('documentUrl') documentUrl: string,
     @Request() req: AuthRequest
   ) {
     const userId = req.user.id;
     const userRoles = req.user.roles;
-    return this.supplierService.deleteDocument(id, documentKey, userId, userRoles);
+    return this.supplierService.deleteDocument(id, documentUrl, userId, userRoles);
   }
 
   // ================= ADMINISTRATIVE METHODS =================

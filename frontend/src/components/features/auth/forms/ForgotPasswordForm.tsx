@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { authApi } from '@/core/api/auth-api.ts';
 import { Input, Button } from '@/components/ui';
-import { ForgotPasswordFormData, forgotPasswordSchema } from '@/core/utils/zod-schemas';
+import { ForgotPasswordFormData, forgotPasswordSchema } from '@/core/schemas/auth-schemas';
 
 
 export function ForgotPasswordForm() {

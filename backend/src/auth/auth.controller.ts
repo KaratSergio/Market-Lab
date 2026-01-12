@@ -1,4 +1,4 @@
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import {
   Controller,
@@ -123,7 +123,7 @@ export class AuthController {
    */
   @Post('register-complete')
   @UseGuards(AuthJwtGuard)
-  @UseInterceptors(FilesInterceptor('documents', 10)) // Max 10 documents
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'documents', maxCount: 10 }]))
   @HttpCode(200)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
@@ -146,17 +146,19 @@ export class AuthController {
   })
   async completeRegistration(
     @Req() req: AuthRequest,
-    @Body() dto: RegCompleteDto,
+    @Body() body: { data: string },
     @Res({ passthrough: true }) res: Response,
-    @UploadedFiles() documents?: Express.Multer.File[]
+    @UploadedFiles() files?: { documents?: Express.Multer.File[] }
   ) {
     if (!req.user) throw new UnauthorizedException('User not found in request');
+    let parsedDto: RegCompleteDto;
+    parsedDto = JSON.parse(body.data);
 
     // Use registration service for completion
     const result = await this.registrationService.completeRegistration(
       req.user.id,
-      dto,
-      documents
+      parsedDto,
+      files?.documents || []
     );
 
     // Generate new token with updated roles

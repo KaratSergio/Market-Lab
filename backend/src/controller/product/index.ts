@@ -1,0 +1,5 @@
+export * from './product-admin.controller'
+export * from './product-customer.controller'
+export * from './product-public.controller'
+export * from './product-shared.controller'
+export * from './product-supplier.controller'

@@ -71,20 +71,23 @@ export class ProductService {
     userId: string,
     images?: Express.Multer.File[]
   ): Promise<ProductDomainEntity> {
+    if (!dto.name?.trim()) throw new BadRequestException('Product name is required');
+    if (!dto.description?.trim()) throw new BadRequestException('Product description is required');
+    if (dto.price === undefined || dto.price < 0) throw new BadRequestException('Valid price is required');
+
     const supplierId = await this.getSupplierIdFromUserId(userId);
 
     const exists = await this.productRepository.existsBySupplierAndName(supplierId, dto.name);
-    if (exists) {
-      throw new BadRequestException('Product with this name already exists for your supplier account');
-    }
+    if (exists) throw new BadRequestException('Product with this name already exists');
 
     const product = ProductDomainEntity.create(dto, supplierId);
     const errors = product.validate();
+
     if (errors.length > 0) throw new BadRequestException(errors.join(', '));
 
     const savedProduct = await this.productRepository.create(product);
 
-    if (images && images.length > 0) {
+    if (images?.length) {
       try {
         const imageUrls = await this.productFileService.uploadProductImages(
           images,
@@ -92,16 +95,14 @@ export class ProductService {
           savedProduct.id
         );
 
-        if (imageUrls.length > 0) {
+        if (imageUrls.length) {
           await this.productRepository.update(savedProduct.id, {
             images: imageUrls
           });
 
           savedProduct.images = imageUrls;
         }
-      } catch (error) {
-        console.error('Failed to upload product images:', error);
-      }
+      } catch (error) { }
     }
 
     return savedProduct;
@@ -118,14 +119,11 @@ export class ProductService {
     if (!product) throw new NotFoundException(`Product ${id} not found`);
 
     const supplierId = await this.getSupplierIdFromUserId(userId);
-
-    // Checking rights
     this._checkProductOwnership(product, supplierId, userRoles, 'update');
 
-    // If there are new images, load them
     let allImageUrls = [...product.images];
 
-    if (newImages && newImages.length > 0) {
+    if (newImages?.length) {
       try {
         const newImageUrls = await this.productFileService.uploadProductImages(
           newImages,
@@ -134,11 +132,8 @@ export class ProductService {
         );
 
         allImageUrls = [...allImageUrls, ...newImageUrls];
-
         dto.images = allImageUrls;
-      } catch (error) {
-        console.error('Failed to upload new images:', error);
-      }
+      } catch (error) { }
     }
 
     const updatedProduct = await this.productRepository.update(id, dto);

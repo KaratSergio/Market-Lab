@@ -7,7 +7,13 @@ import { ProductService } from '@domain/products/product.service';
 import { ProductFileService } from '@domain/products/product-file.service';
 
 // Controllers
-import { ProductController } from '@controller/product.controller';
+import {
+  ProductPublicController,
+  ProductSupplierController,
+  ProductCustomerController,
+  ProductAdminController,
+  ProductSharedController
+} from '@controller/product';
 
 // Database infrastructure
 import { ProductOrmEntity } from '@infrastructure/database/postgres/products/product.entity';
@@ -29,7 +35,13 @@ import { CategoriesModule } from '@module/categories.module';
     S3StorageModule,
     CategoriesModule,
   ],
-  controllers: [ProductController],
+  controllers: [
+    ProductPublicController,
+    ProductSupplierController,
+    ProductCustomerController,
+    ProductAdminController,
+    ProductSharedController
+  ],
   providers: [
     // Main product service
     ProductService,

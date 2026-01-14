@@ -146,6 +146,21 @@ export const PRODUCT_ENDPOINTS = {
 } as const;
 
 /**
+ * Category management API endpoints
+ */
+export const CATEGORY_ENDPOINTS = {
+  GET_ALL: '/categories',
+  GET_PARENTS: '/categories/parents',
+  GET_CHILDREN: (id: string) => `/categories/${id}/children`,
+  GET_BY_ID: (id: string) => `/categories/${id}`,
+  GET_BY_SLUG: (slug: string) => `/categories/slug/${slug}`,
+  CREATE: '/categories',
+  UPDATE: (id: string) => `/categories/${id}`,
+  DELETE: (id: string) => `/categories/${id}`,
+  CHANGE_STATUS: (id: string, status: string) => `/categories/${id}/status/${status}`,
+} as const;
+
+/**
  * Builds complete URL for API requests
  * @param endpoint - API endpoint path
  * @returns Full URL string

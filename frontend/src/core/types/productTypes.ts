@@ -3,15 +3,16 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  category: string;
+  categoryId: string;
+  subcategoryId: string;
   stock: number;
   images: string[];
   status: ProductStatus;
   supplierId: string;
-  supplierName?: string;
+  tags: string[];
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  isActive: boolean;
 }
 
 export type ProductStatus = 'active' | 'inactive' | 'archived' | 'draft';
@@ -20,18 +21,23 @@ export interface CreateProductDto {
   name: string;
   description: string;
   price: number;
-  category: string;
-  stock: number;
+  categoryId?: string;
+  subcategoryId?: string;
+  stock?: number;
   status?: ProductStatus;
+  tags?: string[];
 }
 
 export interface UpdateProductDto {
   name?: string;
   description?: string;
   price?: number;
-  category?: string;
+  categoryId?: string;
+  subcategoryId?: string;
   stock?: number;
   status?: ProductStatus;
+  tags?: string[];
+  images?: string[];
 }
 
 export interface RestockProductDto {

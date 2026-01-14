@@ -8,6 +8,14 @@ export const PRODUCT_STATUS = {
   DRAFT: 'draft'
 } as const;
 
+// for class-validator
+export enum ProductStatusEnum {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  ARCHIVED = 'archived',
+  DRAFT = 'draft'
+}
+
 export type ProductStatus = typeof PRODUCT_STATUS[keyof typeof PRODUCT_STATUS];
 
 export const DEFAULT_CATEGORY = 'general';

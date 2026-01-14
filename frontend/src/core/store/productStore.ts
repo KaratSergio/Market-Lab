@@ -148,14 +148,8 @@ export const useProductStore = create<ProductState>()(
           const query = searchQuery.toLowerCase();
           filtered = filtered.filter(p =>
             p.name.toLowerCase().includes(query) ||
-            p.description.toLowerCase().includes(query) ||
-            p.category.toLowerCase().includes(query)
+            p.description.toLowerCase().includes(query)
           );
-        }
-
-        // Apply category filter
-        if (selectedCategory && selectedCategory !== 'all') {
-          filtered = filtered.filter(p => p.category === selectedCategory);
         }
 
         // Apply status filter
@@ -187,6 +181,3 @@ export const useProductStore = create<ProductState>()(
     }
   )
 );
-
-export const getCategories = (state: ProductState) =>
-  Array.from(new Set(state.products.map(p => p.category)));

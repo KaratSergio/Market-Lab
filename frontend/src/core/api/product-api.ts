@@ -85,7 +85,8 @@ export const productApi = {
       name: data.name,
       description: data.description,
       price: data.price,
-      category: data.category,
+      categoryId: data.categoryId,
+      subcategoryId: data.subcategoryId,
       stock: data.stock,
       status: data.status || 'draft',
     };
@@ -134,7 +135,8 @@ export const productApi = {
       name: data.name,
       description: data.description,
       price: data.price,
-      category: data.category,
+      categoryId: data.categoryId,
+      subcategoryId: data.subcategoryId,
       stock: data.stock,
       status: data.status,
     };

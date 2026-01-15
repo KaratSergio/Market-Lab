@@ -57,5 +57,4 @@ export interface ProductStatistics {
   draft: number;
   totalStock: number;
   averagePrice: number;
-  categoriesCount: number;
 }

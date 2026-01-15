@@ -43,4 +43,12 @@ export abstract class CategoryRepository implements FullRepository<CategoryDomai
 
   abstract existsBySlug(slug: string): Promise<boolean>;
   abstract existsByParentAndName(parentId: string | null, name: string): Promise<boolean>;
+
+  abstract getCategoriesWithProductCount(): Promise<Array<{
+    categoryId: string;
+    categoryName: string;
+    count: number;
+  }>>;
+
+  abstract countProductsInCategory(categoryId: string): Promise<number>;
 }

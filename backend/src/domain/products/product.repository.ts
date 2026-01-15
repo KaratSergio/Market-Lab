@@ -115,23 +115,6 @@ export abstract class ProductRepository implements
     subcategoryId?: string
   ): Promise<ProductDomainEntity[]>;
 
-  // Getting categories with product counts
-  abstract getCategoriesWithCount(): Promise<Array<{ category: string; count: number }>>;
-
-  // Getting detailed categories with counts
-  abstract getDetailedCategoriesWithCount(): Promise<
-    Array<{
-      categoryId?: string;
-      categoryName?: string;
-      subcategoryId?: string;
-      subcategoryName?: string;
-      count: number;
-    }>
-  >;
-
-  // Getting popular tags
-  abstract getPopularTags(limit?: number): Promise<Array<{ tag: string; count: number }>>;
-
   // Getting statistics
   abstract getStatistics(): Promise<{
     total: number;
@@ -141,6 +124,5 @@ export abstract class ProductRepository implements
     draft: number;
     totalStock: number;
     averagePrice: number;
-    categoriesCount: number;
   }>;
 }

@@ -13,8 +13,8 @@ import {
   PurchaseProductDto,
   ProductStatistics
 } from "../types";
-
 import { Role } from '@shared/types';
+
 import { ProductRepository } from "../product.repository";
 import { ProductDomainEntity } from "../product.entity";
 
@@ -23,7 +23,7 @@ import { ProductDomainEntity } from "../product.entity";
 export class ProductCoreService {
   constructor(
     @Inject('ProductRepository')
-    private readonly productRepository: ProductRepository
+    private readonly productRepository: ProductRepository,
   ) { }
 
   // Public methods
@@ -51,10 +51,6 @@ export class ProductCoreService {
     filter?: Partial<ProductDomainEntity>
   ) {
     return this.productRepository.findWithPagination(page, limit, filter);
-  }
-
-  async getCategories(): Promise<Array<{ category: string; count: number }>> {
-    return this.productRepository.getCategoriesWithCount();
   }
 
   // Methods for Customer

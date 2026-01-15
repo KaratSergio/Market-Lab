@@ -13,7 +13,6 @@ import {
 import {
   ProductsListResponseDtoSwagger,
   ProductPublicResponseDtoSwagger,
-  CategoryResponseDtoSwagger
 } from '@domain/products/types';
 
 
@@ -55,12 +54,5 @@ export class ProductPublicController {
   @ApiResponse({ status: 200, type: ProductPublicResponseDtoSwagger })
   async findById(@Param('id', ParseUUIDPipe) id: string) {
     return this.productService.findById(id);
-  }
-
-  @Get('categories/list')
-  @ApiOperation({ summary: 'Get product categories (Public)' })
-  @ApiResponse({ status: 200, type: CategoryResponseDtoSwagger })
-  async getCategories() {
-    return this.productService.getCategories();
   }
 }

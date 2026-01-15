@@ -168,6 +168,45 @@ export class PostgresCategoryRepository extends DomainCategoryRepository {
     return await this.repository.existsBy(where);
   }
 
+  async getCategoriesWithProductCount(): Promise<Array<{
+    categoryId: string;
+    categoryName: string;
+    count: number;
+  }>> {
+    const result = await this.repository
+      .createQueryBuilder('c')
+      .leftJoin('c.products', 'p')
+      .select(['c.id as categoryId', 'c.name as categoryName', 'COUNT(p.id) as count'])
+      .groupBy('c.id, c.name')
+      .orderBy('c.name', 'ASC')
+      .getRawMany();
+
+    return result.map((row: any) => ({
+      categoryId: row.categoryid,
+      categoryName: row.categoryname,
+      count: parseInt(row.count, 10) || 0
+    }));
+  }
+
+  async countProductsInCategory(categoryId: string): Promise<number> {
+    if (categoryId === 'all') {
+      const result = await this.repository
+        .createQueryBuilder('c')
+        .leftJoin('c.products', 'p')
+        .select('COUNT(p.id)', 'count')
+        .getRawOne();
+
+      return parseInt((result?.count as string) || '0', 10);
+    }
+
+    const category = await this.repository.findOne({
+      where: { id: categoryId },
+      relations: ['products']
+    });
+
+    return category?.products?.length || 0;
+  }
+
   // Private helper methods
   private buildWhereConditions(filter: Partial<CategoryDomainEntity>): FindOptionsWhere<CategoryOrmEntity> {
     const where: FindOptionsWhere<CategoryOrmEntity> = {};

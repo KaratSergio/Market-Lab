@@ -48,9 +48,6 @@ export class ProductService {
     return this.productCore.getPaginated(page, limit, filter);
   }
 
-  getCategories(): Promise<CategoryWithCount[]> {
-    return this.productCore.getCategories();
-  }
 
   // Supplier methods
   create(

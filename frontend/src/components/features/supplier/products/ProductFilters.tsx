@@ -68,6 +68,10 @@ export function ProductFilters() {
     setStatus(storeStatusFilter);
   }, [storeSearchQuery, storeSelectedCategory, storeStatusFilter]);
 
+  useEffect(() => {
+    applyFilters();
+  }, []);
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);

@@ -1,8 +1,9 @@
 'use client';
 
 import { memo } from 'react';
-import { Product, ProductStatus } from '@/core/types/productTypes';
+import { Product } from '@/core/types/productTypes';
 import { useCategoryById } from '@/core/hooks';
+import { getProductUnit, formatPriceWithUnit, getStatusInfo } from '@/core/utils/product-utils';
 
 interface ProductCardProps {
   product: Product;
@@ -17,14 +18,12 @@ export const ProductCard = memo(function ProductCard({
   onDelete,
   onToggleStatus
 }: ProductCardProps) {
-  const statusColors: Record<ProductStatus, string> = {
-    active: 'bg-green-100 text-green-800',
-    inactive: 'bg-gray-100 text-gray-800',
-    draft: 'bg-yellow-100 text-yellow-800',
-    archived: 'bg-red-100 text-red-800',
-  };
-
+  const { label: statusLabel, colors: statusColors } = getStatusInfo(product.status);
   const { data: category } = useCategoryById(product.categoryId);
+
+  const categorySlug = category?.slug || '';
+  const unit = getProductUnit(categorySlug, product.subcategoryId);
+  const formattedPrice = formatPriceWithUnit(product.price, categorySlug, product.subcategoryId);
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden border hover:shadow-md transition-shadow">
@@ -41,8 +40,8 @@ export const ProductCard = memo(function ProductCard({
           </div>
         )}
         <div className="absolute top-2 right-2">
-          <span className={`px-2 py-1 text-xs rounded-full ${statusColors[product.status]}`}>
-            {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+          <span className={`px-2 py-1 text-xs rounded-full ${statusColors}`}>
+            {statusLabel}
           </span>
         </div>
         {product.stock === 0 && (
@@ -58,7 +57,7 @@ export const ProductCard = memo(function ProductCard({
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold text-gray-900 truncate">{product.name}</h3>
           <span className="text-xl font-bold text-blue-600 whitespace-nowrap">
-            ${product.price.toFixed(2)}
+            {formattedPrice}
           </span>
         </div>
 
@@ -67,7 +66,7 @@ export const ProductCard = memo(function ProductCard({
         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
           <span className="bg-gray-100 px-2 py-1 rounded">#{category?.name}</span>
           <span className={`${product.stock < 10 ? 'text-red-600' : 'text-gray-600'}`}>
-            Stock: {product.stock}
+            Залишки: {product.stock} {unit}
           </span>
         </div>
 
@@ -76,7 +75,7 @@ export const ProductCard = memo(function ProductCard({
             onClick={onEdit}
             className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
           >
-            Edit
+            редагувати
           </button>
           <button
             onClick={onToggleStatus}
@@ -85,13 +84,13 @@ export const ProductCard = memo(function ProductCard({
               : 'bg-green-600 text-white hover:bg-green-700'
               }`}
           >
-            {product.status === 'active' ? 'Deactivate' : 'Activate'}
+            {product.status === 'active' ? 'деактивувати' : 'активувати'}
           </button>
           <button
             onClick={onDelete}
             className="px-3 py-2 bg-red-100 text-red-700 text-sm rounded hover:bg-red-200 transition-colors"
           >
-            Delete
+            видалити
           </button>
         </div>
       </div>

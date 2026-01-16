@@ -157,6 +157,10 @@ export const useProductStore = create<ProductState>()(
           filtered = filtered.filter(p => p.status === statusFilter);
         }
 
+        if (selectedCategory) {
+          filtered = filtered.filter(p => p.categoryId === selectedCategory);
+        }
+
         set({ filteredProducts: filtered });
       },
 

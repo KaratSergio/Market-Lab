@@ -5,9 +5,11 @@ import { useLogout } from '@/core/hooks/useAuth';
 import { Button } from '@/components/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 export function UserMenu() {
   const pathname = usePathname();
+  const locale = useLocale();
   const { user, isAuthenticated } = useAuthStore();
   const logoutMutation = useLogout();
 
@@ -16,27 +18,27 @@ export function UserMenu() {
   };
 
   const getDashboardLink = () => {
-    if (!user) return '/login';
+    if (!user) return `/${locale}/login`;
 
-    if (user.roles?.includes('admin')) return '/admin-dashboard';
-    if (user.roles?.includes('supplier')) return '/supplier-dashboard';
-    if (user.roles?.includes('customer')) return '/customer-dashboard';
+    if (user.roles?.includes('admin')) return `/${locale}/admin-dashboard`;
+    if (user.roles?.includes('supplier')) return `/${locale}/supplier-dashboard`;
+    if (user.roles?.includes('customer')) return `/${locale}/customer-dashboard`;
 
-    return '/dashboard';
+    return `/${locale}/dashboard`;
   };
 
   if (!isAuthenticated || !user) {
     return (
       <Button variant="outline" size="sm">
-        <Link href="/login">Login</Link>
+        <Link href={`/${locale}/login`}>Login</Link>
       </Button>
     );
   }
 
   const isDashboardActive =
-    pathname.startsWith('/customer-dashboard') ||
-    pathname.startsWith('/supplier-dashboard') ||
-    pathname.startsWith('/admin-dashboard');
+    pathname.startsWith(`/${locale}/customer-dashboard`) ||
+    pathname.startsWith(`/${locale}/supplier-dashboard`) ||
+    pathname.startsWith(`/${locale}/admin-dashboard`);
 
   return (
     <div className="flex items-center gap-3">

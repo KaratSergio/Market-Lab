@@ -3,7 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useProductStore } from '@/core/store/productStore';
 import { ProductStatus } from '@/core/types/productTypes';
-import { useCategories } from '@/core/hooks';
+import { useCategories, useTranslation } from '@/core/hooks';
+import { useCategoryTranslations, useStatusTranslations } from '@/core/utils/i18n';
+
 
 export function ProductFilters() {
   const {
@@ -18,23 +20,30 @@ export function ProductFilters() {
   } = useProductStore();
 
   const products = useProductStore(state => state.products);
-
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+
+  const { tr, withParams } = useTranslation();
+  const { translateCategory } = useCategoryTranslations();
+  const { translateStatus } = useStatusTranslations();
 
   // Statistics for information
   const stats = useMemo(() => {
     const total = products.length;
     const active = products.filter(p => p.status === 'active').length;
+    const inactive = products.filter(p => p.status === 'inactive').length;
+    const draft = products.filter(p => p.status === 'draft').length;
+    const archived = products.filter(p => p.status === 'archived').length;
     const lowStock = products.filter(p => p.stock <= 10 && p.stock > 0).length;
     const outOfStock = products.filter(p => p.stock === 0).length;
 
-    return { total, active, lowStock, outOfStock };
+    return { total, active, inactive, draft, archived, lowStock, outOfStock };
   }, [products]);
 
   // Get category name by ID
   const getCategoryName = (categoryId: string): string => {
     const category = categories.find(c => c.id === categoryId);
-    return category?.name || categoryId;
+    if (!category) return categoryId;
+    return translateCategory(category.slug);
   };
 
   // Extract unique categories from products
@@ -115,9 +124,15 @@ export function ProductFilters() {
       {/* Header with information */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Product Filters</h2>
+          <h2 className="text-xl font-bold text-gray-900">
+            {tr('ProductFilters.title')}
+          </h2>
           <p className="text-gray-600 mt-1">
-            Showing {stats.total} products ({stats.active} active, {stats.lowStock} low stock)
+            {withParams('ProductFilters.subtitle', {
+              total: stats.total,
+              active: stats.active,
+              lowStock: stats.lowStock
+            })}
           </p>
         </div>
 
@@ -127,7 +142,10 @@ export function ProductFilters() {
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors flex items-center gap-2"
           >
             <span>{isAdvancedOpen ? '▲' : '▼'}</span>
-            {isAdvancedOpen ? 'Hide Advanced' : 'Advanced Filters'}
+            {isAdvancedOpen
+              ? tr('ProductFilters.hideAdvanced')
+              : tr('ProductFilters.showAdvanced')
+            }
           </button>
 
           <button
@@ -135,7 +153,7 @@ export function ProductFilters() {
             className="px-4 py-2 border border-red-300 text-red-700 rounded-md hover:bg-red-50 transition-colors flex items-center gap-2"
           >
             <span>✕</span>
-            Clear All
+            {tr('ProductFilters.clearAll')}
           </button>
         </div>
       </div>
@@ -145,14 +163,14 @@ export function ProductFilters() {
         {/* Search */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Search Products
+            {tr('ProductFilters.searchLabel')}
           </label>
           <div className="relative">
             <input
               type="text"
               value={search}
               onChange={handleSearch}
-              placeholder="Search products..."
+              placeholder={tr('ProductFilters.searchPlaceholder')}
               className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -164,7 +182,7 @@ export function ProductFilters() {
         {/* Category */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category
+            {tr('ProductFilters.categoryLabel')}
           </label>
           <div className="relative">
             <select
@@ -174,7 +192,12 @@ export function ProductFilters() {
               className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white disabled:bg-gray-50 disabled:text-gray-500"
             >
               <option value="all">
-                {isLoadingCategories ? 'Loading categories...' : `All Categories (${uniqueCategories.length})`}
+                {isLoadingCategories
+                  ? tr('ProductFilters.loadingCategories')
+                  : withParams('ProductFilters.allCategories', {
+                    count: uniqueCategories.length
+                  })
+                }
               </option>
               {uniqueCategories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -191,7 +214,7 @@ export function ProductFilters() {
         {/* Status */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
+            {tr('ProductFilters.statusLabel')}
           </label>
           <div className="relative">
             <select
@@ -199,11 +222,33 @@ export function ProductFilters() {
               onChange={handleStatusChange}
               className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active ({stats.active})</option>
-              <option value="inactive">Inactive</option>
-              <option value="draft">Draft</option>
-              <option value="archived">Archived</option>
+              <option value="all">
+                {tr('ProductFilters.allStatuses')}
+              </option>
+              <option value="active">
+                {withParams('ProductFilters.statusWithCount', {
+                  status: tr('Product.status.active'),
+                  count: stats.active
+                })}
+              </option>
+              <option value="inactive">
+                {withParams('ProductFilters.statusWithCount', {
+                  status: tr('Product.status.inactive'),
+                  count: stats.inactive
+                })}
+              </option>
+              <option value="draft">
+                {withParams('ProductFilters.statusWithCount', {
+                  status: tr('Product.status.draft'),
+                  count: stats.draft
+                })}
+              </option>
+              <option value="archived">
+                {withParams('ProductFilters.statusWithCount', {
+                  status: tr('Product.status.archived'),
+                  count: stats.archived
+                })}
+              </option>
             </select>
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               📊
@@ -215,13 +260,15 @@ export function ProductFilters() {
       {/* Advanced filters */}
       {isAdvancedOpen && (
         <div className="mt-6 pt-6 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Advanced Filters</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {tr('ProductFilters.advancedTitle')}
+          </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Filter by stock */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stock Status
+                {tr('ProductFilters.stockLabel')}
               </label>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -231,7 +278,7 @@ export function ProductFilters() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                  All
+                  {tr('ProductFilters.stockAll')}
                 </button>
                 <button
                   onClick={() => handleStockFilter('in-stock')}
@@ -240,7 +287,7 @@ export function ProductFilters() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                  In Stock
+                  {tr('ProductFilters.stockInStock')}
                 </button>
                 <button
                   onClick={() => handleStockFilter('low-stock')}
@@ -249,7 +296,9 @@ export function ProductFilters() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                  Low Stock ({stats.lowStock})
+                  {withParams('ProductFilters.stockLowWithCount', {
+                    count: stats.lowStock
+                  })}
                 </button>
                 <button
                   onClick={() => handleStockFilter('out-of-stock')}
@@ -258,7 +307,9 @@ export function ProductFilters() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                  Out of Stock ({stats.outOfStock})
+                  {withParams('ProductFilters.stockOutWithCount', {
+                    count: stats.outOfStock
+                  })}
                 </button>
               </div>
             </div>
@@ -266,17 +317,17 @@ export function ProductFilters() {
             {/* Sorting */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort By
+                {tr('ProductFilters.sortLabel')}
               </label>
               <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="stock-low">Stock: Low to High</option>
-                <option value="stock-high">Stock: High to Low</option>
-                <option value="name-asc">Name: A to Z</option>
-                <option value="name-desc">Name: Z to A</option>
+                <option value="newest">{tr('ProductFilters.sortNewest')}</option>
+                <option value="oldest">{tr('ProductFilters.sortOldest')}</option>
+                <option value="price-low">{tr('ProductFilters.sortPriceLow')}</option>
+                <option value="price-high">{tr('ProductFilters.sortPriceHigh')}</option>
+                <option value="stock-low">{tr('ProductFilters.sortStockLow')}</option>
+                <option value="stock-high">{tr('ProductFilters.sortStockHigh')}</option>
+                <option value="name-asc">{tr('ProductFilters.sortNameAsc')}</option>
+                <option value="name-desc">{tr('ProductFilters.sortNameDesc')}</option>
               </select>
             </div>
           </div>
@@ -287,11 +338,17 @@ export function ProductFilters() {
       {(storeSearchQuery || storeSelectedCategory || storeStatusFilter !== 'all') && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Active filters:</span>
+            <span className="text-sm font-medium text-gray-700">
+              {tr('ProductFilters.activeFilters')}:
+            </span>
 
             {storeSearchQuery && (
               <div className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">
-                <span>Search: "{storeSearchQuery}"</span>
+                <span>
+                  {withParams('ProductFilters.searchFilter', {
+                    query: storeSearchQuery
+                  })}
+                </span>
                 <button
                   onClick={() => {
                     setSearch('');
@@ -307,7 +364,11 @@ export function ProductFilters() {
 
             {storeSelectedCategory && (
               <div className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm">
-                <span>Category: {getCategoryName(storeSelectedCategory)}</span>
+                <span>
+                  {withParams('ProductFilters.categoryFilter', {
+                    category: getCategoryName(storeSelectedCategory)
+                  })}
+                </span>
                 <button
                   onClick={() => {
                     setCategory('all');
@@ -323,7 +384,11 @@ export function ProductFilters() {
 
             {storeStatusFilter !== 'all' && (
               <div className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm">
-                <span>Status: {storeStatusFilter}</span>
+                <span>
+                  {withParams('ProductFilters.statusFilter', {
+                    status: translateStatus(storeStatusFilter as ProductStatus)
+                  })}
+                </span>
                 <button
                   onClick={() => {
                     setStatus('all');

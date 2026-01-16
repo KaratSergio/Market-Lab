@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Product, ProductStatus } from '@/core/types/productTypes';
+import { useCategoryTranslations } from '@/core/utils/i18n/categories';
 
 import {
-  useLockScroll,
-  useCreateProduct,
-  useUpdateProduct,
-  useParentCategories,
-  useCategoryChildren,
+  useTranslation, useLockScroll,
+  useCreateProduct, useUpdateProduct,
+  useParentCategories, useCategoryChildren,
 } from '@/core/hooks';
 
 interface ProductFormModalProps {
@@ -18,6 +17,9 @@ interface ProductFormModalProps {
 
 export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
   useLockScroll(true);
+
+  const { tr, withParams, plural } = useTranslation();
+  const { translateCategory } = useCategoryTranslations();
 
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -71,11 +73,6 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
   useEffect(() => {
     return () => imagePreviews.forEach((url) => URL.revokeObjectURL(url));
   }, [imagePreviews]);
-
-  // Reset the subcategory when changing the category
-  useEffect(() => {
-    setFormData((prev) => ({ ...prev, subcategoryId: '' }));
-  }, [formData.categoryId]);
 
   const handleImageSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,14 +169,17 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {product ? 'Edit Product' : 'Add New Product'}
+            {product
+              ? tr('ProductForm.editTitle')
+              : tr('ProductForm.createTitle')
+            }
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Name *
+                {tr('ProductForm.nameLabel')} *
               </label>
               <input
                 type="text"
@@ -187,7 +187,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter product name"
+                placeholder={tr('ProductForm.namePlaceholder')}
                 disabled={loading}
               />
             </div>
@@ -196,7 +196,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
+                  {tr('ProductForm.categoryLabel')} *
                 </label>
                 <select
                   value={formData.categoryId}
@@ -205,21 +205,23 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   disabled={loading || loadingParents}
                   required
                 >
-                  <option value="">Select category</option>
+                  <option value="">{tr('ProductForm.categoryPlaceholder')}</option>
                   {parentCategories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name}
+                      {translateCategory(category.slug)}
                     </option>
                   ))}
                 </select>
                 {loadingParents && (
-                  <div className="mt-1 text-sm text-gray-500">Loading categories...</div>
+                  <div className="mt-1 text-sm text-gray-500">
+                    {tr('ProductForm.loadingCategories')}
+                  </div>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subcategory
+                  {tr('ProductForm.subcategoryLabel')}
                 </label>
                 <select
                   value={formData.subcategoryId}
@@ -227,18 +229,22 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={loading || !formData.categoryId || loadingChildren}
                 >
-                  <option value="">Select subcategory (optional)</option>
+                  <option value="">{tr('ProductForm.subcategoryPlaceholder')}</option>
                   {childCategories.map((subcategory) => (
                     <option key={subcategory.id} value={subcategory.id}>
-                      {subcategory.name}
+                      {translateCategory(subcategory.slug)}
                     </option>
                   ))}
                 </select>
                 {loadingChildren && (
-                  <div className="mt-1 text-sm text-gray-500">Loading subcategories...</div>
+                  <div className="mt-1 text-sm text-gray-500">
+                    {tr('ProductForm.loadingSubcategories')}
+                  </div>
                 )}
                 {!loadingChildren && formData.categoryId && childCategories.length === 0 && (
-                  <div className="mt-1 text-sm text-gray-500">No subcategories available</div>
+                  <div className="mt-1 text-sm text-gray-500">
+                    {tr('ProductForm.noSubcategories')}
+                  </div>
                 )}
               </div>
             </div>
@@ -246,7 +252,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
+                {tr('ProductForm.descriptionLabel')}*
               </label>
               <textarea
                 required
@@ -254,7 +260,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe your product..."
+                placeholder={tr('ProductForm.descriptionPlaceholder')}
                 disabled={loading}
               />
             </div>
@@ -263,7 +269,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price ($) *
+                  {tr('ProductForm.priceLabel')} *
                 </label>
                 <input
                   type="number"
@@ -279,7 +285,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stock Quantity *
+                  {tr('ProductForm.stockLabel')} *
                 </label>
                 <input
                   type="number"
@@ -297,7 +303,10 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
             {/* Images Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Images (Max 4 files, total: {totalImages}/4)
+                {withParams('ProductForm.imagesLabel', {
+                  current: totalImages,
+                  max: 4
+                })}
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <input
@@ -309,15 +318,20 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   id="product-images"
                   disabled={loading || totalImages >= 4}
                 />
-                <label htmlFor="product-images" className="cursor-pointer block">
+                <label
+                  htmlFor="product-images"
+                  className={`cursor-pointer block ${(loading || totalImages >= 4) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
                   <div className="text-gray-400 mb-2 text-4xl">📷</div>
-                  <p className="text-gray-600">Click to select images</p>
+                  <p className="text-gray-600">
+                    {tr('ProductForm.imagesClickToSelect')}
+                  </p>
                   <p className="text-gray-500 text-sm mt-1">
-                    Supports JPG, PNG, WEBP up to 5MB each
+                    {tr('ProductForm.imagesSupportedFormats')}
                   </p>
                   {totalImages >= 4 && (
                     <p className="text-red-500 text-sm mt-1">
-                      Maximum 4 images reached. Remove some to add more.
+                      {tr('ProductForm.imagesMaxReached')}
                     </p>
                   )}
                 </label>
@@ -325,7 +339,9 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                 {/* Image Previews */}
                 {imagePreviews.length > 0 && (
                   <div className="mt-4">
-                    <p className="text-sm text-gray-600 mb-2">Images:</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {tr('ProductForm.imagesPreviews')}:
+                    </p>
                     <div className="grid grid-cols-4 gap-2">
                       {imagePreviews.map((preview, index) => {
                         const isNewImage = index >= existingImagesCount;
@@ -341,13 +357,16 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                               onClick={() => removeImage(index, isNewImage)}
                               className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                               disabled={loading}
-                              title={isNewImage ? 'Remove new image' : 'Remove existing image'}
+                              title={isNewImage
+                                ? tr('ProductForm.removeNewImage')
+                                : tr('ProductForm.removeExistingImage')
+                              }
                             >
                               ×
                             </button>
                             {isNewImage && (
                               <div className="absolute bottom-0 left-0 right-0 bg-blue-500 text-white text-xs py-0.5 text-center">
-                                New
+                                {tr('ProductForm.newImageBadge')}
                               </div>
                             )}
                           </div>
@@ -356,8 +375,10 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                     </div>
                     {product?.images && product.images.length > 0 && (
                       <div className="mt-2 text-xs text-gray-500">
-                        {product.images.length} existing image(s) + {selectedImages.length} new
-                        image(s)
+                        {withParams('ProductForm.imagesSummary', {
+                          existing: product.images.length,
+                          new: selectedImages.length
+                        })}
                       </div>
                     )}
                   </div>
@@ -376,7 +397,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   disabled={loading}
                 />
                 <span className="text-sm font-medium text-gray-700">
-                  Active (visible to customers)
+                  {tr('ProductForm.statusLabel')}
                 </span>
               </label>
             </div>
@@ -389,7 +410,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                 disabled={loading}
               >
-                Cancel
+                {tr('Common.cancel')}
               </button>
               <button
                 type="submit"
@@ -399,7 +420,10 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                 {loading && (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 )}
-                {product ? 'Update Product' : 'Add Product'}
+                {product
+                  ? tr('ProductForm.updateButton')
+                  : tr('ProductForm.createButton')
+                }
               </button>
             </div>
           </form>

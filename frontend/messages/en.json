@@ -1,0 +1,278 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "products": "Products",
+    "map": "Map",
+    "sellers": "Sellers",
+    "about": "About",
+    "cart": "Cart",
+    "login": "Login",
+    "register": "Register"
+  },
+  "HomePage": {
+    "title": "Welcome to Farm Market",
+    "subtitle": "Fresh products directly from farmers"
+  },
+  "Categories": {
+    "main": {
+      "vegetables": "Vegetables",
+      "fruits": "Fruits",
+      "dairy-products": "Dairy Products",
+      "meat-poultry": "Meat & Poultry",
+      "eggs": "Eggs",
+      "bread-bakery": "Bread & Bakery",
+      "honey-bee-products": "Honey & Bee Products",
+      "preserves": "Preserves",
+      "drinks": "Drinks",
+      "grains-cereals": "Grains & Cereals",
+      "nuts-dried-fruits": "Nuts & Dried Fruits",
+      "vegetable-oils": "Vegetable Oils",
+      "spices-herbs": "Spices & Herbs",
+      "farm-delicacies": "Farm Delicacies",
+      "baby-food": "Baby Food",
+      "other": "Other"
+    },
+    "vegetables": {
+      "root-vegetables": "Root Vegetables",
+      "leafy-vegetables": "Leafy Vegetables",
+      "nightshades": "Nightshades",
+      "cruciferous": "Cruciferous",
+      "cucurbits": "Cucurbits",
+      "alliums": "Alliums"
+    },
+    "fruits": {
+      "berries": "Berries",
+      "citrus-fruits": "Citrus Fruits",
+      "stone-fruits": "Stone Fruits",
+      "tropical-fruits": "Tropical Fruits",
+      "melons": "Melons",
+      "pome-fruits": "Pome Fruits"
+    },
+    "dairy-products": {
+      "milk": "Milk",
+      "cheese": "Cheese",
+      "yogurt": "Yogurt",
+      "butter": "Butter",
+      "cream": "Cream",
+      "fermented-dairy": "Fermented Dairy"
+    },
+    "meat-poultry": {
+      "pork": "Pork",
+      "beef": "Beef",
+      "chicken": "Chicken",
+      "turkey": "Turkey",
+      "rabbit": "Rabbit",
+      "offal": "Offal"
+    },
+    "bread-bakery": {
+      "bread": "Bread",
+      "buns": "Buns",
+      "pies": "Pies",
+      "cookies": "Cookies",
+      "cakes": "Cakes",
+      "croissants": "Croissants"
+    },
+    "honey-bee-products": {
+      "honey": "Honey",
+      "propolis": "Propolis",
+      "bee-pollen": "Bee Pollen",
+      "royal-jelly": "Royal Jelly",
+      "beeswax": "Beeswax",
+      "bee-bread": "Bee Bread"
+    },
+    "preserves": {
+      "jams-marmalades": "Jams & Marmalades",
+      "pickles": "Pickles",
+      "marinades": "Marinades",
+      "compotes": "Compotes",
+      "sauces": "Sauces",
+      "preserved-juices": "Preserved Juices"
+    },
+    "drinks": {
+      "fresh-juices": "Fresh Juices",
+      "fruit-drinks": "Fruit Drinks",
+      "kvass": "Kvass",
+      "herbal-teas": "Herbal Teas",
+      "kombucha": "Kombucha",
+      "lemonades": "Lemonades"
+    },
+    "grains-cereals": {
+      "buckwheat": "Buckwheat",
+      "rice": "Rice",
+      "oatmeal": "Oatmeal",
+      "millet": "Millet",
+      "barley": "Barley",
+      "wheat": "Wheat"
+    },
+    "nuts-dried-fruits": {
+      "walnuts": "Walnuts",
+      "hazelnuts": "Hazelnuts",
+      "almonds": "Almonds",
+      "peanuts": "Peanuts",
+      "dried-apricots": "Dried Apricots",
+      "raisins": "Raisins"
+    },
+    "vegetable-oils": {
+      "sunflower-oil": "Sunflower Oil",
+      "flaxseed-oil": "Flaxseed Oil",
+      "pumpkin-seed-oil": "Pumpkin Seed Oil",
+      "olive-oil": "Olive Oil",
+      "sesame-oil": "Sesame Oil",
+      "corn-oil": "Corn Oil"
+    },
+    "spices-herbs": {
+      "dried-herbs": "Dried Herbs",
+      "spices": "Spices",
+      "tea-blends": "Tea Blends",
+      "medicinal-herbs": "Medicinal Herbs",
+      "seasoning-mixes": "Seasoning Mixes",
+      "salt-pepper": "Salt & Pepper"
+    },
+    "farm-delicacies": {
+      "sausages": "Sausages",
+      "cheeses": "Cheeses",
+      "pates": "Pates",
+      "smoked-meats": "Smoked Meats",
+      "cured-meats": "Cured Meats",
+      "pickled-products": "Pickled Products"
+    },
+    "baby-food": {
+      "purees": "Purees",
+      "porridge": "Porridge",
+      "snacks": "Snacks",
+      "tea-for-babies": "Tea for Babies",
+      "juices-for-babies": "Juices for Babies",
+      "cookies-for-babies": "Cookies for Babies"
+    }
+  },
+  "Product": {
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "units": {
+      "kg": "kg",
+      "g": "g",
+      "l": "l",
+      "ml": "ml",
+      "piece": "pc",
+      "pack": "pack",
+      "bunch": "bunch"
+    }
+  },
+  "ProductFilters": {
+    "title": "Product Filters",
+    "subtitle": "Showing {total} products ({active} active, {lowStock} low stock)",
+    "searchLabel": "Search Products",
+    "searchPlaceholder": "Search products...",
+    "categoryLabel": "Category",
+    "loadingCategories": "Loading categories...",
+    "allCategories": "All Categories ({count})",
+    "statusLabel": "Status",
+    "allStatuses": "All Statuses",
+    "statusWithCount": "{status} ({count})",
+    "showAdvanced": "Advanced Filters",
+    "hideAdvanced": "Hide Advanced",
+    "clearAll": "Clear All",
+    "advancedTitle": "Advanced Filters",
+    "stockLabel": "Stock Status",
+    "stockAll": "All",
+    "stockInStock": "In Stock",
+    "stockLowWithCount": "Low Stock ({count})",
+    "stockOutWithCount": "Out of Stock ({count})",
+    "sortLabel": "Sort By",
+    "sortNewest": "Newest First",
+    "sortOldest": "Oldest First",
+    "sortPriceLow": "Price: Low to High",
+    "sortPriceHigh": "Price: High to Low",
+    "sortStockLow": "Stock: Low to High",
+    "sortStockHigh": "Stock: High to Low",
+    "sortNameAsc": "Name: A to Z",
+    "sortNameDesc": "Name: Z to A",
+    "activeFilters": "Active filters",
+    "searchFilter": "Search: \"{query}\"",
+    "categoryFilter": "Category: {category}",
+    "statusFilter": "Status: {status}"
+  },
+   "ProductForm": {
+    "editTitle": "Edit Product",
+    "createTitle": "Add New Product",
+    "nameLabel": "Product Name",
+    "namePlaceholder": "Enter product name",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "Select category",
+    "subcategoryLabel": "Subcategory",
+    "subcategoryPlaceholder": "Select subcategory",
+    "loadingCategories": "Loading categories...",
+    "loadingSubcategories": "Loading subcategories...",
+    "noSubcategories": "No subcategories available",
+    "descriptionLabel": "Product Description",
+    "descriptionPlaceholder": "Describe your product...",
+    "priceLabel": "Price (₴)",
+    "stockLabel": "Stock Quantity",
+    "imagesLabel": "Product Images (max {max} files, total: {current}/{max})",
+    "imagesClickToSelect": "Click to select images",
+    "imagesSupportedFormats": "Supports JPG, PNG, WEBP up to 5MB each",
+    "imagesMaxReached": "Maximum 4 images reached. Remove some to add more.",
+    "imagesPreviews": "Images",
+    "removeNewImage": "Remove new image",
+    "removeExistingImage": "Remove existing image",
+    "newImageBadge": "New",
+    "imagesSummary": "{existing} existing images + {new} new images",
+    "statusLabel": "Active (visible to customers)",
+    "updateButton": "Update Product",
+    "createButton": "Add Product"
+  },
+  "Common": {
+    "per": "per",
+    "price": "Price",
+    "stock": "Stock",
+    "quantity": "Quantity",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "viewDetails": "View Details",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock",
+    "lowStock": "Low Stock",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "all": "All",
+    "none": "None",
+    "select": "Select",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning"
+  },
+  "Forms": {
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "postalCode": "Postal Code",
+    "country": "Country",
+    "submit": "Submit",
+    "required": "Required",
+    "invalidEmail": "Invalid email format",
+    "passwordMismatch": "Passwords do not match",
+    "minLength": "Minimum {min} characters",
+    "maxLength": "Maximum {max} characters"
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "Sorry, but the page you are looking for does not exist.",
+    "backHome": "Back to home"
+  }
+}

@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { CategoryOrmEntity } from '@infrastructure/database/postgres/categories/category.entity';
+
 
 export async function seedCategories(dataSource: DataSource) {
   console.log('🌱 Starting categories seeding...');
@@ -9,8 +9,6 @@ export async function seedCategories(dataSource: DataSource) {
     if (!dataSource.isInitialized) {
       await dataSource.initialize();
     }
-
-    const categoryRepository = dataSource.getRepository(CategoryOrmEntity);
 
     // 2. Clearing categories
     console.log('🗑️  Clearing all categories...');
@@ -22,136 +20,135 @@ export async function seedCategories(dataSource: DataSource) {
 
     const mainCategories = [
       {
-        name: 'Овочі',
-        slug: 'ovochi',
-        description: 'Свіжі фермерські овочі з натурального господарства',
+        name: 'Vegetables',
+        slug: 'vegetables',
+        description: 'Fresh farm vegetables from natural farming',
         order: 1,
-        metaTitle: 'Фермерські овочі',
-        metaDescription: 'Натуральні овочі без хімічних добрив та пестицидів'
+        metaTitle: 'Farm Vegetables',
+        metaDescription: 'Natural vegetables without chemical fertilizers and pesticides'
       },
       {
-        name: 'Фрукти',
-        slug: 'frukty',
-        description: 'Сезонні фрукти з власних садів',
+        name: 'Fruits',
+        slug: 'fruits',
+        description: 'Seasonal fruits from own gardens',
         order: 2,
-        metaTitle: 'Сезонні фрукти',
-        metaDescription: 'Дозрілі на сонці фрукти з екологічно чистих регіонів'
+        metaTitle: 'Seasonal Fruits',
+        metaDescription: 'Sun-ripened fruits from ecologically clean regions'
       },
       {
-        name: 'Молочні продукти',
-        slug: 'molochni-produkty',
-        description: 'Натуральні молочні продукти без консервантів',
+        name: 'Dairy Products',
+        slug: 'dairy-products',
+        description: 'Natural dairy products without preservatives',
         order: 3,
-        metaTitle: 'Домашні молочні продукти',
-        metaDescription: 'Молоко, сир, сметана та інші молочні продукти ручної роботи'
+        metaTitle: 'Homemade Dairy Products',
+        metaDescription: 'Milk, cheese, sour cream and other handmade dairy products'
       },
       {
-        name: "М'ясо та птиця",
-        slug: 'm-yaso-ta-ptitsya',
-        description: "Свіже фермерське м'ясо та птиця",
+        name: 'Meat and Poultry',
+        slug: 'meat-poultry',
+        description: 'Fresh farm meat and poultry',
         order: 4,
-        metaTitle: "Фермерське м'ясо",
-        metaDescription: "Натуральне м'ясо відгодоване на природних кормах"
+        metaTitle: 'Farm Meat',
+        metaDescription: 'Natural meat fed on natural feed'
       },
       {
-        name: 'Яйця',
-        slug: 'yajtsya',
-        description: 'Деревенські яйця від вільних курей',
+        name: 'Eggs',
+        slug: 'eggs',
+        description: 'Village eggs from free-range chickens',
         order: 5,
-        metaTitle: 'Деревенські яйця',
-        metaDescription: 'Яйця від курей які живуть на вільному вигулі'
+        metaTitle: 'Village Eggs',
+        metaDescription: 'Eggs from chickens living free-range'
       },
       {
-        name: 'Хліб та випічка',
-        slug: 'khlib-ta-vipichka',
-        description: 'Домашній хліб на натуральній заквасці',
+        name: 'Bread and Bakery',
+        slug: 'bread-bakery',
+        description: 'Homemade bread on natural sourdough',
         order: 6,
-        metaTitle: 'Домашня випічка',
-        metaDescription: 'Хліб, булочки, пироги ручної роботи'
+        metaTitle: 'Homemade Bakery',
+        metaDescription: 'Bread, buns, pies handmade'
       },
       {
-        name: 'Мед та бджолині продукти',
-        slug: 'med-ta-bdzhilini-produkty',
-        description: 'Натуральний мед з власних пасік',
+        name: 'Honey and Bee Products',
+        slug: 'honey-bee-products',
+        description: 'Natural honey from own apiaries',
         order: 7,
-        metaTitle: 'Натуральний мед',
-        metaDescription: 'Мед, прополіс, пилок з екологічно чистих регіонів'
+        metaTitle: 'Natural Honey',
+        metaDescription: 'Honey, propolis, pollen from ecologically clean regions'
       },
       {
-        name: 'Консервація',
-        slug: 'konservatsiya',
-        description: 'Домашня консервація з сезонних овочів та фруктів',
+        name: 'Preserves',
+        slug: 'preserves',
+        description: 'Homemade preserves from seasonal vegetables and fruits',
         order: 8,
-        metaTitle: 'Домашня консервація',
-        metaDescription: 'Варення, соління, маринади ручної роботи'
+        metaTitle: 'Homemade Preserves',
+        metaDescription: 'Jam, pickles, marinades handmade'
       },
       {
-        name: 'Напої',
-        slug: 'napoї',
-        description: 'Натуральні напої без консервантів',
+        name: 'Drinks',
+        slug: 'drinks',
+        description: 'Natural drinks without preservatives',
         order: 9,
-        metaTitle: 'Домашні напої',
-        metaDescription: 'Соки, морси, квас, трав\'яні чаї'
+        metaTitle: 'Homemade Drinks',
+        metaDescription: 'Juices, fruit drinks, kvass, herbal teas'
       },
       {
-        name: 'Зернові та крупи',
-        slug: 'zernovi-ta-krupi',
-        description: 'Натуральні крупи без штучної обробки',
+        name: 'Grains and Cereals',
+        slug: 'grains-cereals',
+        description: 'Natural cereals without artificial processing',
         order: 10,
-        metaTitle: 'Натуральні крупи',
-        metaDescription: 'Гречка, рис, вівсянка, пшено з власних полів'
+        metaTitle: 'Natural Cereals',
+        metaDescription: 'Buckwheat, rice, oatmeal, millet from own fields'
       },
       {
-        name: 'Горіхи та сухофрукти',
-        slug: 'gorikhi-ta-sukhofrukty',
-        description: 'Натуральні горіхи та сухофрукти',
+        name: 'Nuts and Dried Fruits',
+        slug: 'nuts-dried-fruits',
+        description: 'Natural nuts and dried fruits',
         order: 11,
-        metaTitle: 'Горіхи та сухофрукти',
-        metaDescription: 'Ядра горіхів та висушені фрукти без цукру'
+        metaTitle: 'Nuts and Dried Fruits',
+        metaDescription: 'Nut kernels and dried fruits without sugar'
       },
       {
-        name: 'Рослинні олії',
-        slug: 'roslinni-olii',
-        description: 'Олії холодного віджиму',
+        name: 'Vegetable Oils',
+        slug: 'vegetable-oils',
+        description: 'Cold-pressed oils',
         order: 12,
-        metaTitle: 'Натуральні олії',
-        metaDescription: 'Соняшникова, лляна, гарбузова олії холодного віджиму'
+        metaTitle: 'Natural Oils',
+        metaDescription: 'Sunflower, flax, pumpkin oils cold pressed'
       },
       {
-        name: 'Спеції та трави',
-        slug: 'spetsii-ta-travi',
-        description: 'Натуральні спеції та лікарські трави',
+        name: 'Spices and Herbs',
+        slug: 'spices-herbs',
+        description: 'Natural spices and medicinal herbs',
         order: 13,
-        metaTitle: 'Спеції та трави',
-        metaDescription: 'Сушені трави, прянощі, чайні збори'
+        metaTitle: 'Spices and Herbs',
+        metaDescription: 'Dried herbs, spices, tea blends'
       },
       {
-        name: 'Фермерські делікатеси',
-        slug: 'fermerski-delikatesi',
-        description: 'Домашні ковбаси, сири та паштети',
+        name: 'Farm Delicacies',
+        slug: 'farm-delicacies',
+        description: 'Homemade sausages, cheeses and pates',
         order: 14,
-        metaTitle: 'Фермерські делікатеси',
-        metaDescription: 'Ковбаси, сири, паштети ручної роботи'
+        metaTitle: 'Farm Delicacies',
+        metaDescription: 'Sausages, cheeses, pates handmade'
       },
       {
-        name: 'Дитяче харчування',
-        slug: 'dityache-kharchuvannya',
-        description: 'Натуральне харчування для дітей',
+        name: 'Baby Food',
+        slug: 'baby-food',
+        description: 'Natural food for children',
         order: 15,
-        metaTitle: 'Дитяче харчування',
-        metaDescription: 'Пюре, каші, снеки для дітей'
+        metaTitle: 'Baby Food',
+        metaDescription: 'Purees, porridge, snacks for children'
       },
       {
-        name: 'Інше',
-        slug: 'inshe',
-        description: 'Інші фермерські продукти',
+        name: 'Other',
+        slug: 'other',
+        description: 'Other farm products',
         order: 16,
-        metaTitle: 'Інші продукти',
-        metaDescription: 'Різноманітні фермерські продукти'
+        metaTitle: 'Other Products',
+        metaDescription: 'Various farm products'
       }
     ];
 
-    // Creating Basic Categories
     const savedCategories: Record<string, any> = {};
 
     for (let i = 0; i < mainCategories.length; i++) {
@@ -192,17 +189,17 @@ export async function seedCategories(dataSource: DataSource) {
     // 4. Creating subcategories
     console.log('\n📝 Creating subcategories...');
 
-    // Подкатегории для Овочі
-    if (savedCategories['ovochi']) {
-      console.log('\n🥦 Creating subcategories for "Овочі"...');
+    // Subcategories for Vegetables
+    if (savedCategories['vegetables']) {
+      console.log('\n🥦 Creating subcategories for "Vegetables"...');
 
       const vegetableSubcategories = [
-        { name: 'Коренеплоди', slug: 'koreneplodi', order: 1 },
-        { name: 'Листові овочі', slug: 'listovi-ovochi', order: 2 },
-        { name: 'Пасльонові', slug: 'paslonovi', order: 3 },
-        { name: 'Хрестоцвіті', slug: 'khrestotsviti', order: 4 },
-        { name: 'Гарбузові', slug: 'garbuzovi', order: 5 },
-        { name: 'Цибулеві', slug: 'tsibulevi', order: 6 },
+        { name: 'Root Vegetables', slug: 'root-vegetables', order: 1 },
+        { name: 'Leafy Vegetables', slug: 'leafy-vegetables', order: 2 },
+        { name: 'Nightshades', slug: 'nightshades', order: 3 },
+        { name: 'Cruciferous', slug: 'cruciferous', order: 4 },
+        { name: 'Cucurbits', slug: 'cucurbits', order: 5 },
+        { name: 'Alliums', slug: 'alliums', order: 6 },
       ];
 
       for (const subcat of vegetableSubcategories) {
@@ -216,10 +213,10 @@ export async function seedCategories(dataSource: DataSource) {
         `, [
           subcat.name,
           subcat.slug,
-          `Підкатегорія овочів: ${subcat.name}`,
+          `Vegetables subcategory: ${subcat.name}`,
           'active',
           subcat.order,
-          savedCategories['ovochi'].id,
+          savedCategories['vegetables'].id,
           new Date(),
           new Date()
         ]);
@@ -228,17 +225,17 @@ export async function seedCategories(dataSource: DataSource) {
       }
     }
 
-    // Подкатегории для Фрукти
-    if (savedCategories['frukty']) {
-      console.log('\n🍎 Creating subcategories for "Фрукти"...');
+    // Subcategories for Fruits
+    if (savedCategories['fruits']) {
+      console.log('\n🍎 Creating subcategories for "Fruits"...');
 
       const fruitSubcategories = [
-        { name: 'Ягоди', slug: 'yagodi', order: 1 },
-        { name: 'Цитрусові', slug: 'tsitrusovi', order: 2 },
-        { name: 'Кісточкові', slug: 'kistochkovi', order: 3 },
-        { name: 'Тропічні фрукти', slug: 'tropichni-frukty', order: 4 },
-        { name: 'Диняні', slug: 'dinyani', order: 5 },
-        { name: 'Насіннєві', slug: 'nasinnevi', order: 6 },
+        { name: 'Berries', slug: 'berries', order: 1 },
+        { name: 'Citrus Fruits', slug: 'citrus-fruits', order: 2 },
+        { name: 'Stone Fruits', slug: 'stone-fruits', order: 3 },
+        { name: 'Tropical Fruits', slug: 'tropical-fruits', order: 4 },
+        { name: 'Melons', slug: 'melons', order: 5 },
+        { name: 'Pome Fruits', slug: 'pome-fruits', order: 6 },
       ];
 
       for (const subcat of fruitSubcategories) {
@@ -252,10 +249,10 @@ export async function seedCategories(dataSource: DataSource) {
         `, [
           subcat.name,
           subcat.slug,
-          `Підкатегорія фруктів: ${subcat.name}`,
+          `Fruits subcategory: ${subcat.name}`,
           'active',
           subcat.order,
-          savedCategories['frukty'].id,
+          savedCategories['fruits'].id,
           new Date(),
           new Date()
         ]);
@@ -264,17 +261,17 @@ export async function seedCategories(dataSource: DataSource) {
       }
     }
 
-    // Подкатегории для Молочні продукти
-    if (savedCategories['molochni-produkty']) {
-      console.log('\n🥛 Creating subcategories for "Молочні продукти"...');
+    // Subcategories for Dairy Products
+    if (savedCategories['dairy-products']) {
+      console.log('\n🥛 Creating subcategories for "Dairy Products"...');
 
       const dairySubcategories = [
-        { name: 'Молоко', slug: 'moloko', order: 1 },
-        { name: 'Сир', slug: 'sir', order: 2 },
-        { name: 'Йогурт', slug: 'yogurt', order: 3 },
-        { name: 'Масло вершкове', slug: 'maslo-vershkove', order: 4 },
-        { name: 'Вершки', slug: 'vershki', order: 5 },
-        { name: 'Кисломолочні продукти', slug: 'kislomolochni-produkty', order: 6 },
+        { name: 'Milk', slug: 'milk', order: 1 },
+        { name: 'Cheese', slug: 'cheese', order: 2 },
+        { name: 'Yogurt', slug: 'yogurt', order: 3 },
+        { name: 'Butter', slug: 'butter', order: 4 },
+        { name: 'Cream', slug: 'cream', order: 5 },
+        { name: 'Fermented Dairy', slug: 'fermented-dairy', order: 6 },
       ];
 
       for (const subcat of dairySubcategories) {
@@ -288,10 +285,10 @@ export async function seedCategories(dataSource: DataSource) {
         `, [
           subcat.name,
           subcat.slug,
-          `Підкатегорія молочних продуктів: ${subcat.name}`,
+          `Dairy products subcategory: ${subcat.name}`,
           'active',
           subcat.order,
-          savedCategories['molochni-produkty'].id,
+          savedCategories['dairy-products'].id,
           new Date(),
           new Date()
         ]);
@@ -300,17 +297,17 @@ export async function seedCategories(dataSource: DataSource) {
       }
     }
 
-    // Подкатегории для М'ясо та птиця
-    if (savedCategories['m-yaso-ta-ptitsya']) {
-      console.log('\n🍗 Creating subcategories for "М\'ясо та птиця"...');
+    // Subcategories for Meat and Poultry
+    if (savedCategories['meat-poultry']) {
+      console.log('\n🍗 Creating subcategories for "Meat and Poultry"...');
 
       const meatSubcategories = [
-        { name: 'Свинина', slug: 'svynyna', order: 1 },
-        { name: 'Яловичина', slug: 'yalovychyna', order: 2 },
-        { name: 'Курятина', slug: 'kuryatyna', order: 3 },
-        { name: 'Індичка', slug: 'indytychka', order: 4 },
-        { name: 'Кролик', slug: 'krolyk', order: 5 },
-        { name: 'Субпродукти', slug: 'subprodukty', order: 6 },
+        { name: 'Pork', slug: 'pork', order: 1 },
+        { name: 'Beef', slug: 'beef', order: 2 },
+        { name: 'Chicken', slug: 'chicken', order: 3 },
+        { name: 'Turkey', slug: 'turkey', order: 4 },
+        { name: 'Rabbit', slug: 'rabbit', order: 5 },
+        { name: 'Offal', slug: 'offal', order: 6 },
       ];
 
       for (const subcat of meatSubcategories) {
@@ -324,10 +321,10 @@ export async function seedCategories(dataSource: DataSource) {
         `, [
           subcat.name,
           subcat.slug,
-          `Підкатегорія м'яса: ${subcat.name}`,
+          `Meat subcategory: ${subcat.name}`,
           'active',
           subcat.order,
-          savedCategories['m-yaso-ta-ptitsya'].id,
+          savedCategories['meat-poultry'].id,
           new Date(),
           new Date()
         ]);
@@ -336,17 +333,17 @@ export async function seedCategories(dataSource: DataSource) {
       }
     }
 
-    // Подкатегории для Хліб та випічка
-    if (savedCategories['khlib-ta-vipichka']) {
-      console.log('\n🥖 Creating subcategories for "Хліб та випічка"...');
+    // Subcategories for Bread and Bakery
+    if (savedCategories['bread-bakery']) {
+      console.log('\n🥖 Creating subcategories for "Bread and Bakery"...');
 
       const breadSubcategories = [
-        { name: 'Хліб', slug: 'khlib', order: 1 },
-        { name: 'Булочки', slug: 'bulochky', order: 2 },
-        { name: 'Пироги', slug: 'pyrohy', order: 3 },
-        { name: 'Печиво', slug: 'pechyvo', order: 4 },
-        { name: 'Торти', slug: 'torty', order: 5 },
-        { name: 'Круасани', slug: 'kruasany', order: 6 },
+        { name: 'Bread', slug: 'bread', order: 1 },
+        { name: 'Buns', slug: 'buns', order: 2 },
+        { name: 'Pies', slug: 'pies', order: 3 },
+        { name: 'Cookies', slug: 'cookies', order: 4 },
+        { name: 'Cakes', slug: 'cakes', order: 5 },
+        { name: 'Croissants', slug: 'croissants', order: 6 },
       ];
 
       for (const subcat of breadSubcategories) {
@@ -360,10 +357,334 @@ export async function seedCategories(dataSource: DataSource) {
         `, [
           subcat.name,
           subcat.slug,
-          `Підкатегорія випічки: ${subcat.name}`,
+          `Bakery subcategory: ${subcat.name}`,
           'active',
           subcat.order,
-          savedCategories['khlib-ta-vipichka'].id,
+          savedCategories['bread-bakery'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Honey and Bee Products
+    if (savedCategories['honey-bee-products']) {
+      console.log('\n🍯 Creating subcategories for "Honey and Bee Products"...');
+
+      const honeySubcategories = [
+        { name: 'Honey', slug: 'honey', order: 1 },
+        { name: 'Propolis', slug: 'propolis', order: 2 },
+        { name: 'Bee Pollen', slug: 'bee-pollen', order: 3 },
+        { name: 'Royal Jelly', slug: 'royal-jelly', order: 4 },
+        { name: 'Beeswax', slug: 'beeswax', order: 5 },
+        { name: 'Bee Bread', slug: 'bee-bread', order: 6 },
+      ];
+
+      for (const subcat of honeySubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Bee products subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['honey-bee-products'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Preserves
+    if (savedCategories['preserves']) {
+      console.log('\n🥫 Creating subcategories for "Preserves"...');
+
+      const preserveSubcategories = [
+        { name: 'Jams and Marmalades', slug: 'jams-marmalades', order: 1 },
+        { name: 'Pickles', slug: 'pickles', order: 2 },
+        { name: 'Marinades', slug: 'marinades', order: 3 },
+        { name: 'Compotes', slug: 'compotes', order: 4 },
+        { name: 'Sauces', slug: 'sauces', order: 5 },
+        { name: 'Preserved Juices', slug: 'preserved-juices', order: 6 },
+      ];
+
+      for (const subcat of preserveSubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Preserves subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['preserves'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Drinks
+    if (savedCategories['drinks']) {
+      console.log('\n🥤 Creating subcategories for "Drinks"...');
+
+      const drinkSubcategories = [
+        { name: 'Fresh Juices', slug: 'fresh-juices', order: 1 },
+        { name: 'Fruit Drinks', slug: 'fruit-drinks', order: 2 },
+        { name: 'Kvass', slug: 'kvass', order: 3 },
+        { name: 'Herbal Teas', slug: 'herbal-teas', order: 4 },
+        { name: 'Kombucha', slug: 'kombucha', order: 5 },
+        { name: 'Lemonades', slug: 'lemonades', order: 6 },
+      ];
+
+      for (const subcat of drinkSubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Drinks subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['drinks'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Grains and Cereals
+    if (savedCategories['grains-cereals']) {
+      console.log('\n🌾 Creating subcategories for "Grains and Cereals"...');
+
+      const grainSubcategories = [
+        { name: 'Buckwheat', slug: 'buckwheat', order: 1 },
+        { name: 'Rice', slug: 'rice', order: 2 },
+        { name: 'Oatmeal', slug: 'oatmeal', order: 3 },
+        { name: 'Millet', slug: 'millet', order: 4 },
+        { name: 'Barley', slug: 'barley', order: 5 },
+        { name: 'Wheat', slug: 'wheat', order: 6 },
+      ];
+
+      for (const subcat of grainSubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Grains subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['grains-cereals'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Nuts and Dried Fruits
+    if (savedCategories['nuts-dried-fruits']) {
+      console.log('\n🥜 Creating subcategories for "Nuts and Dried Fruits"...');
+
+      const nutSubcategories = [
+        { name: 'Walnuts', slug: 'walnuts', order: 1 },
+        { name: 'Hazelnuts', slug: 'hazelnuts', order: 2 },
+        { name: 'Almonds', slug: 'almonds', order: 3 },
+        { name: 'Peanuts', slug: 'peanuts', order: 4 },
+        { name: 'Dried Apricots', slug: 'dried-apricots', order: 5 },
+        { name: 'Raisins', slug: 'raisins', order: 6 },
+      ];
+
+      for (const subcat of nutSubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Nuts subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['nuts-dried-fruits'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Vegetable Oils
+    if (savedCategories['vegetable-oils']) {
+      console.log('\n🫒 Creating subcategories for "Vegetable Oils"...');
+
+      const oilSubcategories = [
+        { name: 'Sunflower Oil', slug: 'sunflower-oil', order: 1 },
+        { name: 'Flaxseed Oil', slug: 'flaxseed-oil', order: 2 },
+        { name: 'Pumpkin Seed Oil', slug: 'pumpkin-seed-oil', order: 3 },
+        { name: 'Olive Oil', slug: 'olive-oil', order: 4 },
+        { name: 'Sesame Oil', slug: 'sesame-oil', order: 5 },
+        { name: 'Corn Oil', slug: 'corn-oil', order: 6 },
+      ];
+
+      for (const subcat of oilSubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Vegetable oils subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['vegetable-oils'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Spices and Herbs
+    if (savedCategories['spices-herbs']) {
+      console.log('\n🌿 Creating subcategories for "Spices and Herbs"...');
+
+      const spiceSubcategories = [
+        { name: 'Dried Herbs', slug: 'dried-herbs', order: 1 },
+        { name: 'Spices', slug: 'spices', order: 2 },
+        { name: 'Tea Blends', slug: 'tea-blends', order: 3 },
+        { name: 'Medicinal Herbs', slug: 'medicinal-herbs', order: 4 },
+        { name: 'Seasoning Mixes', slug: 'seasoning-mixes', order: 5 },
+        { name: 'Salt and Pepper', slug: 'salt-pepper', order: 6 },
+      ];
+
+      for (const subcat of spiceSubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Spices subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['spices-herbs'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Farm Delicacies
+    if (savedCategories['farm-delicacies']) {
+      console.log('\n🍖 Creating subcategories for "Farm Delicacies"...');
+
+      const delicacySubcategories = [
+        { name: 'Sausages', slug: 'sausages', order: 1 },
+        { name: 'Cheeses', slug: 'cheeses', order: 2 },
+        { name: 'Pates', slug: 'pates', order: 3 },
+        { name: 'Smoked Meats', slug: 'smoked-meats', order: 4 },
+        { name: 'Cured Meats', slug: 'cured-meats', order: 5 },
+        { name: 'Pickled Products', slug: 'pickled-products', order: 6 },
+      ];
+
+      for (const subcat of delicacySubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Farm delicacies subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['farm-delicacies'].id,
+          new Date(),
+          new Date()
+        ]);
+
+        console.log(`   ✅ Created subcategory: ${subcat.name}`);
+      }
+    }
+
+    // Subcategories for Baby Food
+    if (savedCategories['baby-food']) {
+      console.log('\n👶 Creating subcategories for "Baby Food"...');
+
+      const babyFoodSubcategories = [
+        { name: 'Purees', slug: 'purees', order: 1 },
+        { name: 'Porridge', slug: 'porridge', order: 2 },
+        { name: 'Snacks', slug: 'snacks', order: 3 },
+        { name: 'Tea for Babies', slug: 'tea-for-babies', order: 4 },
+        { name: 'Juices for Babies', slug: 'juices-for-babies', order: 5 },
+        { name: 'Cookies for Babies', slug: 'cookies-for-babies', order: 6 },
+      ];
+
+      for (const subcat of babyFoodSubcategories) {
+        await dataSource.query(`
+          INSERT INTO categories (
+            "id", "name", "slug", "description", "status", "order", 
+            "parentId", "createdAt", "updatedAt"
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8
+          )
+        `, [
+          subcat.name,
+          subcat.slug,
+          `Baby food subcategory: ${subcat.name}`,
+          'active',
+          subcat.order,
+          savedCategories['baby-food'].id,
           new Date(),
           new Date()
         ]);

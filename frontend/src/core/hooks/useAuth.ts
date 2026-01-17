@@ -2,11 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/core/api/auth-api.ts';
 import { useAuthStore } from '@/core/store/authStore';
 import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
+
 
 export const useRegisterInitial = () => {
   const queryClient = useQueryClient();
   const { setAuth } = useAuthStore();
-  const router = useRouter();
+  const { redirectToRoleSelection, redirectToDashboard } = useAuthRedirect();
 
   return useMutation({
     mutationFn: authApi.registerInitial,
@@ -14,10 +16,11 @@ export const useRegisterInitial = () => {
       setAuth(data.user, data.access_token);
       queryClient.invalidateQueries({ queryKey: ['session'] });
 
-      if (!data.user.regComplete) router.push('/register/role');
-      else {
+      if (!data.user.regComplete) {
+        redirectToRoleSelection();
+      } else {
         const role = data.user.roles[0];
-        router.push(role === 'customer' ? '/customer-dashboard' : '/supplier-dashboard');
+        redirectToDashboard(role);
       }
     },
   });
@@ -26,7 +29,7 @@ export const useRegisterInitial = () => {
 export const useLogin = () => {
   const queryClient = useQueryClient();
   const { setUser, setIsAuthenticated, setToken } = useAuthStore();
-  const router = useRouter();
+  const { redirectToDashboard } = useAuthRedirect();
 
   return useMutation({
     mutationFn: authApi.login,
@@ -37,19 +40,16 @@ export const useLogin = () => {
 
       queryClient.invalidateQueries({ queryKey: ['session'] });
 
-      if (data.user.roles.includes('admin')) {
-        router.push('/admin-dashboard');
-      } else if (data.user.roles.includes('customer')) {
-        router.push('/customer-dashboard');
-      } else {
-        router.push('/supplier-dashboard');
-      }
+      const role = data.user.roles.find(r =>
+        ['admin', 'customer', 'supplier'].includes(r)
+      );
+      redirectToDashboard(role);
     },
   });
 };
 
 export const useSession = () => {
-  const { setUser, setIsAuthenticated, token } = useAuthStore();
+  const { setUser, setIsAuthenticated } = useAuthStore();
 
   return useQuery({
     queryKey: ['session'],
@@ -74,7 +74,7 @@ export const useSession = () => {
 export const useGoogleAuth = () => {
   const queryClient = useQueryClient();
   const { setAuth } = useAuthStore();
-  const router = useRouter();
+  const { redirectToRoleSelection, redirectToDashboard } = useAuthRedirect();
 
   return useMutation({
     mutationFn: authApi.googleAuth,
@@ -82,10 +82,11 @@ export const useGoogleAuth = () => {
       setAuth(data.user, data.access_token);
       queryClient.invalidateQueries({ queryKey: ['session'] });
 
-      if (!data.user.regComplete) router.push('/register/role');
-      else {
+      if (!data.user.regComplete) {
+        redirectToRoleSelection();
+      } else {
         const role = data.user.roles[0];
-        router.push(role === 'customer' ? '/customer-dashboard' : '/supplier-dashboard');
+        redirectToDashboard(role);
       }
     },
   });
@@ -94,7 +95,7 @@ export const useGoogleAuth = () => {
 export const useRegisterComplete = () => {
   const queryClient = useQueryClient();
   const { setUser, setRegComplete } = useAuthStore();
-  const router = useRouter();
+  const { redirectToDashboard } = useAuthRedirect();
 
   return useMutation({
     mutationFn: authApi.registerComplete,
@@ -105,7 +106,7 @@ export const useRegisterComplete = () => {
       queryClient.invalidateQueries({ queryKey: ['session'] });
 
       const role = data.user.roles[0];
-      router.push(role === 'customer' ? '/customer-dashboard' : '/supplier-dashboard');
+      redirectToDashboard(role);
     },
   });
 };
@@ -113,6 +114,7 @@ export const useRegisterComplete = () => {
 export const useLogout = () => {
   const queryClient = useQueryClient();
   const { setUser, setIsAuthenticated } = useAuthStore();
+  const { redirectToLogin } = useAuthRedirect();
 
   return useMutation({
     mutationFn: authApi.logout,
@@ -120,6 +122,37 @@ export const useLogout = () => {
       setUser(null);
       setIsAuthenticated(false);
       queryClient.clear();
+      redirectToLogin();
     },
   });
+};
+
+
+export const useAuthRedirect = () => {
+  const router = useRouter();
+  const locale = useLocale();
+
+  const redirectTo = (path: string) => {
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    router.push(`/${locale}/${cleanPath}`);
+  };
+
+  const redirectToLogin = () => redirectTo('/login');
+  const redirectToHome = () => redirectTo('/');
+  const redirectToDashboard = (role?: string) => {
+    if (role === 'admin') return redirectTo('/admin-dashboard');
+    if (role === 'customer') return redirectTo('/customer-dashboard');
+    if (role === 'supplier') return redirectTo('/supplier-dashboard');
+    return redirectTo('/dashboard');
+  };
+  const redirectToRoleSelection = () => redirectTo('/register/role');
+
+  return {
+    redirectTo,
+    redirectToLogin,
+    redirectToHome,
+    redirectToDashboard,
+    redirectToRoleSelection,
+    locale
+  };
 };

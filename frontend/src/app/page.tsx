@@ -1,12 +1,6 @@
-import { HomeBanner } from "@/components/home/HomeBanner"
+import { redirect } from 'next/navigation';
+import { defaultLocale } from '@/core/constants/locales';
 
-export default function HomePage() {
-  return (
-    <section>
-      <HomeBanner />
-      {/* <HeroSection /> */}
-      {/* <FeaturedProducts /> */}
-      {/* <CategoriesSection /> */}
-    </section>
-  )
+export default function RootRedirectPage() {
+  redirect(`/${defaultLocale}`);
 }

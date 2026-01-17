@@ -1,7 +1,8 @@
 import { DesktopNav } from './navigation/DesktopNav';
-import { UserMenu } from './user/UserMenu';
-import { CartIcon } from '../../cart/CartIcon';
+import { UserMenu } from './UserMenu';
+import { CartIcon } from '../cart/CartIcon';
 import { Logo } from '@/components/ui';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export function Header() {
   return (
@@ -17,6 +18,7 @@ export function Header() {
             <span className="text-gray-300">⟶</span>
             <CartIcon />
           </div>
+          <LanguageSwitcher />
         </div>
       </div>
     </header>

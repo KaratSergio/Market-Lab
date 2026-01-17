@@ -1,8 +1,7 @@
 'use client';
 
-import { useSession } from '@/core/hooks/useAuth';
+import { useSession, useAuthRedirect } from '@/core/hooks/useAuth';
 import { useAuthStore } from '@/core/store/authStore';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 interface RouteGuardProps {
@@ -12,13 +11,13 @@ interface RouteGuardProps {
 export function RouteGuard({ children }: RouteGuardProps) {
   const { data: user, isLoading } = useSession();
   const { isAuthenticated } = useAuthStore();
-  const router = useRouter();
+  const { redirectToLogin } = useAuthRedirect();
 
   useEffect(() => {
     if (!isLoading && !user && !isAuthenticated) {
-      router.push('/login');
+      redirectToLogin();
     }
-  }, [user, isAuthenticated, isLoading, router]);
+  }, [user, isAuthenticated, isLoading, redirectToLogin]);
 
   if (isLoading) {
     return (
@@ -31,7 +30,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   if (!user && !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Redirect...</div>
+        <div className="text-lg">Redirecting to login...</div>
       </div>
     );
   }

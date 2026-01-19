@@ -327,5 +327,112 @@
     "registerWithEmail": "register with email",
     "createPassword": "Create a password",
     "registering": "Registering..."
+  },
+
+
+  "RoleSelection": {
+    "title": "Choose Role",
+    "subtitle": "How would you like to use the service?",
+    "customer": {
+      "title": "Customer",
+      "description": "Buy fresh farm products",
+      "features": {
+        "orderProducts": "Order products online",
+        "trackDelivery": "Track delivery",
+        "saveFavorites": "Save favorites"
+      }
+    },
+    "supplier": {
+      "title": "Supplier",
+      "description": "Sell your products",
+      "features": {
+        "addProducts": "Add products",
+        "manageOrders": "Manage orders"
+      }
+    },
+    "continueButton": "Continue"
+  },
+
+
+  "SupplierForm": {
+    "title": "Complete Farmer Profile",
+    "subtitle": "Provide details about your farm and upload required documents",
+    "steps": ["Personal Info", "Address", "Farm Details", "Documents", "Done"],
+    "PersonalInfo": {
+      "firstName": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+380 XX XXX XXXX"
+    },
+    "Address": {
+      "country": "Country",
+      "countryPlaceholder": "Ukraine",
+      "city": "City",
+      "cityPlaceholder": "Kyiv",
+      "street": "Street",
+      "streetPlaceholder": "Khreshchatyk Street",
+      "building": "Building Number",
+      "buildingPlaceholder": "1A",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "01001",
+      "state": "State/Region",
+      "statePlaceholder": "Kyiv Oblast",
+      "coordinatesDetected": "Coordinates detected"
+    },
+    "FarmDetails": {
+      "farmName": "Farm Name",
+      "farmNamePlaceholder": "Green Valley Farm",
+      "registrationNumber": "Registration Number",
+      "registrationNumberPlaceholder": "Tax ID or Registration Number",
+      "description": "Farm Description",
+      "descriptionPlaceholder": "Tell us about your farm, products, and farming practices..."
+    },
+    "Documents": {
+      "title": "Upload Required Documents",
+      "description": "Please upload certificates, licenses, and other legal documents (at least 1 required)",
+      "supportedFormats": "Supported formats: PDF, JPG, PNG, WEBP, DOC. Max file size: 10MB"
+    },
+    "Confirmation": {
+      "title": "Review Your Information",
+      "name": "Name",
+      "phone": "Phone",
+      "address": "Address",
+      "farmName": "Farm Name",
+      "registrationNumber": "Registration Number",
+      "description": "Description",
+      "documents": "Documents",
+      "filesUploaded": "{count} files uploaded",
+      "verificationInfo": "Your documents will be verified within 1-2 business days."
+    }
+  },
+
+  "NavigationButtons": {
+    "back": "Back",
+    "next": "Next",
+    "submitApplication": "Submit Application",
+    "submitting": "Submitting..."
+  },
+  
+
+  "FileUpload": {
+    "dragDrop": "Drag & drop files here",
+    "clickToBrowse": "or click to browse files",
+    "fileRequirements": "{acceptedTypes} • Max {maxSizeMB}MB per file",
+    "selectedFiles": "Selected Files ({current}/{max})",
+    "removeFile": "Remove file",
+    "errors": {
+      "maxFiles": "Maximum {maxFiles} files allowed",
+      "fileTooLarge": "{fileName} exceeds maximum size of {maxSizeMB}MB",
+      "unsupportedType": "{fileName} has unsupported file type"
+    },
+    "fileSize": {
+      "bytes": "{bytes} bytes",
+      "kb": "{kb} KB",
+      "mb": "{mb} MB"
+    }
   }
+
+
 }

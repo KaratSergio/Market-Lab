@@ -15,24 +15,26 @@ export function ProgressBar({ steps, currentStep, className = '' }: ProgressBarP
         {steps.map((step, index) => (
           <div
             key={index}
-            className={`flex flex-col items-center ${index <= currentStep ? 'text-blue-600' : 'text-gray-400'
+            className={`flex flex-col items-center text-center flex-1 ${index <= currentStep ? 'text-green-600' : 'text-gray-400'
               }`}
           >
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${index <= currentStep
-                ? 'bg-blue-600 text-white'
+                ? 'bg-green-600 text-white'
                 : 'bg-gray-200 text-gray-400'
                 }`}
             >
               {index + 1}
             </div>
-            <span className="text-xs font-medium">{step}</span>
+            <span className="text-xs font-medium wrap-break-word max-w-20 h-8 flex items-center justify-center">
+              {step}
+            </span>
           </div>
         ))}
       </div>
       <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
         <div
-          className="absolute top-0 left-0 h-full bg-blue-600 transition-all duration-300"
+          className="absolute top-0 left-0 h-full bg-green-600 transition-all duration-300"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>

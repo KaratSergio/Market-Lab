@@ -6,9 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRegisterComplete } from '@/core/hooks/useAuth';
 import { createSupplierFormData } from '@/core/utils/api-utils';
 import { ProgressBar, NavigationButtons } from '@/components/ui';
+import { useTranslations, useLocale } from 'next-intl';
 
 import {
-  supplierRegistrationSchema,
+  createSupplierSchemas,
   SupplierRegistrationFormData
 } from '@/core/schemas/supplier-schemas';
 
@@ -25,9 +26,12 @@ import { ConfirmationStep } from './steps/ConfirmationStep';
 const steps = ['Personal Info', 'Address', 'Farm Details', 'Documents', 'Confirmation'];
 
 export function SupplierProfileForm() {
+  const locale = useLocale();
+  const t = useTranslations('SupplierForm');
   const completeRegistration = useRegisterComplete();
   const [currentStep, setCurrentStep] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const { supplierRegistrationSchema } = createSupplierSchemas(locale);
 
   const {
     register,
@@ -127,7 +131,10 @@ export function SupplierProfileForm() {
           />
         );
       case 2:
-        return <FarmDetailsStep register={register} errors={errors} />;
+        return <FarmDetailsStep
+          register={register}
+          errors={errors}
+        />;
       case 3:
         return (
           <DocumentsStep
@@ -156,16 +163,19 @@ export function SupplierProfileForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Complete Farmer Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Provide details about your farm and upload required documents
+            {t('subtitle')}
           </p>
         </div>
 
-        <ProgressBar steps={steps} currentStep={currentStep} />
+        <ProgressBar
+          steps={t.raw('steps')}
+          currentStep={currentStep}
+        />
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {renderStep()}

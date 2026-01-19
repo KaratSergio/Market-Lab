@@ -283,14 +283,7 @@
     "loading": "Завантаження...",
     "error": "Помилка",
     "success": "Успішно",
-    "warning": "Попередження",
-    "or": "або", 
-    "continueWith": "продовжити через", 
-    "forgotPassword": "Забули пароль?",
-    "logIntoExisting": "войти в существующий аккаунт",
-    "registerWithEmail": "зарегистрироваться через email",
-    "createPassword": "Создайте пароль",
-    "registering": "Регистрация..."
+    "warning": "Попередження"
   },
 
 
@@ -332,5 +325,112 @@
     "registerWithEmail": "зареєструватися через email",
     "createPassword": "Створіть пароль",
     "registering": "Реєстрація..."
+  },
+
+
+  "RoleSelection": { 
+    "title": "Виберіть роль", 
+    "subtitle": "Як ви хочете використовувати сервіс?", 
+    "customer": { 
+      "title": "Покупець", 
+      "description": "Купуйте свіжі фермерські продукти", 
+      "features": { 
+        "orderProducts": "Замовляйте продукти онлайн", 
+        "trackDelivery": "Відслідковуйте доставку", 
+        "saveFavorites": "Зберігайте обране" 
+      } 
+    }, 
+    "supplier": { 
+      "title": "Постачальник", 
+      "description": "Продавайте свої продукти", 
+      "features": { 
+        "addProducts": "Додайте товари", 
+        "manageOrders": "Керуйте замовленнями" 
+      } 
+    },
+    "continueButton": "Далі"
+  },
+
+
+  "SupplierForm": {
+    "title": "Заповніть профіль фермера",
+    "subtitle": "Надайте інформацію про вашу ферму та завантажте необхідні документи",
+    "steps": ["Особиста інформація", "Адреса", "Деталі ферми", "Документи", "Готово"],
+    "PersonalInfo": {
+      "firstName": "Ім'я",
+      "firstNamePlaceholder": "Іван",
+      "lastName": "Прізвище",
+      "lastNamePlaceholder": "Іванов",
+      "phone": "Номер телефону",
+      "phonePlaceholder": "+380 XX XXX XXXX"
+    },
+    "Address": {
+      "country": "Країна",
+      "countryPlaceholder": "Україна",
+      "city": "Місто",
+      "cityPlaceholder": "Київ",
+      "street": "Вулиця",
+      "streetPlaceholder": "Хрещатик",
+      "building": "Номер будинку",
+      "buildingPlaceholder": "1А",
+      "postalCode": "Поштовий індекс",
+      "postalCodePlaceholder": "01001",
+      "state": "Область/Регіон",
+      "statePlaceholder": "Київська область",
+      "coordinatesDetected": "Координати визначено"
+    },
+    "FarmDetails": {
+      "farmName": "Назва ферми",
+      "farmNamePlaceholder": "Зелена Долина Ферма",
+      "registrationNumber": "Реєстраційний номер",
+      "registrationNumberPlaceholder": "ІПН або реєстраційний номер",
+      "description": "Опис ферми",
+      "descriptionPlaceholder": "Розкажіть про вашу ферму, продукти та методи господарювання..."
+    },
+    "Documents": {
+      "title": "Завантажте необхідні документи",
+      "description": "Будь ласка, завантажте сертифікати, ліцензії та інші юридичні документи (мінімум 1 документ обов'язковий)",
+      "supportedFormats": "Підтримувані формати: PDF, JPG, PNG, WEBP, DOC. Максимальний розмір файлу: 10МБ"
+    },
+    "Confirmation": {
+      "title": "Перевірте вашу інформацію",
+      "name": "Ім'я",
+      "phone": "Телефон",
+      "address": "Адреса",
+      "farmName": "Назва ферми",
+      "registrationNumber": "Реєстраційний номер",
+      "description": "Опис",
+      "documents": "Документи",
+      "filesUploaded": "Завантажено {count} файлів",
+      "verificationInfo": "Ваші документи будуть перевірені протягом 1-2 робочих днів."
+    }
+  },
+
+  "NavigationButtons": {
+    "back": "Назад",
+    "next": "Далі",
+    "submitApplication": "Подати заявку",
+    "submitting": "Відправка..."
+  },
+
+
+  "FileUpload": {
+    "dragDrop": "Перетягніть файли сюди",
+    "clickToBrowse": "або натисніть для вибору файлів",
+    "fileRequirements": "{acceptedTypes} • Макс {maxSizeMB}МБ на файл",
+    "selectedFiles": "Вибрані файли ({current}/{max})",
+    "removeFile": "Видалити файл",
+    "errors": {
+      "maxFiles": "Максимально дозволено {maxFiles} файлів",
+      "fileTooLarge": "{fileName} перевищує максимальний розмір {maxSizeMB}МБ",
+      "unsupportedType": "{fileName} має непідтримуваний тип файлу"
+    },
+    "fileSize": {
+      "bytes": "{bytes} байт",
+      "kb": "{kb} КБ",
+      "mb": "{mb} МБ"
+    }
   }
+
+
 }

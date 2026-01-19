@@ -1,4 +1,7 @@
+'use client';
+
 import { Button } from '@/components/ui';
+import { useTranslations } from 'next-intl';
 
 interface NavigationButtonsProps {
   currentStep: number;
@@ -19,6 +22,8 @@ export function NavigationButtons({
   isNextDisabled,
   isSubmitting,
 }: NavigationButtonsProps) {
+  const t = useTranslations('NavigationButtons');
+
   return (
     <div className="flex gap-3">
       {currentStep > 0 && (
@@ -28,7 +33,7 @@ export function NavigationButtons({
           onClick={onBack}
           className="flex-1"
         >
-          Back
+          {t('back')}
         </Button>
       )}
 
@@ -39,7 +44,7 @@ export function NavigationButtons({
           className="flex-1"
           disabled={isNextDisabled}
         >
-          Next
+          {t('next')}
         </Button>
       ) : (
         <Button
@@ -48,7 +53,7 @@ export function NavigationButtons({
           disabled={isSubmitting}
           className="flex-1"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Application'}
+          {isSubmitting ? t('submitting') : t('submitApplication')}
         </Button>
       )}
     </div>

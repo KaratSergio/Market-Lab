@@ -1,6 +1,9 @@
+'use client';
+
 import { FieldErrors } from 'react-hook-form';
 import { FileUpload } from '@/components/ui';
 import { SupplierRegistrationFormData } from '@/core/schemas';
+import { useTranslations } from 'next-intl';
 
 interface DocumentsStepProps {
   errors: FieldErrors<SupplierRegistrationFormData>;
@@ -8,14 +11,16 @@ interface DocumentsStepProps {
 }
 
 export function DocumentsStep({ errors, onFilesChange }: DocumentsStepProps) {
+  const t = useTranslations('SupplierForm.Documents');
+
   return (
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Upload Required Documents *
+          {t('title')} *
         </h3>
         <p className="text-sm text-gray-600 mb-4">
-          Please upload certificates, licenses, and other legal documents (at least 1 required)
+          {t('description')}
         </p>
       </div>
 
@@ -29,7 +34,7 @@ export function DocumentsStep({ errors, onFilesChange }: DocumentsStepProps) {
 
       <div className="bg-yellow-50 rounded-lg p-4">
         <p className="text-sm text-yellow-700">
-          Supported formats: PDF, JPG, PNG, WEBP, DOC. Max file size: 10MB
+          {t('supportedFormats')}
         </p>
       </div>
     </div>

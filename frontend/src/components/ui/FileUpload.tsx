@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface FileUploadProps {
   onFilesChange: (files: File[]) => void;
@@ -17,6 +18,7 @@ export function FileUpload({
   maxFiles = 10,
   error,
 }: FileUploadProps) {
+  const t = useTranslations('FileUpload');
   const [files, setFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,13 +34,16 @@ export function FileUpload({
 
       // Checking the number of files
       if (files.length + newFiles.length >= maxFiles) {
-        errors.push(`Maximum ${maxFiles} files allowed`);
+        errors.push(t('errors.maxFiles', { maxFiles }));
         break;
       }
 
       // Checking file size
       if (file.size > maxSize) {
-        errors.push(`${file.name} exceeds maximum size of ${maxSize / 1024 / 1024}MB`);
+        errors.push(t('errors.fileTooLarge', {
+          fileName: file.name,
+          maxSizeMB: maxSize / 1024 / 1024
+        }));
         continue;
       }
 
@@ -47,7 +52,7 @@ export function FileUpload({
       const acceptedExtensions = acceptedTypes.split(',').map(ext => ext.trim());
 
       if (!acceptedExtensions.includes(fileExtension)) {
-        errors.push(`${file.name} has unsupported file type`);
+        errors.push(t('errors.unsupportedType', { fileName: file.name }));
         continue;
       }
 
@@ -85,9 +90,9 @@ export function FileUpload({
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' bytes';
-    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    if (bytes < 1024) return t('fileSize.bytes', { bytes });
+    else if (bytes < 1024 * 1024) return t('fileSize.kb', { kb: (bytes / 1024).toFixed(1) });
+    else return t('fileSize.mb', { mb: (bytes / 1024 / 1024).toFixed(1) });
   };
 
   return (
@@ -103,13 +108,16 @@ export function FileUpload({
         onClick={() => fileInputRef.current?.click()}
       >
         <p className="mt-2 text-sm font-medium text-gray-900">
-          Drag & drop files here
+          {t('dragDrop')}
         </p>
         <p className="mt-1 text-xs text-gray-500">
-          or click to browse files
+          {t('clickToBrowse')}
         </p>
         <p className="mt-2 text-xs text-gray-400">
-          {acceptedTypes} • Max {maxSize / 1024 / 1024}MB per file
+          {t('fileRequirements', {
+            acceptedTypes,
+            maxSizeMB: maxSize / 1024 / 1024
+          })}
         </p>
         <input
           ref={fileInputRef}
@@ -128,7 +136,7 @@ export function FileUpload({
       {files.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-700">
-            Selected Files ({files.length}/{maxFiles})
+            {t('selectedFiles', { current: files.length, max: maxFiles })}
           </h4>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {files.map((file, index) => (
@@ -150,7 +158,11 @@ export function FileUpload({
                   type="button"
                   onClick={() => removeFile(index)}
                   className="text-gray-400 hover:text-red-500"
+                  aria-label={t('removeFile')}
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
             ))}

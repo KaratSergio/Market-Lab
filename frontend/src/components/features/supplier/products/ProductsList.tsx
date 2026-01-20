@@ -5,6 +5,7 @@ import { ProductCard } from './ProductCard';
 import { useProductStore } from '@/core/store/productStore';
 import { useDeleteProduct, useUpdateProductStatus } from '@/core/hooks/useProducts';
 import { Product } from '@/core/types/productTypes';
+import { useTranslations } from 'next-intl';
 
 interface ProductsListProps {
   onEditProduct: (product: Product) => void;
@@ -13,6 +14,7 @@ interface ProductsListProps {
 export const ProductsList = memo(function ProductsList({
   onEditProduct
 }: ProductsListProps) {
+  const t = useTranslations();
   const filteredProducts = useProductStore(state => state.filteredProducts);
   const loading = useProductStore(state => state.loading);
 
@@ -20,7 +22,7 @@ export const ProductsList = memo(function ProductsList({
   const updateStatusMutation = useUpdateProductStatus();
 
   const handleDeleteProduct = async (productId: string) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    if (!window.confirm(t('Product.deleteConfirmation'))) return;
 
     try {
       await deleteProductMutation.mutateAsync(productId);
@@ -66,8 +68,12 @@ export const ProductsList = memo(function ProductsList({
       {filteredProducts.length === 0 && !loading && (
         <div className="text-center py-12 bg-white rounded-lg shadow-sm">
           <div className="text-gray-400 mb-4 text-6xl">📦</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No products yet</h3>
-          <p className="text-gray-600 mb-4">Start by adding your first product to the catalog</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {t('ProductList.emptyTitle')}
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {t('ProductList.emptyDescription')}
+          </p>
         </div>
       )}
 

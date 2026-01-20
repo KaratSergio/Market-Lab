@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '@/core/store/authStore';
 import { useSupplierStore } from '@/core/store/supplierStore';
 import { Spinner } from '@/components/ui';
+import { useTranslations, useLocale } from 'next-intl';
 
 import {
   useMySupplierProfile,
@@ -16,19 +17,21 @@ import {
 } from '@/core/hooks/useSupplier';
 
 import {
-  supplierProfileSchema,
+  createSupplierSchemas,
   SupplierProfileFormData
-} from '@/core/schemas';
+} from '@/core/schemas/supplier-schemas';
 
 // sub components
 import { ProfileHeader } from './ProfileHeader';
 import { AccountInfo } from './AccountInfo';
 import { CompanyInfo } from './CompanyInfo';
 import { AddressInfo } from './AddressInfo';
-import { StatisticsCard } from './StatisticsCard';
+// import { StatisticsCard } from './StatisticsCard';
 import { DocumentsSection } from './DocumentsSection';
 
 export function SupplierProfile() {
+  const t = useTranslations('SupplierProfile');
+  const locale = useLocale();
   const { user } = useAuthStore();
 
   const { supplierProfileSchema } = createSupplierSchemas(locale);
@@ -53,7 +56,7 @@ export function SupplierProfile() {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  // React Hook Form
+  // React Hook Form with localized schema
   const form = useForm<SupplierProfileFormData>({
     resolver: zodResolver(supplierProfileSchema),
     defaultValues: {
@@ -133,7 +136,7 @@ export function SupplierProfile() {
   };
 
   const handleDeleteDocument = (documentUrl: string, documentName: string) => {
-    if (window.confirm(`Delete document "${documentName}"?`)) {
+    if (window.confirm(t('deleteConfirmation', { documentName }))) {
       deleteDocument(documentUrl, {
         onSuccess: () => {
           refetchDocuments();
@@ -162,8 +165,8 @@ export function SupplierProfile() {
       <div className="min-h-screen p-4">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="text-red-500 text-lg">Error loading profile</div>
-            <p className="text-gray-600 mt-2">Please try again later</p>
+            <div className="text-red-500 text-lg">{t('errors.loading')}</div>
+            <p className="text-gray-600 mt-2">{t('errors.tryAgain')}</p>
           </div>
         </div>
       </div>
@@ -217,15 +220,15 @@ export function SupplierProfile() {
           <div className="space-y-6 md:space-y-8">
             {/* Account Information */}
             <AccountInfo
-              user={user}
-              currentSupplier={currentSupplier}
+              user={user!}
+              currentSupplier={currentSupplier!}
               isEditing={isEditing}
               form={form}
             />
 
             {/* Company Information */}
             <CompanyInfo
-              currentSupplier={currentSupplier}
+              currentSupplier={currentSupplier!}
               isEditing={isEditing}
               form={form}
             />
@@ -233,10 +236,10 @@ export function SupplierProfile() {
             {/* Address Information */}
             <div className="border-b pb-6">
               <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                Addresses
+                {t('addresses')}
               </h2>
               <AddressInfo
-                currentSupplier={currentSupplier}
+                currentSupplier={currentSupplier!}
                 isEditing={isEditing}
                 form={form}
               />
@@ -245,7 +248,6 @@ export function SupplierProfile() {
             {/* Documents Section */}
             {currentSupplier && (
               <DocumentsSection
-                supplierId={currentSupplier.id}
                 documents={documents}
                 isUploading={isUploading}
                 onUpload={handleUpload}
@@ -255,16 +257,16 @@ export function SupplierProfile() {
 
             {/* Account Actions */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-700 mb-4">Account Actions</h2>
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">{t('accountActions')}</h2>
               <div className="flex flex-wrap gap-2">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm md:text-base flex-1 sm:flex-none">
-                  Change Password
+                  {t('actions.changePassword')}
                 </button>
                 <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm md:text-base flex-1 sm:flex-none">
-                  Notifications
+                  {t('actions.notifications')}
                 </button>
                 <button className="px-4 py-2 bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors text-sm md:text-base flex-1 sm:flex-none">
-                  Deactivate
+                  {t('actions.deactivate')}
                 </button>
               </div>
             </div>

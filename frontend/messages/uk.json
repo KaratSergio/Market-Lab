@@ -1,0 +1,530 @@
+{
+  "Navigation": {
+    "home": "Головна",
+    "products": "Продукти",
+    "map": "Мапа",
+    "sellers": "Продавці",
+    "about": "Про нас"
+  },
+
+
+  "Cart": {
+    "cart": "Кошик"
+  },
+
+
+  "HomePage": {
+    "title": "Ласкаво просимо на Фермерський ринок",
+    "subtitle": "Свіжі продукти безпосередньо від фермерів"
+  },
+
+  
+  "Categories": {
+    "main": {
+      "vegetables": "Овочі",
+      "fruits": "Фрукти",
+      "dairy-products": "Молочні продукти",
+      "meat-poultry": "М'ясо та птиця",
+      "eggs": "Яйця",
+      "bread-bakery": "Хліб та випічка",
+      "honey-bee-products": "Мед та бджолині продукти",
+      "preserves": "Консервація",
+      "drinks": "Напої",
+      "grains-cereals": "Зернові та крупи",
+      "nuts-dried-fruits": "Горіхи та сухофрукти",
+      "vegetable-oils": "Рослинні олії",
+      "spices-herbs": "Спеції та трави",
+      "farm-delicacies": "Фермерські делікатеси",
+      "baby-food": "Дитяче харчування",
+      "other": "Інше"
+    },
+    "vegetables": {
+      "root-vegetables": "Коренеплоди",
+      "leafy-vegetables": "Листові овочі",
+      "nightshades": "Пасльонові",
+      "cruciferous": "Хрестоцвіті",
+      "cucurbits": "Гарбузові",
+      "alliums": "Цибулеві"
+    },
+    "fruits": {
+      "berries": "Ягоди",
+      "citrus-fruits": "Цитрусові",
+      "stone-fruits": "Кісточкові",
+      "tropical-fruits": "Тропічні фрукти",
+      "melons": "Диняні",
+      "pome-fruits": "Насіннєві"
+    },
+    "dairy-products": {
+      "milk": "Молоко",
+      "cheese": "Сир",
+      "yogurt": "Йогурт",
+      "butter": "Масло вершкове",
+      "cream": "Вершки",
+      "fermented-dairy": "Кисломолочні продукти"
+    },
+    "meat-poultry": {
+      "pork": "Свинина",
+      "beef": "Яловичина",
+      "chicken": "Курятина",
+      "turkey": "Індичка",
+      "rabbit": "Кролик",
+      "offal": "Субпродукти"
+    },
+    "bread-bakery": {
+      "bread": "Хліб",
+      "buns": "Булочки",
+      "pies": "Пироги",
+      "cookies": "Печиво",
+      "cakes": "Торти",
+      "croissants": "Круасани"
+    },
+    "honey-bee-products": {
+      "honey": "Мед",
+      "propolis": "Прополіс",
+      "bee-pollen": "Бджолиний пилок",
+      "royal-jelly": "Маточне молочко",
+      "beeswax": "Бджолиний віск",
+      "bee-bread": "Перга"
+    },
+    "preserves": {
+      "jams-marmalades": "Варення та мармелад",
+      "pickles": "Соління",
+      "marinades": "Маринади",
+      "compotes": "Компоти",
+      "sauces": "Соуси",
+      "preserved-juices": "Консервовані соки"
+    },
+    "drinks": {
+      "fresh-juices": "Свіжі соки",
+      "fruit-drinks": "Морси",
+      "kvass": "Квас",
+      "herbal-teas": "Трав'яні чаї",
+      "kombucha": "Комбуча",
+      "lemonades": "Лимонади"
+    },
+    "grains-cereals": {
+      "buckwheat": "Гречка",
+      "rice": "Рис",
+      "oatmeal": "Вівсянка",
+      "millet": "Пшено",
+      "barley": "Ячмінь",
+      "wheat": "Пшениця"
+    },
+    "nuts-dried-fruits": {
+      "walnuts": "Горіхи волоські",
+      "hazelnuts": "Фундук",
+      "almonds": "Миндаль",
+      "peanuts": "Арахіс",
+      "dried-apricots": "Курага",
+      "raisins": "Родзинки"
+    },
+    "vegetable-oils": {
+      "sunflower-oil": "Соняшникова олія",
+      "flaxseed-oil": "Лляна олія",
+      "pumpkin-seed-oil": "Гарбузова олія",
+      "olive-oil": "Оливкова олія",
+      "sesame-oil": "Кунжутна олія",
+      "corn-oil": "Кукурудзяна олія"
+    },
+    "spices-herbs": {
+      "dried-herbs": "Сушені трави",
+      "spices": "Прянощі",
+      "tea-blends": "Чайні збори",
+      "medicinal-herbs": "Лікарські трави",
+      "seasoning-mixes": "Суміші приправ",
+      "salt-pepper": "Сіль та перець"
+    },
+    "farm-delicacies": {
+      "sausages": "Ковбаси",
+      "cheeses": "Сир",
+      "pates": "Паштети",
+      "smoked-meats": "Копчене м'ясо",
+      "cured-meats": "В'ялене м'ясо",
+      "pickled-products": "Мариновані продукти"
+    },
+    "baby-food": {
+      "purees": "Пюре",
+      "porridge": "Каші",
+      "snacks": "Снеки",
+      "tea-for-babies": "Чай для дітей",
+      "juices-for-babies": "Соки для дітей",
+      "cookies-for-babies": "Печиво для дітей"
+    }
+  },
+
+
+  "Product": {
+    "status": {
+      "active": "Активний",
+      "inactive": "Неактивний",
+      "draft": "Чернетка",
+      "archived": "Архівований"
+    },
+    "units": {
+      "kg": "кг",
+      "g": "г",
+      "l": "л",
+      "ml": "мл",
+      "piece": "шт",
+      "pack": "уп",
+      "bunch": "пучок"
+    },
+    "stockLabel": "На складі",
+    "activate": "Активувати",
+    "deactivate": "Деактивувати",
+    "totalProducts": "Всього продуктів",
+    "stock": "Залишки: {stock} {unit}",
+    "inStock": "В наявності",
+    "lowStock": "Закінчується",
+    "outOfStock": "Немає в наявності",
+    "deleteConfirmation": "Ви впевнені, що хочете видалити цей продукт?"
+  },
+
+
+  "ProductList": {
+    "emptyTitle": "Ще немає продуктів",
+    "emptyDescription": "Почніть з додавання першого продукту до каталогу"
+  },
+
+
+  "ProductStats": {
+    "title": "Управління продуктами",
+    "subtitle": "Керуйте вашими продуктами та запасами",
+    "addButton": "Додати новий продукт"
+  },
+
+
+  "ProductFilters": {
+    "title": "Фільтри продуктів",
+    "subtitle": "Показано {total} продуктів ({active} активних, {lowStock} майже закінчилось)",
+    "searchLabel": "Пошук продуктів",
+    "searchPlaceholder": "Пошук продуктів...",
+    "categoryLabel": "Категорія",
+    "loadingCategories": "Завантаження категорій...",
+    "allCategories": "Всі категорії ({count})",
+    "statusLabel": "Статус",
+    "allStatuses": "Всі статуси",
+    "statusWithCount": "{status} ({count})",
+    "showAdvanced": "Розширені фільтри",
+    "hideAdvanced": "Приховати розширені",
+    "clearAll": "Очистити все",
+    "advancedTitle": "Розширені фільтри",
+    "stockLabel": "Статус наявності",
+    "stockAll": "Всі",
+    "stockInStock": "В наявності",
+    "stockLowWithCount": "Майже закінчилось ({count})",
+    "stockOutWithCount": "Немає в наявності ({count})",
+    "sortLabel": "Сортування",
+    "sortNewest": "Спочатку нові",
+    "sortOldest": "Спочатку старі",
+    "sortPriceLow": "Ціна: від низької до високої",
+    "sortPriceHigh": "Ціна: від високої до низької",
+    "sortStockLow": "Наявність: від низької до високої",
+    "sortStockHigh": "Наявність: від високої до низької",
+    "sortNameAsc": "Назва: від А до Я",
+    "sortNameDesc": "Назва: від Я до А",
+    "activeFilters": "Активні фільтри",
+    "searchFilter": "Пошук: \"{query}\"",
+    "categoryFilter": "Категорія: {category}",
+    "statusFilter": "Статус: {status}"
+  },
+
+
+  "ProductForm": {
+    "editTitle": "Редагування продукту",
+    "createTitle": "Додати новий продукт",
+    "nameLabel": "Назва продукту",
+    "namePlaceholder": "Введіть назву продукту",
+    "categoryLabel": "Категорія",
+    "categoryPlaceholder": "Оберіть категорію",
+    "subcategoryLabel": "Підкатегорія",
+    "subcategoryPlaceholder": "Оберіть підкатегорію",
+    "loadingCategories": "Завантаження категорій...",
+    "loadingSubcategories": "Завантаження підкатегорій...",
+    "noSubcategories": "Немає доступних підкатегорій",
+    "descriptionLabel": "Опис продукту",
+    "descriptionPlaceholder": "Опишіть свій продукт...",
+    "priceLabel": "Ціна (₴)",
+    "stockLabel": "Кількість на складі",
+    "imagesLabel": "Зображення товару (максимум {max} файлів, всього: {current}/{max})",
+    "imagesClickToSelect": "Натисніть, щоб вибрати зображення",
+    "imagesSupportedFormats": "Підтримує JPG, PNG, WEBP до 5 МБ кожен",
+    "imagesMaxReached": "Досягнуто максимум 4 зображення. Видаліть деякі, щоб додати більше.",
+    "imagesPreviews": "Зображення",
+    "removeNewImage": "Видалити нове зображення",
+    "removeExistingImage": "Видалити існуюче зображення",
+    "newImageBadge": "Нове",
+    "imagesSummary": "{existing} існуючих зображень + {new} нових зображень",
+    "statusLabel": "Активний (видимий для клієнтів)",
+    "updateButton": "Оновити продукт",
+    "createButton": "Додати продукт"
+  },
+
+
+  "Common": {
+    "per": "за",
+    "price": "Ціна",
+    "quantity": "Кількість",
+    "addToCart": "Додати в кошик",
+    "buyNow": "Купити зараз",
+    "viewDetails": "Переглянути деталі",
+    "available": "Доступно",
+    "unavailable": "Недоступно",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "search": "Пошук",
+    "filter": "Фільтр",
+    "sort": "Сортування",
+    "all": "Всі",
+    "none": "Жоден",
+    "select": "Вибрати",
+    "loading": "Завантаження...",
+    "error": "Помилка",
+    "success": "Успішно",
+    "warning": "Попередження"
+  },
+
+
+  "Forms": {
+    "name": "Ім'я",
+    "email": "Електронна пошта",
+    "password": "Пароль",
+    "confirmPassword": "Підтвердіть пароль",
+    "phone": "Телефон",
+    "address": "Адреса",
+    "city": "Місто",
+    "postalCode": "Поштовий індекс",
+    "country": "Країна",
+    "submit": "Відправити",
+    "required": "Обов'язкове поле",
+    "invalidEmail": "Невірний формат електронної пошти",
+    "passwordMismatch": "Паролі не співпадають",
+    "minLength": "Мінімум {min} символів",
+    "maxLength": "Максимум {max} символів"
+  },
+
+
+  "NotFound": {
+    "title": "Сторінку не знайдено",
+    "description": "Вибачте, але сторінка, яку ви шукаєте, не існує.",
+    "backHome": "Повернутися на головну"
+  },
+
+
+  "Auth": {
+    "login": "Увійти",
+    "logout": "вийти",
+    "register": "Реєстрація",
+    "registration": "зареєструватися",
+    "or": "або", 
+    "continueWith": "продовжити через", 
+    "forgotPassword": "Забули пароль?",
+    "logIntoExisting": "увійти до існуючого облікового запису",
+    "registerWithEmail": "зареєструватися через email",
+    "createPassword": "Створіть пароль",
+    "registering": "Реєстрація..."
+  },
+
+
+  "RoleSelection": { 
+    "title": "Виберіть роль", 
+    "subtitle": "Як ви хочете використовувати сервіс?", 
+    "customer": { 
+      "title": "Покупець", 
+      "description": "Купуйте свіжі фермерські продукти", 
+      "features": { 
+        "orderProducts": "Замовляйте продукти онлайн", 
+        "trackDelivery": "Відслідковуйте доставку", 
+        "saveFavorites": "Зберігайте обране" 
+      } 
+    }, 
+    "supplier": { 
+      "title": "Постачальник", 
+      "description": "Продавайте свої продукти", 
+      "features": { 
+        "addProducts": "Додайте товари", 
+        "manageOrders": "Керуйте замовленнями" 
+      } 
+    },
+    "continueButton": "Далі"
+  },
+
+
+  "SupplierForm": {
+    "title": "Заповніть профіль фермера",
+    "subtitle": "Надайте інформацію про вашу ферму та завантажте необхідні документи",
+    "steps": ["Особиста інформація", "Адреса", "Деталі ферми", "Документи", "Готово"],
+    "PersonalInfo": {
+      "firstName": "Ім'я",
+      "firstNamePlaceholder": "Іван",
+      "lastName": "Прізвище",
+      "lastNamePlaceholder": "Іванов",
+      "phone": "Номер телефону",
+      "phonePlaceholder": "+380 XX XXX XXXX"
+    },
+    "Address": {
+      "country": "Країна",
+      "countryPlaceholder": "Україна",
+      "city": "Місто",
+      "cityPlaceholder": "Київ",
+      "street": "Вулиця",
+      "streetPlaceholder": "Хрещатик",
+      "building": "Номер будинку",
+      "buildingPlaceholder": "1А",
+      "postalCode": "Поштовий індекс",
+      "postalCodePlaceholder": "01001",
+      "state": "Область/Регіон",
+      "statePlaceholder": "Київська область",
+      "coordinatesDetected": "Координати визначено"
+    },
+    "FarmDetails": {
+      "farmName": "Назва ферми",
+      "farmNamePlaceholder": "Зелена Долина Ферма",
+      "registrationNumber": "Реєстраційний номер",
+      "registrationNumberPlaceholder": "ІПН або реєстраційний номер",
+      "description": "Опис ферми",
+      "descriptionPlaceholder": "Розкажіть про вашу ферму, продукти та методи господарювання..."
+    },
+    "Documents": {
+      "title": "Завантажте необхідні документи",
+      "description": "Будь ласка, завантажте сертифікати, ліцензії та інші юридичні документи (мінімум 1 документ обов'язковий)",
+      "supportedFormats": "Підтримувані формати: PDF, JPG, PNG, WEBP, DOC. Максимальний розмір файлу: 10МБ"
+    },
+    "Confirmation": {
+      "title": "Перевірте вашу інформацію",
+      "name": "Ім'я",
+      "phone": "Телефон",
+      "address": "Адреса",
+      "farmName": "Назва ферми",
+      "registrationNumber": "Реєстраційний номер",
+      "description": "Опис",
+      "documents": "Документи",
+      "filesUploaded": "Завантажено {count} файлів",
+      "verificationInfo": "Ваші документи будуть перевірені протягом 1-2 робочих днів."
+    }
+  },
+
+  "NavigationButtons": {
+    "back": "Назад",
+    "next": "Далі",
+    "submitApplication": "Подати заявку",
+    "submitting": "Відправка..."
+  },
+
+
+  "FileUpload": {
+    "dragDrop": "Перетягніть файли сюди",
+    "clickToBrowse": "або натисніть для вибору файлів",
+    "fileRequirements": "{acceptedTypes} • Макс {maxSizeMB}МБ на файл",
+    "selectedFiles": "Вибрані файли ({current}/{max})",
+    "removeFile": "Видалити файл",
+    "errors": {
+      "maxFiles": "Максимально дозволено {maxFiles} файлів",
+      "fileTooLarge": "{fileName} перевищує максимальний розмір {maxSizeMB}МБ",
+      "unsupportedType": "{fileName} має непідтримуваний тип файлу"
+    },
+    "fileSize": {
+      "bytes": "{bytes} байт",
+      "kb": "{kb} КБ",
+      "mb": "{mb} МБ"
+    }
+  },
+
+
+  "SupplierProfile": {
+    "title": "Налаштування профілю",
+    "subtitle": "Керуйте інформацією про компанію та документами",
+    "addresses": "Адреси",
+    "accountActions": "Дії з акаунтом",
+    "deleteConfirmation": "Видалити документ \"{documentName}\"?",
+    "errors": {
+      "loading": "Помилка завантаження профілю",
+      "tryAgain": "Будь ласка, спробуйте пізніше"
+    },
+    "actions": {
+      "changePassword": "Змінити пароль",
+      "notifications": "Сповіщення",
+      "deactivate": "Деактивувати"
+    },
+    "ProfileHeader": {
+      "title": "Налаштування профілю",
+      "subtitle": "Керуйте інформацією про компанію та документами",
+      "edit": "Редагувати профіль",
+      "cancel": "Скасувати",
+      "save": "Зберегти",
+      "saving": "Збереження..."
+    },
+    "AccountInfo": {
+      "title": "Інформація про акаунт",
+      "email": "Електронна пошта",
+      "status": "Статус",
+      "unknown": "Невідомо",
+      "statuses": {
+        "approved": "Затверджено",
+        "pending": "На розгляді",
+        "rejected": "Відхилено"
+      }
+    },
+    "CompanyInfo": {
+      "title": "Інформація про компанію",
+      "companyName": "Назва компанії",
+      "companyNamePlaceholder": "Введіть назву компанії",
+      "registrationNumber": "Реєстраційний номер",
+      "contactPerson": "Контактна особа",
+      "phone": "Телефон",
+      "phonePlaceholder": "+380123456789",
+      "email": "Електронна пошта",
+      "emailPlaceholder": "contact@company.com",
+      "description": "Опис компанії",
+      "descriptionPlaceholder": "Опишіть вашу компанію...",
+      "firstNamePlaceholder": "Ім'я",
+      "lastNamePlaceholder": "Прізвище",
+      "notSpecified": "Не вказано",
+      "noDescription": "Опис відсутній"
+    },
+    "AddressInfo": {
+      "primaryAddress": "Основна адреса",
+      "countryPlaceholder": "Країна *",
+      "cityPlaceholder": "Місто *",
+      "statePlaceholder": "Область/Регіон",
+      "streetPlaceholder": "Вулиця *",
+      "buildingPlaceholder": "Будинок/Квартира",
+      "postalCodePlaceholder": "Поштовий індекс",
+      "notSpecified": "Не вказано"
+    },
+    "Documents": {
+      "title": "Бізнес-документи",
+      "document": "документ",
+      "businessDocument": "Бізнес-документ",
+      "uploadedDocuments": "Завантажені документи",
+      "noDocuments": "Ще немає завантажених документів",
+      "view": "Переглянути",
+      "delete": "Видалити",
+      "remove": "Видалити",
+      "errors": {
+        "invalidFile": "Дозволені тільки файли PDF, JPEG, WEBP, PNG до 5МБ"
+      },
+      "upload": {
+        "click": "Натисніть для завантаження бізнес-документів",
+        "formats": "PDF, JPG, PNG, WEBP до 5МБ",
+        "multiple": "Можна вибрати кілька файлів",
+        "uploading": "Завантаження...",
+        "button": "Завантажити {count} документів"
+      }
+    }
+  },
+
+
+  "SupplierDashboard": {
+    "loading": "Завантаження...",
+    "tabs": {
+      "dashboard": "Панель керування",
+      "products": "Продукти",
+      "profile": "Профіль"
+    }
+  }
+
+
+}

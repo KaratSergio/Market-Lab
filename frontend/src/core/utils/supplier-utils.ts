@@ -34,25 +34,6 @@ export const getStatusText = (status: SupplierStatus): string => {
 };
 
 /**
- * Format supplier address
- */
-export const formatSupplierAddress = (supplier: Supplier | null | undefined): string => {
-  if (!supplier) return 'Address not specified';
-
-  const { address } = supplier;
-  if (!address) return 'Address not specified';
-
-  const parts = [
-    address.country,
-    address.city,
-    address.street,
-    address.building,
-  ].filter(Boolean);
-
-  return parts.join(', ');
-};
-
-/**
  * Check if supplier has required documents
  */
 export const hasRequiredDocuments = (supplier: Supplier): boolean => {

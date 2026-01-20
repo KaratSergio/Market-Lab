@@ -1,26 +1,26 @@
 import { UseFormReturn } from 'react-hook-form';
 import { SupplierProfileFormData } from '@/core/schemas';
-import { formatSupplierAddress } from '@/core/utils/supplier-utils';
+import { useTranslations } from 'next-intl';
+import type { Supplier } from '@/core/types';
 
 interface AddressInfoProps {
-  currentSupplier: any;
+  currentSupplier: Supplier;
   isEditing: boolean;
   form: UseFormReturn<SupplierProfileFormData>;
 }
 
 export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoProps) {
+  const t = useTranslations('SupplierProfile.AddressInfo');
   const { register, formState: { errors } } = form;
 
   if (!isEditing) {
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-600">
-          Primary Address
+          {t('primaryAddress')}
         </label>
         <p className="text-gray-900 p-2 bg-gray-50 rounded text-sm md:text-base">
-          {currentSupplier?.primaryAddress?.fullAddress ||
-            formatSupplierAddress(currentSupplier) ||
-            'Not specified'}
+          {currentSupplier?.primaryAddress?.fullAddress || t('notSpecified')}
         </p>
       </div>
     );
@@ -29,7 +29,7 @@ export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoPro
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-600">
-        Primary Address *
+        {t('primaryAddress')} *
       </label>
 
       <div className="space-y-3">
@@ -38,7 +38,7 @@ export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoPro
           <input
             {...register('address.country')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
-            placeholder="Country *"
+            placeholder={t('countryPlaceholder')}
           />
           {errors.address?.country && (
             <p className="text-red-500 text-xs mt-1">{errors.address.country.message}</p>
@@ -51,7 +51,7 @@ export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoPro
             <input
               {...register('address.city')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
-              placeholder="City *"
+              placeholder={t('cityPlaceholder')}
             />
             {errors.address?.city && (
               <p className="text-red-500 text-xs mt-1">{errors.address.city.message}</p>
@@ -61,7 +61,7 @@ export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoPro
             <input
               {...register('address.state')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
-              placeholder="State/Region"
+              placeholder={t('statePlaceholder')}
             />
           </div>
         </div>
@@ -72,7 +72,7 @@ export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoPro
             <input
               {...register('address.street')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
-              placeholder="Street *"
+              placeholder={t('streetPlaceholder')}
             />
             {errors.address?.street && (
               <p className="text-red-500 text-xs mt-1">{errors.address.street.message}</p>
@@ -82,7 +82,7 @@ export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoPro
             <input
               {...register('address.building')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
-              placeholder="Building/Apartment"
+              placeholder={t('buildingPlaceholder')}
             />
           </div>
         </div>
@@ -92,7 +92,7 @@ export function AddressInfo({ currentSupplier, isEditing, form }: AddressInfoPro
           <input
             {...register('address.postalCode')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
-            placeholder="Postal Code"
+            placeholder={t('postalCodePlaceholder')}
           />
         </div>
       </div>

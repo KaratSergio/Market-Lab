@@ -4,62 +4,91 @@ FRONTEND
 
 frontend/
 ├──📁 src/
-│   ├──📁 app/                        == Application pages & routing
-│   │   ├──📁 (auth)/                 # Auth layout group
-│   │   │   ├──📁 login/
-│   │   │   └──📁 register/     
+│   ├──📁 app/                                 == Application pages & routing
+│   │   ├──📁 [locale]/                        # locale
+│   │   │   ├──📁 (auth)/                      # Auth layout group
+│   │   │   │   ├──📁 login/
+│   │   │   │   │   └──📄 page.tsx
+│   │   │   │   └──📁 register/     
+│   │   │   │       └──📄 page.tsx
+│   │   │   │
+│   │   │   ├──📁 (admin)/                     # Admin cabinet layout group
+│   │   │   │   ├──📁 admin-dashboard/
+│   │   │   │   │   └──📄 page.tsx
+│   │   │   │   └──📄 layout.tsx      
+│   │   │   │
+│   │   │   ├──📁 (customer)/                  # Customer cabinet layout group
+│   │   │   │   ├──📁 customer-dashboard/
+│   │   │   │   │   └──📄 page.tsx
+│   │   │   │   └──📄 layout.tsx 
+│   │   │   │
+│   │   │   ├──📁 (supplier)/                  # Supplier cabinet layout group
+│   │   │   │   ├──📁 supplier-dashboard/ 
+│   │   │   │   │   └──📄 page.tsx
+│   │   │   │   └──📄 layout.tsx 
+│   │   │   │
+│   │   │   ├──📁 (products)/                  # Catalog layout group
+│   │   │   │   ├──📁 [id]/                    # Dynamic product detail
+│   │   │   │   │   └──📄 page.tsx
+│   │   │   │   ├──📄 page.tsx
+│   │   │   │   └──📄 layout.tsx
+│   │   │   │
+│   │   │   ├──📁 cart/                        # Shopping cart pages
+│   │   │   │   └──📄 page.tsx
+│   │   │   │
+│   │   │   ├──📄 layout.tsx                   # Main layout with localization
+│   │   │   └──📄 page.tsx                     # Home page for a specific locale
 │   │   │
-│   │   ├──📁 (admin)/                # Admin cabinet layout group
-│   │   │   ├──📁 admin-dashboard/
-│   │   │   └──📄 layout.tsx      
-│   │   │
-│   │   ├──📁 (customer)/             # Customer cabinet layout group
-│   │   │   ├──📁 customer-dashboard/
-│   │   │   └──📄 layout.tsx 
-│   │   │
-│   │   ├──📁 (supplier)/             # Supplier cabinet layout group
-│   │   │   ├──📁 supplier-dashboard/ 
-│   │   │   └──📄 layout.tsx 
-│   │   │
-│   │   ├──📁 (products)/             # Catalog layout group
-│   │   │   ├──📁 [id]/               # Dynamic product detail
-│   │   │   ├──📄 page.tsx
-│   │   │   └──📄 layout.tsx
-│   │   │
-│   │   ├──📁 cart/                   # Shopping cart pages
-│   │   │
-│   │   ├──📄 layout.tsx              # Root layout component
-│   │   └──📄 page.tsx                # Home page
+│   │   ├──📄 layout.tsx                       # Global layout (without localization)
+│   │   └──📄 page.tsx                         # Redirect page to default locale
 │   │
-│   ├──📁 components/                 == All React components
-│   │   ├──📁 ui/                     # Base UI components (buttons, inputs, etc.)
-│   │   ├──📁 layout/                 # Layout components (headers, footers, etc.)
-│   │   ├──📁 product/                # Product-related components
-│   │   ├──📁 cart/                   # Cart-specific components
-│   │   ├──📁 features/               # Business feature components
-│   │   └──📄 index.ts                # Unified components export
+│   ├──📁 components/                          == All components
+│   │   ├──📁 ui/                              # Base UI components
+│   │   ├──📁 layout/                          # Layout components
+│   │   │   ├──📄 Header.tsx                   # Header с LanguageSwitcher
+│   │   │   ├──📄 Footer.tsx
+│   │   │   └──📄 LangSwitcher.tsx             # Language switch
+│   │   ├──📁 product/                         # Product-related components
+│   │   ├──📁 cart/                            # Cart-specific components
+│   │   ├──📁 features/                        # Business feature components
+│   │   └──📄 index.ts                         # Unified components export
 │   │
-│   ├──📁 shared/                     == Global resources
-│   │   ├──📁 styles/                 # Global styles
-│   │   │   ├──📄 globals.css         # Main styles file
-│   │   │   └──📄 variables.css       # CSS variables (colors, fonts, etc.)
+│   ├──📁 shared/                              == Global resources
+│   │   ├──📁 styles/                          # Global styles
+│   │   │   ├──📄 globals.css                  # Main styles file
+│   │   │   └──📄 variables.css                # CSS variables (colors, fonts, etc.)
 │   │   │
-│   │   └──📁 assets/                 # 🖼️ Fonts, icons, images
+│   │   └──📁 assets/                          # Fonts, icons, images
 │   │
-│   └──📁 core/                       == Core application logic
-│       ├──📁 api/                    # API functions & clients (e.g., fetch/axios)
-│       ├──📁 store/                  # Global state management (e.g., Zustand/Redux)
-│       ├──📁 hooks/                  # Custom React hooks
-│       ├──📁 providers/              # Context providers (tanstack)
-│       ├──📁 utils/                  # Helper functions
-│       ├──📁 constants/              # Constants (validation, configs, etc.)
-│       └──📁 types/                  # TypeScript type definitions
+│   └──📁 core/                                == Core application logic
+│       ├──📁 api/                             # API functions & clients
+│       ├──📁 store/                           # Global state management
+│       ├──📁 hooks/                           # Custom React hooks
+│       │   ├──📄 useTranslation.ts            # Custom hook for translations
+│       │   └──📄 ...                
+│       ├──📁 providers/                       # Context providers (tanstack)
+│       ├──📁 utils/                           # Helper functions
+│       │   ├──📁 i18n/                        # i18n
+│       │   │   ├──📄 categories.ts            # Functions for translating categories
+│       │   │   ├──📄 productUnits.ts          # Conversion of units of measurement
+│       │   │   ├──📄 status.ts                # Translation of statuses
+│       │   │   └──📄 index.ts                 # Export all i18n utilities
+│       │   └──📄 ...                
+│       ├──📁 constants/                       # Constants
+│       │   ├──📄 locales.ts                   # Locale constants
+│       │   └──📄 ...                
+│       └──📁 types/                           # TypeScript type definitions
 │
-├──📁 public/                         == Static files (favicon, robots.txt, etc.)
-├──⚙️  next.config.js                 # Next.js configuration
-├──🎨 tailwind.config.ts              # Tailwind CSS configuration
-├──📐 tsconfig.json                   # TypeScript configuration
-└──📦 package.json                    # Dependencies & scripts
+├──📁 public/                                  == Static files
+├──📁 messages/                                == Translations
+│   ├──📄 en.json                              # English translations
+│   └──📄 uk.json                              # Ukrainian translations
+│         
+├──⚙️  next.config.js                          # Next.js configuration
+├──🎨 tailwind.config.ts                       # Tailwind CSS configuration
+├──📐 tsconfig.json                            # TypeScript configuration
+├──📦 package.json                             # Dependencies & scripts
+└──🌐 middleware.ts                            # Localization middleware
 ```
 
 

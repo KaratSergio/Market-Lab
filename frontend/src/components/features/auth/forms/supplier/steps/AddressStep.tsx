@@ -1,7 +1,10 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { UseFormRegister, UseFormWatch, UseFormSetValue, FieldErrors } from 'react-hook-form';
 import { Input } from '@/components/ui';
 import { SupplierRegistrationFormData } from '@/core/schemas';
+import { useTranslations } from 'next-intl';
 
 interface AddressStepProps {
   register: UseFormRegister<SupplierRegistrationFormData>;
@@ -11,6 +14,7 @@ interface AddressStepProps {
 }
 
 export function AddressStep({ register, errors, watch, setValue }: AddressStepProps) {
+  const t = useTranslations('SupplierForm.Address');
   const [coordinates, setCoordinates] = useState<{ lat?: number; lng?: number }>({});
 
   const geocodeAddress = async () => {
@@ -55,21 +59,21 @@ export function AddressStep({ register, errors, watch, setValue }: AddressStepPr
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Country *
+            {t('country')} *
           </label>
           <Input
             {...register('address.country')}
-            placeholder="Ukraine"
+            placeholder={t('countryPlaceholder')}
             error={errors.address?.country?.message}
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            City *
+            {t('city')} *
           </label>
           <Input
             {...register('address.city')}
-            placeholder="Kyiv"
+            placeholder={t('cityPlaceholder')}
             error={errors.address?.city?.message}
           />
         </div>
@@ -78,11 +82,11 @@ export function AddressStep({ register, errors, watch, setValue }: AddressStepPr
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Street *
+            {t('street')} *
           </label>
           <Input
             {...register('address.street')}
-            placeholder="Khreshchatyk Street"
+            placeholder={t('streetPlaceholder')}
             error={errors.address?.street?.message}
           />
         </div>
@@ -91,21 +95,21 @@ export function AddressStep({ register, errors, watch, setValue }: AddressStepPr
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Building Number *
+            {t('building')} *
           </label>
           <Input
             {...register('address.building')}
-            placeholder="1A"
+            placeholder={t('buildingPlaceholder')}
             error={errors.address?.building?.message}
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Postal Code
+            {t('postalCode')}
           </label>
           <Input
             {...register('address.postalCode')}
-            placeholder="01001"
+            placeholder={t('postalCodePlaceholder')}
             error={errors.address?.postalCode?.message}
           />
         </div>
@@ -113,18 +117,18 @@ export function AddressStep({ register, errors, watch, setValue }: AddressStepPr
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          State/Region
+          {t('state')}
         </label>
         <Input
           {...register('address.state')}
-          placeholder="Kyiv Oblast"
+          placeholder={t('statePlaceholder')}
           error={errors.address?.state?.message}
         />
       </div>
 
       {coordinates.lat && coordinates.lng && (
         <div className="text-sm text-gray-500 mt-2">
-          Coordinates detected: {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+          {t('coordinatesDetected')}: {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
         </div>
       )}
     </div>

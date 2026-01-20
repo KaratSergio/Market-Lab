@@ -5,9 +5,12 @@ import { useLogout } from '@/core/hooks/useAuth';
 import { Button } from '@/components/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 
 export function UserMenu() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const t = useTranslations();
   const { user, isAuthenticated } = useAuthStore();
   const logoutMutation = useLogout();
 
@@ -16,35 +19,35 @@ export function UserMenu() {
   };
 
   const getDashboardLink = () => {
-    if (!user) return '/login';
+    if (!user) return `/${locale}/login`;
 
-    if (user.roles?.includes('admin')) return '/admin-dashboard';
-    if (user.roles?.includes('supplier')) return '/supplier-dashboard';
-    if (user.roles?.includes('customer')) return '/customer-dashboard';
+    if (user.roles?.includes('admin')) return `/${locale}/admin-dashboard`;
+    if (user.roles?.includes('supplier')) return `/${locale}/supplier-dashboard`;
+    if (user.roles?.includes('customer')) return `/${locale}/customer-dashboard`;
 
-    return '/dashboard';
+    return `/${locale}/dashboard`;
   };
 
   if (!isAuthenticated || !user) {
     return (
       <Button variant="outline" size="sm">
-        <Link href="/login">Login</Link>
+        <Link href={`/${locale}/login`}>{t('Auth.login')}</Link>
       </Button>
     );
   }
 
   const isDashboardActive =
-    pathname.startsWith('/customer-dashboard') ||
-    pathname.startsWith('/supplier-dashboard') ||
-    pathname.startsWith('/admin-dashboard');
+    pathname.startsWith(`/${locale}/customer-dashboard`) ||
+    pathname.startsWith(`/${locale}/supplier-dashboard`) ||
+    pathname.startsWith(`/${locale}/admin-dashboard`);
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center rounded-2xl bg-green-100 hover:bg-green-200">
       <Link
         href={getDashboardLink()}
         className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${isDashboardActive
-          ? 'bg-green-100 text-green-700'
-          : 'hover:bg-gray-100 text-gray-700'
+          ? 'text-green-700'
+          : 'text-gray-700'
           }`}
       >
         {/* User */}
@@ -63,9 +66,10 @@ export function UserMenu() {
         variant="ghost"
         size="sm"
         onClick={handleLogout}
+        className='bg-green-200 hover:bg-green-100 pointer mr-2 cursor-pointer'
         disabled={logoutMutation.isPending}
       >
-        {logoutMutation.isPending ? '...' : 'logout'}
+        {logoutMutation.isPending ? '...' : t('Auth.logout')}
       </Button>
     </div>
   );

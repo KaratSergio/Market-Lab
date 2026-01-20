@@ -9,6 +9,22 @@ export const SUPPLIER_STATUS = {
 
 export type SupplierStatus = typeof SUPPLIER_STATUS[keyof typeof SUPPLIER_STATUS];
 
+export interface Address {
+  id: string;
+  country: string;
+  city: string;
+  street: string;
+  building?: string;
+  postalCode?: string;
+  state?: string;
+  lat?: number;
+  lng?: number;
+  isPrimary: boolean;
+  fullAddress: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Supplier {
   id: string;
   userId: string;
@@ -16,13 +32,17 @@ export interface Supplier {
   firstName: string;
   lastName: string;
   registrationNumber: string;
-  address: AddressFormData;
-  primaryAddress: AddressFormData;
   phone: string;
-  documents: string[];
-  status: SupplierStatus;
   email?: string;
   description?: string;
+  documents: string[];
+  status: SupplierStatus;
+
+  // Address information
+  primaryAddress: Address;
+  addresses: Address[];
+
+  // Timestamps
   createdAt: string;
   updatedAt: string;
 }
@@ -38,7 +58,8 @@ export interface CreateSupplierDto {
   description?: string;
 }
 
-export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {
+export interface UpdateSupplierDto extends Partial<Omit<CreateSupplierDto, 'address'>> {
+  address?: Partial<AddressFormData>;
   status?: SupplierStatus;
 }
 
@@ -51,14 +72,16 @@ export interface SupplierDocument {
   uploadedAt: string;
 }
 
+export interface SupplierStats {
+  totalProducts: number;
+  activeOrders: number;
+  totalRevenue: number;
+  rating: number;
+}
+
 export interface SupplierProfile {
   supplier: Supplier;
-  stats: {
-    totalProducts: number;
-    activeOrders: number;
-    totalRevenue: number;
-    rating: number;
-  };
+  stats?: SupplierStats;
 }
 
 export interface SuppliersResponse {

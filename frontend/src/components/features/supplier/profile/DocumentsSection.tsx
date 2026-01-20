@@ -1,23 +1,22 @@
 'use client'
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface DocumentsSectionProps {
-  supplierId: string;
   documents: string[];
   isUploading: boolean;
   onUpload: (files: File[]) => void;
   onDelete: (documentUrl: string, documentName: string) => void;
 }
 
-
 export function DocumentsSection({
-  supplierId,
   documents,
   isUploading,
   onUpload,
   onDelete
 }: DocumentsSectionProps) {
+  const t = useTranslations('SupplierProfile.Documents');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState('');
 
@@ -33,7 +32,7 @@ export function DocumentsSection({
     );
 
     if (invalidFiles.length > 0) {
-      setFileError('Only PDF, JPEG, WEBP, and PNG files up to 5MB are allowed');
+      setFileError(t('errors.invalidFile'));
       return;
     }
 
@@ -55,7 +54,7 @@ export function DocumentsSection({
 
   return (
     <div className="border-b pb-6">
-      <h2 className="text-lg font-semibold text-gray-700 mb-4">Business Documents</h2>
+      <h2 className="text-lg font-semibold text-gray-700 mb-4">{t('title')}</h2>
 
       {/* File Upload */}
       <div className="mb-6">
@@ -72,13 +71,13 @@ export function DocumentsSection({
             <div className="text-center">
               <div className="text-gray-400 text-3xl md:text-4xl mb-2">📄</div>
               <p className="text-sm text-gray-600">
-                Click to upload business documents
+                {t('upload.click')}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                PDF, JPG, PNG, WEBP up to 5MB
+                {t('upload.formats')}
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                You can select multiple files
+                {t('upload.multiple')}
               </p>
             </div>
           </label>
@@ -96,7 +95,7 @@ export function DocumentsSection({
                   onClick={() => removeFile(index)}
                   className="text-red-600 hover:text-red-800 text-sm ml-2"
                 >
-                  Remove
+                  {t('remove')}
                 </button>
               </div>
             ))}
@@ -114,18 +113,18 @@ export function DocumentsSection({
           disabled={selectedFiles.length === 0 || isUploading}
           className="mt-4 w-full md:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
         >
-          {isUploading ? 'Uploading...' : `Upload ${selectedFiles.length} Document${selectedFiles.length !== 1 ? 's' : ''}`}
+          {isUploading ? t('upload.uploading') : t('upload.button', { count: selectedFiles.length })}
         </button>
       </div>
 
       {/* Documents List */}
       <div>
-        <h3 className="text-md font-medium text-gray-700 mb-3">Uploaded Documents</h3>
+        <h3 className="text-md font-medium text-gray-700 mb-3">{t('uploadedDocuments')}</h3>
 
         {documents && documents.length > 0 ? (
           <div className="space-y-3">
             {documents.map((docUrl, index) => {
-              const fileName = docUrl.split('/').pop() || `document-${index + 1}`;
+              const fileName = docUrl.split('/').pop() || `${t('document')}-${index + 1}`;
 
               return (
                 <div
@@ -135,7 +134,7 @@ export function DocumentsSection({
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm md:text-base truncate">{fileName}</p>
                     <p className="text-xs text-gray-500">
-                      Business document
+                      {t('businessDocument')}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -145,13 +144,13 @@ export function DocumentsSection({
                       rel="noopener noreferrer"
                       className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors text-xs md:text-sm"
                     >
-                      View
+                      {t('view')}
                     </a>
                     <button
                       onClick={() => onDelete(docUrl, fileName)}
                       className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors text-xs md:text-sm"
                     >
-                      Delete
+                      {t('delete')}
                     </button>
                   </div>
                 </div>
@@ -159,7 +158,7 @@ export function DocumentsSection({
             })}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-4 text-sm md:text-base">No documents uploaded yet</p>
+          <p className="text-gray-500 text-center py-4 text-sm md:text-base">{t('noDocuments')}</p>
         )}
       </div>
     </div>

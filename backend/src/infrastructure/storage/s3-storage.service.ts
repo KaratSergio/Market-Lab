@@ -14,7 +14,7 @@ import {
 
 import { Injectable, Logger } from '@nestjs/common';
 import { S3Config } from './s3.config';
-
+import { TransliterationUtil } from './transliteration.util';
 
 @Injectable()
 export class S3StorageService {
@@ -32,7 +32,6 @@ export class S3StorageService {
     });
   }
 
-  // ========== PUBLIC GETTERS ==========
   private get bucket(): string {
     return this.s3Config.bucket;
   }
@@ -41,27 +40,18 @@ export class S3StorageService {
     return this.s3Config.publicUrl;
   }
 
-  // ========== HELPER METHODS ==========
-  /**
-   * Sanitize string for use in S3 paths and metadata
-   */
   private sanitizeString(text: string): string {
-    return text
-      .replace(/[^a-zA-Z0-9а-яА-Я\s-]/g, '')
-      .replace(/\s+/g, '_')
-      .toLowerCase();
+    return TransliterationUtil.safeForS3Path(text);
   }
 
-  /**
-   * Sanitize filename for S3
-   */
+  private sanitizeForMetadata(text: string): string {
+    return TransliterationUtil.safeForS3Metadata(text);
+  }
+
   private sanitizeFileName(filename: string): string {
-    return filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return TransliterationUtil.safeFileName(filename);
   }
 
-  /**
-   * Generate S3 key for supplier documents
-   */
   private generateDocumentKey(
     supplierCompanyName: string,
     documentType: string,
@@ -74,9 +64,6 @@ export class S3StorageService {
     return `suppliers/${cleanName}/documents/${timestamp}_${sanitizedFileName}`;
   }
 
-  /**
-   * Generate S3 key for supplier logo
-   */
   private generateLogoKey(
     supplierCompanyName: string,
     fileName: string
@@ -88,9 +75,6 @@ export class S3StorageService {
     return `suppliers/${cleanName}/logo/${timestamp}_${sanitizedFileName}`;
   }
 
-  /**
-   * Generate S3 key for product images
-   */
   private generateProductImageKey(
     supplierCompanyName: string,
     productName: string,
@@ -106,21 +90,26 @@ export class S3StorageService {
     return `suppliers/${cleanSupplierName}/products/${cleanProductName}/${folder}/${timestamp}_${sanitizedFileName}`;
   }
 
-  /**
-   * Generic S3 upload method
-   */
   private async uploadToS3(
     key: string,
     buffer: Buffer,
     mimetype: string,
     metadata: Record<string, string> = {}
   ): Promise<UploadResult> {
+    const safeMetadata: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(metadata)) {
+      if (value) {
+        safeMetadata[key] = this.sanitizeForMetadata(value);
+      }
+    }
+
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
       Body: buffer,
       ContentType: mimetype,
-      Metadata: metadata,
+      Metadata: safeMetadata,
     });
 
     try {
@@ -137,9 +126,6 @@ export class S3StorageService {
     }
   }
 
-  /**
-   * Generic method to list files by prefix
-   */
   private async listFilesByPrefix(prefix: string): Promise<string[]> {
     try {
       const command = new ListObjectsV2Command({
@@ -155,9 +141,6 @@ export class S3StorageService {
     }
   }
 
-  /**
-   * Generic method to delete files by prefix
-   */
   private async deleteFilesByPrefix(prefix: string): Promise<void> {
     try {
       const files = await this.listFilesByPrefix(prefix);
@@ -178,10 +161,6 @@ export class S3StorageService {
     }
   }
 
-  // ========== PRODUCT IMAGES ==========
-  /**
-   * Upload product image
-   */
   async uploadProductImage(
     file: UploadFileDto,
     supplierCompanyName: string,
@@ -196,8 +175,8 @@ export class S3StorageService {
     );
 
     const metadata = {
-      supplierCompanyName: this.sanitizeString(supplierCompanyName),
-      productName: this.sanitizeString(productName),
+      supplierCompanyName: this.sanitizeForMetadata(supplierCompanyName),
+      productName: this.sanitizeForMetadata(productName),
       isMain: isMain.toString(),
       uploadedAt: new Date().toISOString(),
     };
@@ -205,9 +184,6 @@ export class S3StorageService {
     return this.uploadToS3(key, file.buffer, file.mimetype, metadata);
   }
 
-  /**
-   * Upload multiple product images
-   */
   async uploadProductImages(
     files: UploadFileDto[],
     supplierCompanyName: string,
@@ -220,9 +196,6 @@ export class S3StorageService {
     return Promise.all(uploadPromises);
   }
 
-  /**
-   * Get product image URLs
-   */
   async getProductImageUrls(
     supplierCompanyName: string,
     productName: string
@@ -242,9 +215,6 @@ export class S3StorageService {
     };
   }
 
-  /**
-   * Delete all product images
-   */
   async deleteProductImages(
     supplierCompanyName: string,
     productName: string
@@ -256,10 +226,6 @@ export class S3StorageService {
     await this.deleteFilesByPrefix(prefix);
   }
 
-  // ========== SUPPLIER LOGO ==========
-  /**
-   * Upload supplier logo
-   */
   async uploadSupplierLogo(
     file: UploadFileDto,
     supplierCompanyName: string
@@ -267,26 +233,19 @@ export class S3StorageService {
     const key = this.generateLogoKey(supplierCompanyName, file.originalname);
 
     const metadata = {
-      supplierCompanyName: this.sanitizeString(supplierCompanyName),
+      supplierCompanyName: this.sanitizeForMetadata(supplierCompanyName),
       uploadedAt: new Date().toISOString(),
     };
 
     return this.uploadToS3(key, file.buffer, file.mimetype, metadata);
   }
 
-  /**
-   * Delete supplier logo
-   */
   async deleteSupplierLogo(supplierCompanyName: string): Promise<void> {
     const cleanName = this.sanitizeString(supplierCompanyName);
     const prefix = `suppliers/${cleanName}/logo/`;
     await this.deleteFilesByPrefix(prefix);
   }
 
-  // ========== SUPPLIER DOCUMENTS ==========
-  /**
-   * Upload supplier document
-   */
   async uploadSupplierDocument(
     file: UploadFileDto,
     supplierCompanyName: string,
@@ -295,17 +254,14 @@ export class S3StorageService {
     const key = this.generateDocumentKey(supplierCompanyName, documentType, file.originalname);
 
     const metadata = {
-      supplierCompanyName: this.sanitizeString(supplierCompanyName),
-      documentType,
+      supplierCompanyName: this.sanitizeForMetadata(supplierCompanyName),
+      documentType: this.sanitizeForMetadata(documentType),
       uploadedAt: new Date().toISOString(),
     };
 
     return this.uploadToS3(key, file.buffer, file.mimetype, metadata);
   }
 
-  /**
-   * Upload multiple supplier documents
-   */
   async uploadSupplierDocuments(
     files: UploadFileDto[],
     supplierCompanyName: string,
@@ -318,9 +274,6 @@ export class S3StorageService {
     return Promise.all(uploadPromises);
   }
 
-  /**
-   * Get all supplier documents URLs
-   */
   async getSupplierDocumentUrls(supplierCompanyName: string): Promise<SupplierDocuments> {
     const cleanName = this.sanitizeString(supplierCompanyName);
     const prefix = `suppliers/${cleanName}/documents/`;
@@ -329,8 +282,6 @@ export class S3StorageService {
     const documentsByType: SupplierDocuments = {};
 
     files.forEach(fileKey => {
-      // Extract document type from metadata or filename if needed
-      // For now, we'll group all documents under 'general'
       if (!documentsByType['general']) {
         documentsByType['general'] = [];
       }
@@ -340,9 +291,6 @@ export class S3StorageService {
     return documentsByType;
   }
 
-  /**
-   * Delete specific supplier document
-   */
   async deleteSupplierDocument(documentKey: string): Promise<void> {
     await this.s3Client.send(
       new DeleteObjectCommand({
@@ -353,37 +301,24 @@ export class S3StorageService {
     this.logger.log(`Supplier document deleted: ${documentKey}`);
   }
 
-  /**
-   * Delete all supplier documents
-   */
   async deleteAllSupplierDocuments(supplierCompanyName: string): Promise<void> {
     const cleanName = this.sanitizeString(supplierCompanyName);
     const prefix = `suppliers/${cleanName}/documents/`;
     await this.deleteFilesByPrefix(prefix);
   }
 
-  // ========== GENERIC METHODS ==========
-  /**
-   * Get all supplier files (for cleanup)
-   */
   async getSupplierFiles(supplierCompanyName: string): Promise<string[]> {
     const cleanName = this.sanitizeString(supplierCompanyName);
     const prefix = `suppliers/${cleanName}/`;
     return this.listFilesByPrefix(prefix);
   }
 
-  /**
-   * Delete all supplier files (for account deletion)
-   */
   async deleteAllSupplierFiles(supplierCompanyName: string): Promise<void> {
     const cleanName = this.sanitizeString(supplierCompanyName);
     const prefix = `suppliers/${cleanName}/`;
     await this.deleteFilesByPrefix(prefix);
   }
 
-  /**
-   * List all files for a supplier by category
-   */
   async listSupplierFilesByCategory(
     supplierCompanyName: string,
     category: 'documents' | 'logo' | 'products'

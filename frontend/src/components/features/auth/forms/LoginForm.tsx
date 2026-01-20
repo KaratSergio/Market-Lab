@@ -5,11 +5,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormData } from '@/core/schemas';
 import { useLogin } from '@/core/hooks/useAuth';
-import { Input, Button } from '@/components/ui';
+import { Input, Button, PasswordInput } from '@/components/ui';
 import { GoogleOAuthButton } from '../GoogleOAuthButton';
-
+import { useTranslations, useLocale } from 'next-intl';
 
 export function LoginForm() {
+  const t = useTranslations();
+  const locale = useLocale();
   const loginMutation = useLogin();
 
   const {
@@ -27,14 +29,14 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Login to your account</h2>
+        <h2 className="text-3xl font-bold text-gray-900">{t('Auth.login')}</h2>
         <p className="mt-2 text-sm text-gray-600">
-          OR{' '}
+          {t('Auth.or')}{' '}
           <Link
-            href="/register"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            href={`/${locale}/register`}
+            className="font-medium text-green-600 hover:text-green-500"
           >
-            create a new account
+            {t('Auth.registration')}
           </Link>
         </p>
       </div>
@@ -48,7 +50,7 @@ export function LoginForm() {
             <div className="w-full border-t border-gray-300" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">Or continue with</span>
+            <span className="bg-white px-2 text-gray-500">{t('Auth.or')} {t('Auth.continueWith')}</span>
           </div>
         </div>
       </div>
@@ -57,7 +59,7 @@ export function LoginForm() {
         <div className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              {t('Forms.email')}
             </label>
             <Input
               id="email"
@@ -74,13 +76,12 @@ export function LoginForm() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
+              {t('Forms.password')}
             </label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="current-password"
-              placeholder="Your password"
+              placeholder={t('Auth.createPassword')}
               {...register('password')}
               className="mt-1"
             />
@@ -102,10 +103,10 @@ export function LoginForm() {
         <div className="flex items-center justify-between">
           <div className="text-sm">
             <Link
-              href="/forgot-password"
-              className="font-medium text-blue-600 hover:text-blue-500"
+              href={`/${locale}/forgot-password`}
+              className="font-medium text-green-600 hover:text-green-500"
             >
-              Forgot your password?
+              {t('Auth.forgotPassword')}
             </Link>
           </div>
         </div>
@@ -115,7 +116,7 @@ export function LoginForm() {
           className="w-full"
           disabled={loginMutation.isPending}
         >
-          {loginMutation.isPending ? 'Login...' : 'Login'}
+          {loginMutation.isPending ? t('Common.loading') : t('Auth.login')}
         </Button>
       </form>
     </div>

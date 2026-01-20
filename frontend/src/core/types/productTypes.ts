@@ -113,3 +113,11 @@ export interface ProductFilters {
   inStock?: boolean;
   searchQuery?: string;
 }
+
+export type MainCategoryKey =
+  | 'vegetables' | 'fruits' | 'dairy-products' | 'meat-poultry'
+  | 'eggs' | 'bread-bakery' | 'honey-bee-products' | 'preserves'
+  | 'drinks' | 'grains-cereals' | 'nuts-dried-fruits' | 'vegetable-oils'
+  | 'spices-herbs' | 'farm-delicacies' | 'baby-food' | 'other';
+
+export type SubcategoryKey = string;

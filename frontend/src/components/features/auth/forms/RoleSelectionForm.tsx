@@ -3,23 +3,26 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button/Button';
+import { useTranslations, useLocale } from 'next-intl';
 
 export function RoleSelectionForm() {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('RoleSelection');
   const [selectedRole, setSelectedRole] = useState<'customer' | 'supplier' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleContinue = () => {
     if (!selectedRole) return;
-    router.push(`/register/${selectedRole}`);
+    router.push(`/${locale}/register/${selectedRole}`);
   };
 
   return (
     <div className="max-w-md w-full space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Виберіть роль</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          Як ви хочете використовувати сервіс?
+          {t('subtitle')}
         </p>
       </div>
 
@@ -35,12 +38,12 @@ export function RoleSelectionForm() {
             }
           `}
         >
-          <h3 className="text-lg font-semibold text-gray-900">👤 Покупець</h3>
-          <p className="mt-1 text-sm text-gray-600">Купуйте свіжі фермерські продукти</p>
+          <h3 className="text-lg font-semibold text-gray-900">👤 {t('customer.title')}</h3>
+          <p className="mt-1 text-sm text-gray-600">{t('customer.description')}</p>
           <ul className="mt-4 space-y-1 text-sm text-gray-500">
-            <li>• Замовляйте продукти онлайн</li>
-            <li>• Відстежуйте доставку</li>
-            <li>• Зберігайте улюблене</li>
+            <li>• {t('customer.features.orderProducts')}</li>
+            <li>• {t('customer.features.trackDelivery')}</li>
+            <li>• {t('customer.features.saveFavorites')}</li>
           </ul>
         </button>
 
@@ -55,11 +58,11 @@ export function RoleSelectionForm() {
             }
           `}
         >
-          <h3 className="text-lg font-semibold text-gray-900">🚜 Постачальник</h3>
-          <p className="mt-1 text-sm text-gray-600">Продавайте свої продукти</p>
+          <h3 className="text-lg font-semibold text-gray-900">🚜 {t('supplier.title')}</h3>
+          <p className="mt-1 text-sm text-gray-600">{t('supplier.description')}</p>
           <ul className="mt-4 space-y-1 text-sm text-gray-500">
-            <li>• Додавайте товари</li>
-            <li>• Керуйте замовленнями</li>
+            <li>• {t('supplier.features.addProducts')}</li>
+            <li>• {t('supplier.features.manageOrders')}</li>
           </ul>
         </button>
       </div>
@@ -69,7 +72,7 @@ export function RoleSelectionForm() {
         disabled={!selectedRole || isLoading}
         className="w-full"
       >
-        {isLoading ? '...' : 'Далі'}
+        {isLoading ? '...' : t('continueButton')}
       </Button>
     </div>
   );

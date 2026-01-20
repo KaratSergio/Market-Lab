@@ -1,6 +1,9 @@
+'use client';
+
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Input, Textarea } from '@/components/ui';
 import { SupplierRegistrationFormData } from '@/core/schemas';
+import { useTranslations } from 'next-intl';
 
 interface FarmDetailsStepProps {
   register: UseFormRegister<SupplierRegistrationFormData>;
@@ -8,37 +11,39 @@ interface FarmDetailsStepProps {
 }
 
 export function FarmDetailsStep({ register, errors }: FarmDetailsStepProps) {
+  const t = useTranslations('SupplierForm.FarmDetails');
+
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Farm Name *
+          {t('farmName')} *
         </label>
         <Input
           {...register('companyName')}
-          placeholder="Green Valley Farm"
+          placeholder={t('farmNamePlaceholder')}
           error={errors.companyName?.message}
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Registration Number *
+          {t('registrationNumber')} *
         </label>
         <Input
           {...register('registrationNumber')}
-          placeholder="Tax ID or Registration Number"
+          placeholder={t('registrationNumberPlaceholder')}
           error={errors.registrationNumber?.message}
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Farm Description *
+          {t('description')} *
         </label>
         <Textarea
           {...register('description')}
-          placeholder="Tell us about your farm, products, and farming practices..."
+          placeholder={t('descriptionPlaceholder')}
           minRows={3}
           maxRows={10}
           maxLength={500}

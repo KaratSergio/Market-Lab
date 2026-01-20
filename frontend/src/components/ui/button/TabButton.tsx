@@ -20,8 +20,8 @@ export function TabButton({
   onClick,
   children,
   className = '',
-  activeClassName = 'border-blue-500 text-blue-600',
-  inactiveClassName = 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+  activeClassName = 'px-4 bg-green-50 border-green-500 text-green-600',
+  inactiveClassName = 'px-4 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
   disabled = false,
   icon,
   badge
@@ -44,7 +44,7 @@ export function TabButton({
           <span className={cn(
             "text-xs px-1.5 py-0.5 rounded-full",
             isActive
-              ? "bg-blue-100 text-blue-800"
+              ? "bg-blue-100 text-green-800"
               : "bg-gray-100 text-gray-700"
           )}>
             {badge}

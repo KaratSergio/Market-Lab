@@ -267,7 +267,6 @@
     "quantity": "Кількість",
     "addToCart": "Додати в кошик",
     "buyNow": "Купити зараз",
-    "viewDetails": "Переглянути деталі",
     "available": "Доступно",
     "unavailable": "Недоступно",
     "save": "Зберегти",
@@ -283,7 +282,18 @@
     "loading": "Завантаження...",
     "error": "Помилка",
     "success": "Успішно",
-    "warning": "Попередження"
+    "warning": "Попередження",
+    "approve": "Схвалити",
+    "reject": "Відхилити",
+    "suspend": "Призупинити",
+    "viewDetails": "Переглянути деталі",
+    "hideDetails": "Приховати деталі",
+    "previous": "Назад",
+    "next": "Вперед",
+    "page": "Сторінка",
+    "of": "з",
+    "yes": "Так",
+    "no": "Ні"
   },
 
 
@@ -406,6 +416,7 @@
     }
   },
 
+  
   "NavigationButtons": {
     "back": "Назад",
     "next": "Далі",
@@ -524,7 +535,91 @@
       "products": "Продукти",
       "profile": "Профіль"
     }
-  }
+  },
 
+
+  "AdminDashboard": {
+    "title": "Панель адміністратора",
+    "description": "Керування адмініструванням платформи",
+    "tabs": {
+      "overview": "Огляд",
+      "admins": "Адміністратори",
+      "suppliers": "Постачальники"
+    },
+    "unauthorized": "У вас немає доступу до цієї панелі керування"
+  },
+
+
+  "AdminManagement": {
+    "panelTitle": "Панель адміністратора",
+    "panelDescription": "Управління системними адміністраторами",
+    "createNewAdmin": "Створити нового адміністратора",
+    "administrators": "Адміністратори",
+    "loadingAdmins": "Завантаження адміністраторів...",
+    "noAdmins": "Адміністраторів не знайдено",
+    "deleteConfirm": "Ви впевнені, що хочете видалити цього адміністратора?",
+    "superAdminProtected": "Облікові записи Super Admin не можна видалити"
+  },
+
+
+  "SupplierApproval": {
+    "title": "Схвалення постачальників",
+    "description": "Перегляд та схвалення заявок постачальників",
+    "totalSuppliers": "Всього: {count} постачальників",
+    "searchPlaceholder": "Пошук за назвою компанії...",
+    "noSuppliers": "Постачальники не знайдені",
+    "loadingSuppliers": "Завантаження постачальників...",
+    "documents": "Документи",
+    "companyInfo": "Інформація про компанію",
+    "verificationChecklist": "Контрольний список перевірки",
+    "approvalGuidelines": "Інструкція зі схвалення",
+    "statistics": "Статистика схвалення постачальників",
+    "approveConfirm": "Схвалити цього постачальника?",
+    "rejectConfirm": "Вкажіть причину відмови:",
+    "suspendConfirm": "Вкажіть причину призупинення:",
+    "status": {
+      "all": "Всі",
+      "pending": "В очікуванні",
+      "approved": "Схвалено",
+      "rejected": "Відхилено",
+      "suspended": "Призупинено"
+    },
+    "guidelines": [
+      "Перевірте всі завантажені документи",
+      "Підтвердіть реєстрацію бізнесу",
+      "Перевірте контактну інформацію",
+      "Схваліть, якщо всі критерії виконані",
+      "Вкажіть причину відхилення/призупинення"
+    ],
+    "checklist": {
+      "documentsUploaded": "Документи завантажено",
+      "registrationVerified": "Реєстраційний номер підтверджено",
+      "emailVerified": "Email підтверджено"
+    },
+    "contact": "Контакт",
+    "email": "Email",
+    "phone": "Телефон",
+    "registration": "Реєстрація",
+    "applied": "Подано",
+    "onDescription": "Опис",
+    "noDescription": "Немає опису",
+    "documentsCount": "Завантажено {count}"
+  },
+
+
+  "AdminCreateForm": {
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Пароль",
+    "firstNamePlaceholder": "Ім'я",
+    "lastNamePlaceholder": "Прізвище",
+    "phonePlaceholder": "Телефон",
+    "departmentPlaceholder": "Відділ (необов'язково)",
+    "roleLabel": "Роль адміністратора",
+    "createButton": "Створити адміністратора",
+    "creatingButton": "Створення...",
+    "successMessage": "Адміністратора успішно створено!",
+    "errorMessage": "Не вдалося створити адміністратора"
+  }
+  
 
 }

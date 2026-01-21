@@ -5,7 +5,7 @@ import { useAdminSuppliers, useUpdateSupplierStatus } from '@/core/hooks/useSupp
 import { Button } from '@/components/ui/button/Button';
 import { SupplierStatus } from '@/core/types/supplierTypes';
 import { formatDate, getStatusColor } from '@/core/utils';
-
+import { useTranslations } from 'next-intl';
 
 export function SupplierApproval() {
   const [filters, setFilters] = useState({
@@ -18,10 +18,12 @@ export function SupplierApproval() {
   const { data: suppliersData, isLoading } = useAdminSuppliers(filters);
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateSupplierStatus();
 
+  const t = useTranslations('SupplierApproval');
+  const tCommon = useTranslations('Common');
+
   const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter handlers
   const handleStatusFilter = (status: SupplierStatus | 'all') => {
     setFilters(prev => ({
       ...prev,
@@ -43,9 +45,8 @@ export function SupplierApproval() {
     setFilters(prev => ({ ...prev, page: newPage }));
   };
 
-  // Status update handlers
   const handleApprove = (supplierId: string) => {
-    if (confirm('Approve this supplier?')) {
+    if (confirm(t('approveConfirm'))) {
       updateStatus({
         id: supplierId,
         status: 'approved' as SupplierStatus,
@@ -55,7 +56,7 @@ export function SupplierApproval() {
   };
 
   const handleReject = (supplierId: string) => {
-    const reason = prompt('Please enter rejection reason:');
+    const reason = prompt(t('rejectConfirm'));
     if (reason) {
       updateStatus({
         id: supplierId,
@@ -66,7 +67,7 @@ export function SupplierApproval() {
   };
 
   const handleSuspend = (supplierId: string) => {
-    const reason = prompt('Please enter suspension reason:');
+    const reason = prompt(t('suspendConfirm'));
     if (reason) {
       updateStatus({
         id: supplierId,
@@ -76,7 +77,6 @@ export function SupplierApproval() {
     }
   };
 
-  // Destructure data
   const suppliers = suppliersData?.suppliers || [];
   const pagination = suppliersData?.pagination || {
     page: 1,
@@ -85,27 +85,26 @@ export function SupplierApproval() {
     totalPages: 0
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-lg">Loading suppliers...</div>
+        <div className="text-lg">{t('loadingSuppliers')}</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Supplier Approval</h2>
-          <p className="text-gray-600">Review and approve pending supplier applications</p>
+          <h2 className="text-xl font-semibold text-gray-900">{t('title')}</h2>
+          <p className="text-gray-600">{t('description')}</p>
         </div>
-        <div className="text-sm text-gray-500">Total: {pagination.total} suppliers</div>
+        <div className="text-sm text-gray-500">
+          {t('totalSuppliers', { count: pagination.total })}
+        </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex gap-2">
           {(['all', 'pending', 'approved', 'rejected', 'suspended'] as const).map((status) => (
@@ -117,7 +116,7 @@ export function SupplierApproval() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
-              {status === 'all' ? 'All' : status}
+              {t(`status.${status}`)}
             </button>
           ))}
         </div>
@@ -125,7 +124,7 @@ export function SupplierApproval() {
         <div className="flex-1">
           <input
             type="text"
-            placeholder="Search by company name..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="w-full px-3 py-2 border rounded"
@@ -133,39 +132,35 @@ export function SupplierApproval() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Supplier List */}
         <div className="lg:col-span-2 space-y-4">
           {suppliers.length === 0 ? (
             <div className="p-6 rounded-lg border bg-white text-center text-gray-500">
-              No suppliers found
+              {t('noSuppliers')}
             </div>
           ) : (
             suppliers.map((supplier) => (
               <div key={supplier.id} className="p-6 rounded-lg border bg-white">
                 <div className="flex justify-between items-start">
-                  {/* Supplier Info */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <h3 className="font-semibold text-lg">{supplier.companyName}</h3>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(supplier.status)}`}>
-                        {supplier.status}
+                        {t(`status.${supplier.status}`)}
                       </span>
                     </div>
 
                     <div className="space-y-1 text-sm text-gray-600">
-                      <div>Contact: {supplier.firstName} {supplier.lastName}</div>
-                      <div>Email: {supplier.email}</div>
-                      <div>Phone: {supplier.phone}</div>
-                      <div>Registration: {supplier.registrationNumber}</div>
-                      <div>Applied: {formatDate(supplier.createdAt)}</div>
+                      <div>{t('contact')}: {supplier.firstName} {supplier.lastName}</div>
+                      <div>{t('email')}: {supplier.email}</div>
+                      <div>{t('phone')}: {supplier.phone}</div>
+                      <div>{t('registration')}: {supplier.registrationNumber}</div>
+                      <div>{t('applied')}: {formatDate(supplier.createdAt)}</div>
                     </div>
 
-                    {/* Documents */}
                     {supplier.documents?.length > 0 && (
                       <div className="pt-2">
-                        <h4 className="font-medium text-sm mb-2">Documents:</h4>
+                        <h4 className="font-medium text-sm mb-2">{t('documents')}:</h4>
                         <div className="flex flex-wrap gap-2">
                           {supplier.documents.map((doc: string, index: number) => (
                             <a
@@ -183,7 +178,6 @@ export function SupplierApproval() {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex flex-col gap-2 ml-4">
                     {supplier.status === 'pending' && (
                       <>
@@ -193,7 +187,7 @@ export function SupplierApproval() {
                           onClick={() => handleApprove(supplier.id)}
                           disabled={isUpdating}
                         >
-                          Approve
+                          {tCommon('approve')}
                         </Button>
                         <Button
                           variant="danger"
@@ -201,7 +195,7 @@ export function SupplierApproval() {
                           onClick={() => handleReject(supplier.id)}
                           disabled={isUpdating}
                         >
-                          Reject
+                          {tCommon('reject')}
                         </Button>
                       </>
                     )}
@@ -213,7 +207,7 @@ export function SupplierApproval() {
                         onClick={() => handleSuspend(supplier.id)}
                         disabled={isUpdating}
                       >
-                        Suspend
+                        {tCommon('suspend')}
                       </Button>
                     )}
 
@@ -224,36 +218,35 @@ export function SupplierApproval() {
                         selectedSupplier?.id === supplier.id ? null : supplier
                       )}
                     >
-                      {selectedSupplier?.id === supplier.id ? 'Hide Details' : 'View Details'}
+                      {selectedSupplier?.id === supplier.id ? tCommon('hideDetails') : tCommon('viewDetails')}
                     </Button>
                   </div>
                 </div>
 
-                {/* Expanded Details */}
                 {selectedSupplier?.id === supplier.id && (
                   <div className="mt-4 pt-4 border-t">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <h4 className="font-medium mb-2">Company Information</h4>
+                        <h4 className="font-medium mb-2">{t('companyInfo')}</h4>
                         <div className="text-sm space-y-1">
-                          <div><span className="font-medium">Description:</span> {supplier.description || 'No description'}</div>
-                          <div><span className="font-medium">Documents:</span> {supplier.documents?.length || 0} uploaded</div>
+                          <div><span className="font-medium">{t('onDescription')}:</span> {supplier.description || t('noDescription')}</div>
+                          <div><span className="font-medium">{t('documents')}:</span> {t('documentsCount', { count: supplier.documents?.length || 0 })}</div>
                         </div>
                       </div>
                       <div>
-                        <h4 className="font-medium mb-2">Verification Checklist</h4>
+                        <h4 className="font-medium mb-2">{t('verificationChecklist')}</h4>
                         <ul className="space-y-1 text-sm">
                           <li className="flex items-center">
                             <input type="checkbox" className="mr-2" checked={supplier.documents?.length > 0} readOnly />
-                            Documents uploaded
+                            {t('checklist.documentsUploaded')}
                           </li>
                           <li className="flex items-center">
                             <input type="checkbox" className="mr-2" checked={!!supplier.registrationNumber} readOnly />
-                            Registration number verified
+                            {t('checklist.registrationVerified')}
                           </li>
                           <li className="flex items-center">
                             <input type="checkbox" className="mr-2" checked={!!supplier.email} readOnly />
-                            Email verified
+                            {t('checklist.emailVerified')}
                           </li>
                         </ul>
                       </div>
@@ -265,17 +258,16 @@ export function SupplierApproval() {
           )}
         </div>
 
-        {/* Sidebar Statistics */}
         <div className="lg:col-span-1">
           <div className="p-6 rounded-lg border bg-white sticky top-6">
-            <h3 className="font-semibold text-lg mb-4">Supplier Approval Statistics</h3>
+            <h3 className="font-semibold text-lg mb-4">{t('statistics')}</h3>
 
             <div className="space-y-3">
               {['pending', 'approved', 'rejected', 'suspended'].map((status) => {
                 const count = suppliers.filter(s => s.status === status).length;
                 return (
                   <div key={status} className="flex justify-between items-center">
-                    <span className="capitalize">{status}:</span>
+                    <span>{t(`status.${status}`)}:</span>
                     <span className="font-medium">{count}</span>
                   </div>
                 );
@@ -283,20 +275,17 @@ export function SupplierApproval() {
             </div>
 
             <div className="mt-6 pt-6 border-t">
-              <h4 className="font-medium mb-2">Approval Guidelines</h4>
+              <h4 className="font-medium mb-2">{t('approvalGuidelines')}</h4>
               <ol className="list-decimal pl-5 space-y-1 text-sm text-gray-600">
-                <li>Review all uploaded documents</li>
-                <li>Verify business registration</li>
-                <li>Check contact information</li>
-                <li>Approve if all criteria are met</li>
-                <li>Provide reason for rejection/suspension</li>
+                {t.raw('guidelines').map((guideline: string, index: number) => (
+                  <li key={index}>{guideline}</li>
+                ))}
               </ol>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="flex justify-center items-center gap-2">
           <button
@@ -304,17 +293,17 @@ export function SupplierApproval() {
             className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
             onClick={() => handlePageChange(filters.page - 1)}
           >
-            Previous
+            {tCommon('previous')}
           </button>
           <span className="text-sm">
-            Page {filters.page} of {pagination.totalPages}
+            {tCommon('page')} {filters.page} {tCommon('of')} {pagination.totalPages}
           </span>
           <button
             disabled={filters.page >= pagination.totalPages}
             className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
             onClick={() => handlePageChange(filters.page + 1)}
           >
-            Next
+            {tCommon('next')}
           </button>
         </div>
       )}

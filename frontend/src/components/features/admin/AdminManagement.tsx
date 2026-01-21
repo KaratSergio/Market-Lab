@@ -4,7 +4,7 @@ import { useAuthStore } from '@/core/store/authStore';
 import { useAdmins, useDeleteAdmin } from '@/core/hooks/useAdmin';
 import { AdminCreateForm } from './forms/AdminCreateForm';
 import { Button } from '@/components/ui/button/Button';
-
+import { useTranslations } from 'next-intl';
 
 export function AdminManagement() {
   const user = useAuthStore((state) => state.user);
@@ -12,10 +12,13 @@ export function AdminManagement() {
   const { data: admins, isLoading } = useAdmins();
   const { mutate: deleteAdmin } = useDeleteAdmin();
 
+  const t = useTranslations('AdminManagement');
+  const tCommon = useTranslations('Common');
+
   if (!user || !user.roles.includes('admin')) return null;
 
   const handleDeleteAdmin = (adminId: string) => {
-    if (confirm('Are you sure you want to delete this admin?')) {
+    if (confirm(t('deleteConfirm'))) {
       deleteAdmin(adminId);
     }
   };
@@ -23,27 +26,27 @@ export function AdminManagement() {
   return (
     <div className="p-6 space-y-8">
       <div className="border-b pb-4">
-        <h1 className="text-2xl font-bold">Admin Panel</h1>
-        <p className="text-gray-600">Manage system administrators</p>
+        <h1 className="text-2xl font-bold">{t('panelTitle')}</h1>
+        <p className="text-gray-600">{t('panelDescription')}</p>
       </div>
 
-      {/* The admin creation section is only for SUPER_ADMIN.*/}
       {canManageAdmins() && (
         <section>
-          <h2 className="text-xl font-semibold mb-4">Create New Admin</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('createNewAdmin')}</h2>
           <AdminCreateForm />
         </section>
       )}
 
-      {/* Admin list */}
       <section>
-        <h2 className="text-xl font-semibold mb-4">Administrators</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('administrators')}</h2>
 
         {isLoading ? (
-          <div>Loading admins...</div>
+          <div>{t('loadingAdmins')}</div>
+        ) : !admins?.length ? (
+          <div className="text-gray-500">{t('noAdmins')}</div>
         ) : (
           <div className="space-y-4">
-            {admins?.map((admin) => (
+            {admins.map((admin) => (
               <div key={admin.id} className="border rounded-lg p-4 flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold">
@@ -65,7 +68,7 @@ export function AdminManagement() {
                     size="sm"
                     onClick={() => handleDeleteAdmin(admin.id)}
                   >
-                    Delete
+                    {tCommon('delete')}
                   </Button>
                 )}
               </div>

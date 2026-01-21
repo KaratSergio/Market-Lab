@@ -267,7 +267,6 @@
     "quantity": "Quantity",
     "addToCart": "Add to Cart",
     "buyNow": "Buy Now",
-    "viewDetails": "View Details",
     "outOfStock": "Out of Stock",
     "inStock": "In Stock",
     "lowStock": "Low Stock",
@@ -275,7 +274,6 @@
     "unavailable": "Unavailable",
     "save": "Save",
     "cancel": "Cancel",
-    "delete": "Delete",
     "edit": "Edit",
     "search": "Search",
     "filter": "Filter",
@@ -286,7 +284,19 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "warning": "Warning"
+    "warning": "Warning",
+    "delete": "Delete",
+    "approve": "Approve",
+    "reject": "Reject",
+    "suspend": "Suspend",
+    "viewDetails": "View Details",
+    "hideDetails": "Hide Details",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of",
+    "yes": "Yes",
+    "no": "No"
   },
 
 
@@ -526,6 +536,91 @@
       "products": "Products",
       "profile": "Profile"
     }
-  }
+  },
   
+
+  "AdminDashboard": {
+    "title": "Admin Dashboard",
+    "description": "Manage your platform administration",
+    "tabs": {
+      "overview": "Overview",
+      "admins": "Admins",
+      "suppliers": "Suppliers"
+    },
+    "unauthorized": "You are not authorized to access this dashboard"
+  },
+
+
+  "AdminManagement": {
+    "panelTitle": "Admin Panel",
+    "panelDescription": "Manage system administrators",
+    "createNewAdmin": "Create New Admin",
+    "administrators": "Administrators",
+    "loadingAdmins": "Loading admins...",
+    "noAdmins": "No administrators found",
+    "deleteConfirm": "Are you sure you want to delete this admin?",
+    "superAdminProtected": "Super Admin accounts cannot be deleted"
+  },
+
+
+  "SupplierApproval": {
+    "title": "Supplier Approval",
+    "description": "Review and approve pending supplier applications",
+    "totalSuppliers": "Total: {count} suppliers",
+    "searchPlaceholder": "Search by company name...",
+    "noSuppliers": "No suppliers found",
+    "loadingSuppliers": "Loading suppliers...",
+    "documents": "Documents",
+    "companyInfo": "Company Information",
+    "verificationChecklist": "Verification Checklist",
+    "approvalGuidelines": "Approval Guidelines",
+    "statistics": "Supplier Approval Statistics",
+    "approveConfirm": "Approve this supplier?",
+    "rejectConfirm": "Please enter rejection reason:",
+    "suspendConfirm": "Please enter suspension reason:",
+    "status": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "suspended": "Suspended"
+    },
+    "guidelines": [
+      "Review all uploaded documents",
+      "Verify business registration",
+      "Check contact information",
+      "Approve if all criteria are met",
+      "Provide reason for rejection/suspension"
+    ],
+    "checklist": {
+      "documentsUploaded": "Documents uploaded",
+      "registrationVerified": "Registration number verified",
+      "emailVerified": "Email verified"
+    },
+    "contact": "Contact",
+    "email": "Email",
+    "phone": "Phone",
+    "registration": "Registration",
+    "applied": "Applied",
+    "onDescription": "Description",
+    "noDescription": "No description",
+    "documentsCount": "{count} uploaded"
+  },
+
+
+  "AdminCreateForm": {
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "firstNamePlaceholder": "First Name",
+    "lastNamePlaceholder": "Last Name",
+    "phonePlaceholder": "Phone",
+    "departmentPlaceholder": "Department (optional)",
+    "roleLabel": "Admin Role",
+    "createButton": "Create Admin",
+    "creatingButton": "Creating...",
+    "successMessage": "Admin created successfully!",
+    "errorMessage": "Failed to create admin"
+  }
+
+
 }

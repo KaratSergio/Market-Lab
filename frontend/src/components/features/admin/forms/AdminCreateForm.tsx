@@ -6,7 +6,7 @@ import { useCreateAdmin } from '@/core/hooks/useAdmin';
 import { ADMIN_ROLES } from '@/core/types/adminTypes';
 import { Button, Input, Select } from '@/components/ui';
 import { AdminCreateFormData, adminCreateSchema } from '@/core/schemas';
-
+import { useTranslations } from 'next-intl';
 
 const ROLE_OPTIONS = [
   { value: ADMIN_ROLES.ADMIN, label: 'Administrator' },
@@ -16,6 +16,7 @@ const ROLE_OPTIONS = [
 
 export function AdminCreateForm() {
   const { mutate: createAdmin, isPending, isError, error } = useCreateAdmin();
+  const t = useTranslations('AdminCreateForm');
 
   const {
     register,
@@ -30,7 +31,7 @@ export function AdminCreateForm() {
     createAdmin(data, {
       onSuccess: () => {
         reset();
-        alert('Admin created successfully!');
+        alert(t('successMessage'));
       },
     });
   };
@@ -41,7 +42,7 @@ export function AdminCreateForm() {
         <Input
           {...register('email')}
           type="email"
-          placeholder="Email"
+          placeholder={t('emailPlaceholder')}
           error={errors.email?.message}
         />
       </div>
@@ -50,7 +51,7 @@ export function AdminCreateForm() {
         <Input
           {...register('password')}
           type="password"
-          placeholder="Password"
+          placeholder={t('passwordPlaceholder')}
           error={errors.password?.message}
         />
       </div>
@@ -58,12 +59,12 @@ export function AdminCreateForm() {
       <div className="grid grid-cols-2 gap-4">
         <Input
           {...register('firstName')}
-          placeholder="First Name"
+          placeholder={t('firstNamePlaceholder')}
           error={errors.firstName?.message}
         />
         <Input
           {...register('lastName')}
-          placeholder="Last Name"
+          placeholder={t('lastNamePlaceholder')}
           error={errors.lastName?.message}
         />
       </div>
@@ -71,7 +72,7 @@ export function AdminCreateForm() {
       <div>
         <Input
           {...register('phone')}
-          placeholder="Phone"
+          placeholder={t('phonePlaceholder')}
           error={errors.phone?.message}
         />
       </div>
@@ -79,7 +80,7 @@ export function AdminCreateForm() {
       <div>
         <Select
           {...register('role')}
-          label="Admin Role"
+          label={t('roleLabel')}
           options={ROLE_OPTIONS}
           error={errors.role?.message}
         />
@@ -88,19 +89,19 @@ export function AdminCreateForm() {
       <div>
         <Input
           {...register('department')}
-          placeholder="Department (optional)"
+          placeholder={t('departmentPlaceholder')}
           error={errors.department?.message}
         />
       </div>
 
       {isError && (
         <div className="text-red-500 text-sm">
-          {error?.message || 'Failed to create admin'}
+          {error?.message || t('errorMessage')}
         </div>
       )}
 
       <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? 'Creating...' : 'Create Admin'}
+        {isPending ? t('creatingButton') : t('createButton')}
       </Button>
     </form>
   );

@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { productsData, productSubcategoryMapping } from "./data/products.data.uk";
-import { suppliersData } from './data/suppliers.data.uk';
+import { productsDataUk, productSubcategoryMappingUk } from "./data/products.data.uk";
+import { suppliersDataUk } from './data/suppliers.data.uk';
 
 export async function seedProducts(dataSource: any) {
   console.log('🛒 Starting products seeding...');
@@ -27,7 +27,7 @@ export async function seedProducts(dataSource: any) {
     }
 
     // Match static supplier data with database IDs
-    const suppliersWithIds = suppliersData.map(supplierData => {
+    const suppliersWithIds = suppliersDataUk.map(supplierData => {
       const dbSupplier = dbSuppliers.find(db => db.email === supplierData.email);
       if (!dbSupplier) {
         throw new Error(`Supplier ${supplierData.companyName} (${supplierData.email}) not found in database`);
@@ -92,9 +92,9 @@ export async function seedProducts(dataSource: any) {
 
       // Collect products from all supplier categories
       for (const categorySlug of supplier.categories) {
-        if (productsData[categorySlug]) {
+        if (productsDataUk[categorySlug]) {
           // Take 11 products from each category
-          const categoryProducts = productsData[categorySlug];
+          const categoryProducts = productsDataUk[categorySlug];
 
           // If category has less than 11 products, take all
           const productsToTake = Math.min(11, categoryProducts.length);
@@ -115,10 +115,10 @@ export async function seedProducts(dataSource: any) {
         console.log(`   ℹ️  Need ${needed} more products`);
 
         // Add products from other categories
-        for (const categorySlug in productsData) {
+        for (const categorySlug in productsDataUk) {
           if (productsForSupplier.length >= 22) break;
           if (!supplier.categories.includes(categorySlug)) {
-            const additionalProducts = productsData[categorySlug].slice(0, 5);
+            const additionalProducts = productsDataUk[categorySlug].slice(0, 5);
             productsForSupplier.push(...additionalProducts.map(p => ({
               ...p,
               categorySlug
@@ -151,8 +151,8 @@ export async function seedProducts(dataSource: any) {
           if (product.categorySlug !== 'other') {
             // First check product mapping
             let subcategorySlug = null;
-            if (productSubcategoryMapping[product.categorySlug]) {
-              const mapping = productSubcategoryMapping[product.categorySlug];
+            if (productSubcategoryMappingUk[product.categorySlug]) {
+              const mapping = productSubcategoryMappingUk[product.categorySlug];
               subcategorySlug = mapping[product.name] || mapping['default'];
             }
 
@@ -249,7 +249,7 @@ export async function seedProducts(dataSource: any) {
 
     // Detailed statistics by category
     console.log('\n📊 Products by category:');
-    for (const categorySlug in productsData) {
+    for (const categorySlug in productsDataUk) {
       const categoryInfo = allCategoryMap[categorySlug];
       if (categoryInfo) {
         const countResult = await dataSource.query(

@@ -1,8 +1,8 @@
-export const suppliersData = [
+export const suppliersDataUk = [
   {
     // 1. Овочі та Фрукти
     companyName: 'Ферма "Зелений Сад"',
-    email: 'zelensad@example.com',
+    email: 'sup@g.com',
     phone: '+380501234501',
     firstName: 'Петро',
     lastName: 'Коваленко',

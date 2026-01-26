@@ -1,8 +1,9 @@
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductService } from '@domain/products/services/product.service';
 import { SupplierOnly } from '@auth/decorators';
-import { ParseData } from '@shared/decorators';
+import { ParseData, Locale } from '@shared/decorators';
 import type { AuthRequest } from '@auth/types';
+import type { LanguageCode } from '@domain/translations/types';
 
 import {
   Controller, Post, Put, Get, Param, Request,
@@ -93,9 +94,16 @@ export class ProductSupplierController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get my products (Supplier Only)' })
   @ApiResponse({ status: 200, type: ProductsListResponseDtoSwagger })
-  async getMyProducts(@Request() req: AuthRequest) {
-    const supplierId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.productService.getSupplierProducts(supplierId, supplierId, userRoles);
+  async getMyProducts(
+    @Request() req: AuthRequest,
+    @Locale() locale: LanguageCode,
+  ) {
+    return this.productService.getSupplierProducts(
+      req.user.id,
+      req.user.id,
+      req.user.roles,
+      locale
+    );
   }
+
 }

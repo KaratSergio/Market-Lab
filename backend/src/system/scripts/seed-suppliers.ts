@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2';
-import { suppliersData } from './data/suppliers.data.uk';
+import { suppliersDataUk } from './data/suppliers.data.uk';
 
 export async function seedSuppliers(dataSource: any) {
   console.log('🌱 Starting suppliers seeding...');
@@ -9,8 +9,8 @@ export async function seedSuppliers(dataSource: any) {
 
   console.log('\n👥 Creating 9 suppliers...');
 
-  for (let i = 0; i < suppliersData.length; i++) {
-    const supplier = suppliersData[i];
+  for (let i = 0; i < suppliersDataUk.length; i++) {
+    const supplier = suppliersDataUk[i];
     console.log(`[${i + 1}/9] Creating: ${supplier.companyName}`);
 
     try {

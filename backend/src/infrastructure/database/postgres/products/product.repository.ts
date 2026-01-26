@@ -57,11 +57,40 @@ export class PostgresProductRepository extends DomainProductRepository {
     return entity ? this._toDomainEntity(entity, languageCode) : null;
   }
 
-  async findMany(filter: Partial<ProductDomainEntity>, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
+  async findMany(
+    filter: Partial<ProductDomainEntity>,
+    languageCode: LanguageCode = DEFAULT_LANGUAGE
+  ): Promise<ProductDomainEntity[]> {
     const query = this._buildWhereQuery(filter);
     const entities = await query.getMany();
 
-    return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode)));
+    if (languageCode === DEFAULT_LANGUAGE || entities.length === 0) {
+      return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode)));
+    }
+
+    // Batch request for all translations
+    const entityIds = entities.map(e => e.id);
+    const translations = await this.translationService.getTranslationsForEntities(
+      entityIds,
+      'product',
+      languageCode
+    );
+
+    const translate = new Map<string, Map<string, string>>();
+
+    for (const translation of translations) {
+      const { entityId, fieldName, translationText } = translation;
+
+      let fieldMap = translate.get(entityId);
+      if (!fieldMap) {
+        fieldMap = new Map<string, string>();
+        translate.set(entityId, fieldMap);
+      }
+
+      fieldMap.set(fieldName, translationText);
+    }
+
+    return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode, translate)));
   }
 
   async findAll(languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
@@ -417,8 +446,10 @@ export class PostgresProductRepository extends DomainProductRepository {
 
   private async _toDomainEntity(
     ormEntity: ProductOrmEntity,
-    languageCode: LanguageCode = DEFAULT_LANGUAGE
+    languageCode: LanguageCode = DEFAULT_LANGUAGE,
+    preTranslate?: Map<string, Map<string, string>>
   ): Promise<ProductDomainEntity> {
+
     const {
       id, supplierId, name, description, shortDescription, unit, currency,
       categoryId, subcategoryId, images, stock, status, tags,
@@ -433,19 +464,34 @@ export class PostgresProductRepository extends DomainProductRepository {
     let translationsData: Partial<Record<LanguageCode, Partial<Record<TranslatableProductFields, string>>>> | undefined;
 
     if (languageCode !== DEFAULT_LANGUAGE) {
-      const translations = await this.translationService.getTranslationsForEntities(
-        [id],
-        'product',
-        languageCode
-      );
+      let translationsForLanguage: Partial<Record<TranslatableProductFields, string>> = {};
+      let hasTranslations = false;
 
-      if (translations.length > 0) {
-        const translationsForLanguage: Partial<Record<TranslatableProductFields, string>> = {};
+      if (preTranslate && preTranslate.has(id)) {
+        const translationMap = preTranslate.get(id)!;
+        hasTranslations = translationMap.size > 0;
 
-        translations.forEach(t => {
-          translationsForLanguage[t.fieldName as TranslatableProductFields] = t.translationText;
-        });
+        if (hasTranslations) {
+          translationMap.forEach((text, fieldName) => {
+            translationsForLanguage[fieldName as TranslatableProductFields] = text;
+          });
+        }
+      } else {
+        const translations = await this.translationService.getTranslationsForEntities(
+          [id],
+          'product',
+          languageCode
+        );
 
+        hasTranslations = translations.length > 0;
+        if (hasTranslations) {
+          translations.forEach(t => {
+            translationsForLanguage[t.fieldName as TranslatableProductFields] = t.translationText;
+          });
+        }
+      }
+
+      if (hasTranslations) {
         translatedName = translationsForLanguage.name || name;
         translatedDescription = translationsForLanguage.description || description;
         translatedShortDescription = translationsForLanguage.shortDescription || shortDescription || undefined;

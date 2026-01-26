@@ -21,11 +21,11 @@ export const SUPPORTED_LANGUAGES = {
 } as const;
 
 export type LanguageCode = typeof SUPPORTED_LANGUAGES[keyof typeof SUPPORTED_LANGUAGES];
-export const DEFAULT_LANGUAGE = SUPPORTED_LANGUAGES.EN;
+export const DEFAULT_LANGUAGE = SUPPORTED_LANGUAGES.UK;
 
 export type TranslatableCategoryFields = 'name' | 'description' | 'metaTitle' | 'metaDescription';
 export type TranslatableProductFields = 'name' | 'description' | 'shortDescription' | 'metaTitle' | 'metaDescription';
-export type TranslatableSupplierFields = 'name' | 'description' | 'contactPerson' | 'address';
+export type TranslatableSupplierFields = 'firstName' | 'lastName' | 'companyName' | 'description' | 'address';
 export type TranslatableAttributeFields = 'name' | 'description';
 
 export const TRANSLATABLE_FIELDS = {

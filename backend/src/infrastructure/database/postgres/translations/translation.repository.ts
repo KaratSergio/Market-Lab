@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { TranslationRepository as DomainTranslationRepository } from '@domain/translations/translation.repository';
 import { TranslationDomainEntity } from '@domain/translations/translation.entity';
 import { TranslationOrmEntity } from './translation.entity';
@@ -12,6 +12,7 @@ import {
   TranslationCreateData
 } from '@domain/translations/types';
 
+
 @Injectable()
 export class PostgresTranslationRepository extends DomainTranslationRepository {
   constructor(
@@ -21,23 +22,21 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     super();
   }
 
-  // ==================== MinimalRepository methods ====================
-
   async create(data: TranslationDomainEntity): Promise<TranslationDomainEntity> {
-    const ormEntity = this.toOrmEntity(data);
+    const ormEntity = this._toOrmEntity(data);
     const saved = await this.repository.save(ormEntity);
-    return this.toDomainEntity(saved);
+    return this._toDomainEntity(saved);
   }
 
   async findById(id: string): Promise<TranslationDomainEntity | null> {
     const entity = await this.repository.findOneBy({ id });
-    return entity ? this.toDomainEntity(entity) : null;
+    return entity ? this._toDomainEntity(entity) : null;
   }
 
   async update(id: string, data: Partial<TranslationDomainEntity>): Promise<TranslationDomainEntity | null> {
-    await this.repository.update(id, this.prepareUpdateData(data));
+    await this.repository.update(id, this._prepareUpdateData(data));
     const updated = await this.repository.findOneBy({ id });
-    return updated ? this.toDomainEntity(updated) : null;
+    return updated ? this._toDomainEntity(updated) : null;
   }
 
   async delete(id: string): Promise<void> {
@@ -45,28 +44,28 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
   }
 
   async findOne(filter: Partial<TranslationDomainEntity>): Promise<TranslationDomainEntity | null> {
-    const where = this.buildWhereConditions(filter);
+    const where = this._buildWhereConditions(filter);
     const entity = await this.repository.findOne({ where });
-    return entity ? this.toDomainEntity(entity) : null;
+    return entity ? this._toDomainEntity(entity) : null;
   }
 
   async findMany(filter: Partial<TranslationDomainEntity>): Promise<TranslationDomainEntity[]> {
-    const where = this.buildWhereConditions(filter);
+    const where = this._buildWhereConditions(filter);
     const entities = await this.repository.find({ where });
-    return entities.map(this.toDomainEntity);
+    return entities.map(this._toDomainEntity);
   }
 
   async findAll(): Promise<TranslationDomainEntity[]> {
     const entities = await this.repository.find();
-    return entities.map(this.toDomainEntity);
+    return entities.map(this._toDomainEntity);
   }
 
-  // ==================== Translation-specific methods ====================
+  // Translation-specific methods
 
   async findByQuery(query: TranslationQueryDto): Promise<TranslationDomainEntity[]> {
-    const where = this.buildQueryConditions(query);
+    const where = this._buildQueryConditions(query);
     const entities = await this.repository.find({ where });
-    return entities.map(this.toDomainEntity);
+    return entities.map(this._toDomainEntity);
   }
 
   async getTranslationsForEntity(
@@ -76,7 +75,7 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     const entities = await this.repository.find({
       where: { entityId, entityType }
     });
-    return entities.map(this.toDomainEntity);
+    return entities.map(this._toDomainEntity);
   }
 
   async getTranslationsForEntities(
@@ -84,17 +83,15 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     entityType: TranslationEntityType,
     languageCode?: LanguageCode
   ): Promise<TranslationDomainEntity[]> {
-    const where: any = {
+    const where: FindOptionsWhere<TranslationOrmEntity> = {
       entityId: In(entityIds),
       entityType
     };
 
-    if (languageCode) {
-      where.languageCode = languageCode;
-    }
+    if (languageCode) where.languageCode = languageCode;
 
     const entities = await this.repository.find({ where });
-    return entities.map(this.toDomainEntity);
+    return entities.map(this._toDomainEntity);
   }
 
   async getTranslationsByLanguage(
@@ -104,7 +101,7 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     const entities = await this.repository.find({
       where: { entityType, languageCode }
     });
-    return entities.map(this.toDomainEntity);
+    return entities.map(this._toDomainEntity);
   }
 
   async deleteByEntity(
@@ -113,16 +110,9 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     languageCode?: LanguageCode,
     fieldName?: string
   ): Promise<void> {
-    const where: any = { entityId, entityType };
-
-    if (languageCode) {
-      where.languageCode = languageCode;
-    }
-
-    if (fieldName) {
-      where.fieldName = fieldName;
-    }
-
+    const where: FindOptionsWhere<TranslationOrmEntity> = { entityId, entityType };
+    if (languageCode) where.languageCode = languageCode;
+    if (fieldName) where.fieldName = fieldName;
     await this.repository.delete(where);
   }
 
@@ -140,41 +130,41 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     });
 
     const saved = await this.repository.save(ormEntities);
-    return saved.map(this.toDomainEntity);
+    return saved.map(this._toDomainEntity);
   }
+
   async bulkUpdate(
     updates: Array<{ id: string; translationText: string }>
   ): Promise<TranslationDomainEntity[]> {
-    // Используем batch update для эффективности
+    // batch update
     const updatePromises = updates.map(update =>
       this.repository.update(update.id, { translationText: update.translationText })
     );
 
     await Promise.all(updatePromises);
 
-    // Возвращаем обновленные сущности
     const ids = updates.map(u => u.id);
     const updatedEntities = await this.repository.findBy({ id: In(ids) });
-    return updatedEntities.map(this.toDomainEntity);
+    return updatedEntities.map(this._toDomainEntity);
   }
 
-  // ==================== Private helper methods ====================
+  // Private helper methods
 
-  private buildWhereConditions(filter: Partial<TranslationDomainEntity>): any {
-    const where: any = {};
+  private _buildWhereConditions(filter: Partial<TranslationDomainEntity>): FindOptionsWhere<TranslationOrmEntity> {
+    const where: FindOptionsWhere<TranslationOrmEntity> = {};
 
     if (filter.id !== undefined) where.id = filter.id;
     if (filter.entityId !== undefined) where.entityId = filter.entityId;
-    if (filter.entityType !== undefined) where.entityType = filter.entityType;
-    if (filter.languageCode !== undefined) where.languageCode = filter.languageCode;
+    if (filter.entityType !== undefined) where.entityType = filter.entityType as TranslationEntityType;
+    if (filter.languageCode !== undefined) where.languageCode = filter.languageCode as LanguageCode;
     if (filter.fieldName !== undefined) where.fieldName = filter.fieldName;
     if (filter.translationText !== undefined) where.translationText = filter.translationText;
 
     return where;
   }
 
-  private buildQueryConditions(query: TranslationQueryDto): any {
-    const where: any = {};
+  private _buildQueryConditions(query: TranslationQueryDto): FindOptionsWhere<TranslationOrmEntity> {
+    const where: FindOptionsWhere<TranslationOrmEntity> = {};
 
     if (query.entityId !== undefined) where.entityId = query.entityId;
     if (query.entityIds !== undefined) where.entityId = In(query.entityIds);
@@ -185,19 +175,19 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     return where;
   }
 
-  private prepareUpdateData(data: Partial<TranslationDomainEntity>): Partial<TranslationOrmEntity> {
+  private _prepareUpdateData(data: Partial<TranslationDomainEntity>): Partial<TranslationOrmEntity> {
     const updateData: Partial<TranslationOrmEntity> = {};
 
     if (data.entityId !== undefined) updateData.entityId = data.entityId;
     if (data.entityType !== undefined) updateData.entityType = data.entityType;
-    if (data.languageCode !== undefined) updateData.languageCode = data.languageCode;
+    if (data.languageCode !== undefined) updateData.languageCode = data.languageCode as LanguageCode;
     if (data.fieldName !== undefined) updateData.fieldName = data.fieldName;
     if (data.translationText !== undefined) updateData.translationText = data.translationText;
 
     return updateData;
   }
 
-  private toDomainEntity(ormEntity: TranslationOrmEntity): TranslationDomainEntity {
+  private _toDomainEntity(ormEntity: TranslationOrmEntity): TranslationDomainEntity {
     return new TranslationDomainEntity(
       ormEntity.id,
       ormEntity.entityId,
@@ -210,7 +200,7 @@ export class PostgresTranslationRepository extends DomainTranslationRepository {
     );
   }
 
-  private toOrmEntity(domainEntity: TranslationDomainEntity): TranslationOrmEntity {
+  private _toOrmEntity(domainEntity: TranslationDomainEntity): TranslationOrmEntity {
     const ormEntity = new TranslationOrmEntity();
     ormEntity.id = domainEntity.id;
     ormEntity.entityId = domainEntity.entityId;

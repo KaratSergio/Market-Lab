@@ -11,9 +11,10 @@ import {
   RestockProductDto,
   ProductStatus,
   PaginatedResult,
-  CategoryWithCount,
   ProductStatistics
 } from "../types";
+import { LanguageCode } from "@domain/translations/types";
+
 
 @Injectable()
 export class ProductService {
@@ -97,9 +98,10 @@ export class ProductService {
   getSupplierProducts(
     userId: string,
     currentUserId: string,
-    userRoles: string[]
+    userRoles: string[],
+    locale: LanguageCode
   ): Promise<ProductDomainEntity[]> {
-    return this.productManagement.getSupplierProducts(userId, currentUserId, userRoles);
+    return this.productManagement.getSupplierProducts(userId, currentUserId, userRoles, locale);
   }
 
   restockProduct(

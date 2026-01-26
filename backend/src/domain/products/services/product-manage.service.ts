@@ -18,7 +18,7 @@ import {
   ProductStatus
 } from "../types";
 import { Role } from '@shared/types';
-import { LanguageCode, DEFAULT_LANGUAGE, TranslatableProductFields } from "@domain/translations/types";
+import { LanguageCode, DEFAULT_LANGUAGE } from "@domain/translations/types";
 import { TranslationService } from "@domain/translations/translation.service";
 
 
@@ -150,19 +150,19 @@ export class ProductManagementService {
   }
 
   async getSupplierProducts(
-    userId: string,
-    currentUserId: string,
-    userRoles: string[],
+    targetUserId: string,
+    requestingUserId: string,
+    roles: string[],
     languageCode: LanguageCode = DEFAULT_LANGUAGE
   ): Promise<ProductDomainEntity[]> {
-    const requestedSupplierId = await this.productOwner.getSupplierIdFromUserId(userId);
-    const currentSupplierId = await this.productOwner.getSupplierIdFromUserId(currentUserId);
+    const targetSupplierId = await this.productOwner.getSupplierIdFromUserId(targetUserId);
+    const requestingSupplierId = await this.productOwner.getSupplierIdFromUserId(requestingUserId);
 
-    if (requestedSupplierId !== currentSupplierId && !userRoles.includes(Role.ADMIN)) {
+    if (targetSupplierId !== requestingSupplierId && !roles.includes(Role.ADMIN)) {
       throw new ForbiddenException('You can only view your own products');
     }
 
-    return this.productCore.getSupplierProductsOperation(requestedSupplierId, languageCode);
+    return this.productCore.getSupplierProductsOperation(targetSupplierId, languageCode);
   }
 
   async restockProduct(

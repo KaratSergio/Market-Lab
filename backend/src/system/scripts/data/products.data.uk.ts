@@ -1,4 +1,4 @@
-export const productsData = {
+export const productsDataUk = {
   // 1. Овощи
   'vegetables': [
     { name: 'Картопля молода', price: 25, description: 'Молода картопля з власного поля' },
@@ -417,7 +417,7 @@ export const productsData = {
 };
 
 
-export const productSubcategoryMapping = {
+export const productSubcategoryMappingUk = {
   'vegetables': {
     'Картопля молода': 'root-vegetables',
     'Морква': 'root-vegetables',

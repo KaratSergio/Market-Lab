@@ -1,5 +1,6 @@
 // Use only within the domain, internal typing..
 import { Entity } from '@shared/types';
+import { WithTranslations } from '@domain/translations/types';
 
 export enum SupplierStatus {
   PENDING = 'pending',
@@ -18,7 +19,7 @@ export interface AccessibleSupplier {
   isActive(): boolean;
 }
 
-export interface SupplierModel extends Entity {
+export interface SupplierModel extends Entity, WithTranslations<'supplier'> {
   userId: string;
   companyName: string;
   firstName: string;
@@ -27,4 +28,5 @@ export interface SupplierModel extends Entity {
   phone: string;
   documents: string[];
   status: SupplierStatus;
+  description?: string;
 }

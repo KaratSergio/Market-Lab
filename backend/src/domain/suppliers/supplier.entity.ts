@@ -1,3 +1,5 @@
+import { LanguageCode, TranslatableProductFields } from '@domain/translations/types';
+
 import {
   CreateSupplierDto, UpdateSupplierDto,
   SupplierModel, SupplierStatus, SUPPLIER_STATUS
@@ -16,6 +18,7 @@ export class SupplierDomainEntity implements SupplierModel {
     public description: string,
     public documents: string[] = [],
     public status: SupplierStatus = SUPPLIER_STATUS.PENDING,
+    public translations?: Partial<Record<LanguageCode, Partial<Record<TranslatableProductFields, string>>>>,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
   ) { }

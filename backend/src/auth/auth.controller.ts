@@ -1,4 +1,5 @@
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { ParseData } from '@shared/decorators';
 
 import {
   Controller,
@@ -146,13 +147,12 @@ export class AuthController {
   })
   async completeRegistration(
     @Req() req: AuthRequest,
-    @Body() body: { data: string },
+    @ParseData() parsedDto: RegCompleteDto,
     @Res({ passthrough: true }) res: Response,
     @UploadedFiles() files?: { documents?: Express.Multer.File[] }
   ) {
     if (!req.user) throw new UnauthorizedException('User not found in request');
-    let parsedDto: RegCompleteDto;
-    parsedDto = JSON.parse(body.data);
+
 
     // Use registration service for completion
     const result = await this.registrationService.completeRegistration(

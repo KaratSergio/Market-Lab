@@ -1,6 +1,7 @@
 import {
   Controller, Get, Put, Delete, Param,
   Body, Request, ParseUUIDPipe, HttpCode, HttpStatus,
+  Query
 } from '@nestjs/common';
 
 import {
@@ -8,10 +9,12 @@ import {
   ApiBearerAuth, ApiBody, ApiParam,
   ApiOkResponse, ApiNotFoundResponse,
   ApiForbiddenResponse, ApiBadRequestResponse,
+  ApiQuery
 } from '@nestjs/swagger';
 
 import type { AuthRequest } from '@auth/types';
 import type { UpdateSupplierDto } from '@domain/suppliers/types';
+import { type LanguageCode, SUPPORTED_LANGUAGES } from '@domain/translations/types';
 import { SupplierService } from '@domain/suppliers/services/supplier.service';
 import { SupplierOnly, SupplierOrAdmin, AuthenticatedOnly, } from '@auth/decorators';
 
@@ -37,6 +40,12 @@ export class SupplierProfileController {
     summary: 'Get my supplier profile',
     description: 'Retrieves profile information of the currently authenticated supplier. Supplier-only endpoint.'
   })
+  @ApiQuery({
+    name: 'language',
+    required: false,
+    enum: Object.values(SUPPORTED_LANGUAGES),
+    description: 'Language code for translations'
+  })
   @ApiOkResponse({
     description: 'Supplier profile retrieved successfully',
     type: SupplierProfileResponseDtoSwagger,
@@ -47,10 +56,13 @@ export class SupplierProfileController {
   @ApiForbiddenResponse({
     description: 'User is not a supplier',
   })
-  async getMyProfile(@Request() req: AuthRequest) {
+  async getMyProfile(
+    @Request() req: AuthRequest,
+    @Query('language') language?: LanguageCode
+  ) {
     const userId = req.user.id;
     const userRoles = req.user.roles;
-    return this.supplierService.findByUserId(userId, userId, userRoles);
+    return this.supplierService.findByUserId(userId, userId, userRoles, language);
   }
 
   /**
@@ -68,6 +80,12 @@ export class SupplierProfileController {
     description: 'Supplier ID (UUID format)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
+  @ApiQuery({
+    name: 'language',
+    required: false,
+    enum: Object.values(SUPPORTED_LANGUAGES),
+    description: 'Language code for translations'
+  })
   @ApiOkResponse({
     description: 'Supplier details retrieved successfully',
     type: SupplierResponseDtoSwagger,
@@ -80,11 +98,12 @@ export class SupplierProfileController {
   })
   async findById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: AuthRequest
+    @Request() req: AuthRequest,
+    @Query('language') language?: LanguageCode
   ) {
     const userId = req.user.id;
     const userRoles = req.user.roles;
-    return this.supplierService.findById(id, userId, userRoles);
+    return this.supplierService.findById(id, userId, userRoles, language);
   }
 
   /**

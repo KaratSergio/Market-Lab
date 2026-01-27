@@ -1,12 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { NotFoundException } from '@nestjs/common';
-import type { DocumentStorage } from '../types';
-import { SupplierCoreService } from './supplier-core.service';
-import { SupplierRepository } from '../supplier.repository';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { TranslationService } from '@domain/translations/translation.service';
 
+import { SupplierRepository } from '../supplier.repository';
 import { UserRepository } from '@domain/users/user.repository';
 import { AddressService } from '@domain/addresses/address.service';
-
+import { SupplierCoreService } from './supplier-core.service';
 
 @Injectable()
 export class SupplierDocumentsService extends SupplierCoreService {
@@ -17,12 +16,12 @@ export class SupplierDocumentsService extends SupplierCoreService {
     @Inject('UserRepository')
     userRepository: UserRepository,
 
-    @Inject('DocumentStorage')
-    private readonly documentStorage: DocumentStorage,
-
     addressService: AddressService,
+
+    @Inject(TranslationService)
+    translationService: TranslationService,
   ) {
-    super(supplierRepository, userRepository, addressService);
+    super(supplierRepository, userRepository, addressService, translationService);
   }
 
   async uploadDocuments(
@@ -34,15 +33,16 @@ export class SupplierDocumentsService extends SupplierCoreService {
     const supplier = await this.supplierRepository.findById(id);
     if (!supplier) throw new NotFoundException('Supplier not found');
 
-    const urls = await this.documentStorage.uploadMany(files, supplier.companyName);
-    supplier.documents = [...supplier.documents, ...urls];
+    if (supplier.userId !== userId && !userRoles.includes('admin')) {
+      throw new ForbiddenException('You can only upload documents for your own supplier profile');
+    }
 
-    await this.supplierRepository.update(id, {
-      documents: supplier.documents,
-      updatedAt: new Date()
-    });
+    const uploadedUrls = files.map(file => `/uploads/documents/${file.filename}`);
+    const updatedDocuments = [...supplier.documents, ...uploadedUrls];
 
-    return { urls };
+    await this.supplierRepository.update(id, { documents: updatedDocuments });
+
+    return { urls: uploadedUrls };
   }
 
   async getDocuments(
@@ -53,7 +53,11 @@ export class SupplierDocumentsService extends SupplierCoreService {
     const supplier = await this.supplierRepository.findById(id);
     if (!supplier) throw new NotFoundException('Supplier not found');
 
-    return await this.documentStorage.getAll(supplier.companyName);
+    if (supplier.userId !== userId && !userRoles.includes('admin')) {
+      throw new ForbiddenException('You can only view documents for your own supplier profile');
+    }
+
+    return supplier.documents;
   }
 
   async deleteDocument(
@@ -64,16 +68,12 @@ export class SupplierDocumentsService extends SupplierCoreService {
   ): Promise<void> {
     const supplier = await this.supplierRepository.findById(id);
     if (!supplier) throw new NotFoundException('Supplier not found');
-    if (!supplier.documents.includes(documentUrl)) {
-      throw new NotFoundException('Document not found for this supplier');
+
+    if (supplier.userId !== userId && !userRoles.includes('admin')) {
+      throw new ForbiddenException('You can only delete documents from your own supplier profile');
     }
 
-    await this.documentStorage.delete(documentUrl, supplier.companyName);
-    supplier.removeDocument(documentUrl);
-
-    await this.supplierRepository.update(id, {
-      documents: supplier.documents,
-      updatedAt: new Date()
-    });
+    const updatedDocuments = supplier.documents.filter(doc => doc !== documentUrl);
+    await this.supplierRepository.update(id, { documents: updatedDocuments });
   }
 }

@@ -17,6 +17,7 @@ import { SupplierService } from '@domain/suppliers/services/supplier.service';
 import { Permission, Role } from '@shared/types';
 import { SupplierStatus } from '@domain/suppliers/types';
 import { SupplierResponseDtoSwagger } from '@domain/suppliers/types/supplier.swagger.dto';
+import { type LanguageCode, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '@domain/translations/types';
 
 
 @ApiTags('admin-suppliers')
@@ -34,8 +35,20 @@ export class SupplierAdminController {
     summary: 'Get all suppliers (Admin Only)',
     description: 'Retrieves complete list of all suppliers including pending, rejected, and suspended.'
   })
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    example: 1,
+    description: 'Page number for pagination'
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 10,
+    description: 'Number of items per page'
+  })
   @ApiQuery({
     name: 'status',
     required: false,
@@ -54,6 +67,12 @@ export class SupplierAdminController {
     type: String,
     description: 'Search by registration number'
   })
+  @ApiQuery({
+    name: 'language',
+    required: false,
+    enum: Object.values(SUPPORTED_LANGUAGES),
+    description: 'Language code for translations'
+  })
   @ApiOkResponse({
     description: 'Suppliers list retrieved successfully',
   })
@@ -66,7 +85,8 @@ export class SupplierAdminController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10,
     @Query('status') status?: SupplierStatus,
     @Query('companyName') companyName?: string,
-    @Query('registrationNumber') registrationNumber?: string
+    @Query('registrationNumber') registrationNumber?: string,
+    @Query('language') language: LanguageCode = DEFAULT_LANGUAGE
   ) {
     return this.supplierService.searchSuppliers(
       {
@@ -74,7 +94,8 @@ export class SupplierAdminController {
         limit,
         status,
         companyName,
-        registrationNumber
+        registrationNumber,
+        language
       },
       req.user.roles
     );

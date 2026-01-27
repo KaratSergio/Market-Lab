@@ -30,6 +30,9 @@ import { MailService } from '@infrastructure/mail/mail.service'; //! reconnect w
 
 import { AddressService } from '@domain/addresses/address.service';
 
+import { TranslationService } from '@domain/translations/translation.service';
+import { LanguageCode } from '@domain/translations/types';
+
 
 @Injectable()
 export class RegistrationService {
@@ -53,6 +56,9 @@ export class RegistrationService {
 
     @Inject('DocumentStorage')
     private readonly documentStorage: DocumentStorage,
+
+    @Inject(TranslationService)
+    private readonly translationService: TranslationService,
   ) {
     this.frontendUrl = this.config.get<string>('FRONTEND_URL')!;
   }
@@ -267,6 +273,14 @@ export class RegistrationService {
     });
 
     const savedSupplier = await this.supplierRepo.save(supplier);
+
+    if (profile.translations) {
+      await this.translationService.saveTranslations(
+        savedSupplier.id,
+        'supplier',
+        profile.translations
+      );
+    }
 
     if (profile.address) {
       await this.addressService.createAddress({

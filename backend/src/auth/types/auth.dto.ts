@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
-
+import { LanguageCode, TranslatableSupplierFields } from '@domain/translations/types';
 import { Role } from '@shared/types';
 
 export class AddressDto {
@@ -94,6 +94,10 @@ export class RegSupplierProfileDto {
   @IsArray()
   @IsString({ each: true })
   documents?: string[];
+
+  @IsOptional()
+  @IsObject({ message: 'Translations must be an object' })
+  translations?: Record<LanguageCode, Partial<Record<TranslatableSupplierFields, string>>>;
 }
 
 export class RegisterDto {

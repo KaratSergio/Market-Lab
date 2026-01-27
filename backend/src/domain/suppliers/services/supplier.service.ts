@@ -13,6 +13,7 @@ import {
   SupplierStatus
 } from '../types';
 import { Role } from '@shared/types';
+import { LanguageCode, DEFAULT_LANGUAGE } from '@domain/translations/types';
 
 
 @Injectable()
@@ -24,13 +25,12 @@ export class SupplierService {
     private readonly accessService: SupplierAccessService,
   ) { }
 
-  // Core methods (public)
-  async findAllActive(): Promise<SupplierDomainEntity[]> {
-    return this.coreService.findAllActive();
+  async findAllActive(languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<SupplierDomainEntity[]> {
+    return this.coreService.findAllActive(languageCode);
   }
 
-  async getPublicSupplierInfo(supplierId: string): Promise<any> {
-    return this.coreService.getPublicSupplierInfo(supplierId);
+  async getPublicSupplierInfo(supplierId: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<any> {
+    return this.coreService.getPublicSupplierInfo(supplierId, languageCode);
   }
 
   async create(createDto: CreateSupplierDto): Promise<SupplierDomainEntity> {
@@ -41,9 +41,10 @@ export class SupplierService {
   async findById(
     id: string,
     userId?: string,
-    userRoles?: string[]
+    userRoles?: string[],
+    languageCode: LanguageCode = DEFAULT_LANGUAGE
   ): Promise<SupplierDomainEntity> {
-    const supplier = await this.coreService.findById(id);
+    const supplier = await this.coreService.findById(id, languageCode);
     this.accessService.checkSupplierAccess(supplier, userId, userRoles, 'view');
     return supplier;
   }
@@ -51,9 +52,10 @@ export class SupplierService {
   async findByUserId(
     userId: string,
     requestUserId?: string,
-    userRoles?: string[]
+    userRoles?: string[],
+    languageCode: LanguageCode = DEFAULT_LANGUAGE
   ): Promise<SupplierProfileDto> {
-    const supplierProfile = await this.coreService.findByUserId(userId);
+    const supplierProfile = await this.coreService.findByUserId(userId, languageCode);
     this.accessService.checkSupplierAccess(supplierProfile, requestUserId, userRoles, 'view');
     return supplierProfile;
   }
@@ -128,6 +130,7 @@ export class SupplierService {
       companyName?: string;
       email?: string;
       registrationNumber?: string;
+      language?: LanguageCode;
     },
     userRoles: Role[]
   ) {

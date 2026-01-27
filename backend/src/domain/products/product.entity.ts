@@ -10,8 +10,8 @@ import {
 
 export class ProductDomainEntity implements ProductModel {
   constructor(
-    public id: string,
-    public supplierId: string,
+    public readonly id: string,
+    public readonly supplierId: string,
     public name: string,
     public description: string,
     public price: number,
@@ -25,7 +25,7 @@ export class ProductDomainEntity implements ProductModel {
     public status: ProductStatus = PRODUCT_STATUS.ACTIVE,
     public tags: string[] = [],
     public translations?: Partial<Record<LanguageCode, Partial<Record<TranslatableProductFields, string>>>>,
-    public createdAt: Date = new Date(),
+    public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
   ) { }
 

@@ -1,8 +1,8 @@
-import { Controller, Get, Param, ParseUUIDPipe, } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiOkResponse, ApiNotFoundResponse, } from '@nestjs/swagger';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiParam, ApiOkResponse, ApiNotFoundResponse, ApiQuery } from '@nestjs/swagger';
 import { SupplierService } from '@domain/suppliers/services/supplier.service';
 import { SupplierPublicResponseDtoSwagger } from '@domain/suppliers/types/supplier.swagger.dto';
-
+import { type LanguageCode, SUPPORTED_LANGUAGES } from '@domain/translations/types';
 
 @ApiTags('suppliers-public')
 @Controller('suppliers')
@@ -17,12 +17,20 @@ export class SupplierPublicController {
     summary: 'Get all active suppliers (Public)',
     description: 'Retrieves list of all active and approved suppliers. Public endpoint accessible without authentication.'
   })
+  @ApiQuery({
+    name: 'language',
+    required: false,
+    enum: Object.values(SUPPORTED_LANGUAGES),
+    description: 'Language code for translations'
+  })
   @ApiOkResponse({
     description: 'Active suppliers list retrieved successfully',
     type: [SupplierPublicResponseDtoSwagger],
   })
-  async findAllActive() {
-    return this.supplierService.findAllActive();
+  async findAllActive(
+    @Query('language') language?: LanguageCode
+  ) {
+    return this.supplierService.findAllActive(language);
   }
 
   /**
@@ -38,6 +46,12 @@ export class SupplierPublicController {
     description: 'Supplier ID (UUID format)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
+  @ApiQuery({
+    name: 'language',
+    required: false,
+    enum: Object.values(SUPPORTED_LANGUAGES),
+    description: 'Language code for translations'
+  })
   @ApiOkResponse({
     description: 'Supplier public info retrieved successfully',
     type: SupplierPublicResponseDtoSwagger,
@@ -45,7 +59,10 @@ export class SupplierPublicController {
   @ApiNotFoundResponse({
     description: 'Supplier not found or not active',
   })
-  async getPublicInfo(@Param('id', ParseUUIDPipe) id: string) {
-    return this.supplierService.getPublicSupplierInfo(id);
+  async getPublicInfo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('language') language?: LanguageCode
+  ) {
+    return this.supplierService.getPublicSupplierInfo(id, language);
   }
 }

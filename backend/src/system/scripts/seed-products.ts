@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { productsDataUk, productSubcategoryMappingUk } from "./data/products.data.uk";
+import { productsDataEn, productSubcategoryMappingEn } from "./data/products.data.en";
 import { suppliersDataUk } from './data/suppliers.data.uk';
 
 export async function seedProducts(dataSource: any) {
@@ -51,9 +52,9 @@ export async function seedProducts(dataSource: any) {
     );
 
     // Create maps for quick access
-    const categoryMap = {};        // slug -> id (parent categories only)
-    const subcategoryMap = {};     // parentSlug -> array of subcategories
-    const allCategoryMap = {};     // slug -> {id, parentId}
+    const categoryMap = {};
+    const subcategoryMap = {};
+    const allCategoryMap = {};
 
     for (const cat of categories) {
       allCategoryMap[cat.slug] = {
@@ -62,10 +63,8 @@ export async function seedProducts(dataSource: any) {
       };
 
       if (!cat.parentId) {
-        // Parent category
         categoryMap[cat.slug] = cat.id;
       } else {
-        // Subcategory - find parent
         const parentCategory = categories.find(c => c.id === cat.parentId);
         if (parentCategory) {
           if (!subcategoryMap[parentCategory.slug]) {
@@ -93,16 +92,17 @@ export async function seedProducts(dataSource: any) {
       // Collect products from all supplier categories
       for (const categorySlug of supplier.categories) {
         if (productsDataUk[categorySlug]) {
-          // Take 11 products from each category
           const categoryProducts = productsDataUk[categorySlug];
+          const categoryProductsEn = productsDataEn[categorySlug] || [];
 
-          // If category has less than 11 products, take all
           const productsToTake = Math.min(11, categoryProducts.length);
           const products = categoryProducts.slice(0, productsToTake);
+          const productsEn = categoryProductsEn.slice(0, productsToTake);
 
-          productsForSupplier.push(...products.map(p => ({
+          productsForSupplier.push(...products.map((p, index) => ({
             ...p,
-            categorySlug
+            categorySlug,
+            englishData: productsEn[index]
           })));
         } else {
           console.log(`   ⚠️  No products found for category: ${categorySlug}`);
@@ -114,14 +114,16 @@ export async function seedProducts(dataSource: any) {
         const needed = 22 - productsForSupplier.length;
         console.log(`   ℹ️  Need ${needed} more products`);
 
-        // Add products from other categories
         for (const categorySlug in productsDataUk) {
           if (productsForSupplier.length >= 22) break;
           if (!supplier.categories.includes(categorySlug)) {
             const additionalProducts = productsDataUk[categorySlug].slice(0, 5);
-            productsForSupplier.push(...additionalProducts.map(p => ({
+            const additionalProductsEn = (productsDataEn[categorySlug] || []).slice(0, 5);
+
+            productsForSupplier.push(...additionalProducts.map((p, index) => ({
               ...p,
-              categorySlug
+              categorySlug,
+              englishData: additionalProductsEn[index]
             })));
           }
         }
@@ -135,6 +137,7 @@ export async function seedProducts(dataSource: any) {
 
       for (let i = 0; i < productsForSupplier.length; i++) {
         const product = productsForSupplier[i];
+        const productEn = product.englishData || {};
 
         try {
           const categoryId = categoryMap[product.categorySlug];
@@ -147,64 +150,111 @@ export async function seedProducts(dataSource: any) {
           // Determine subcategory for product
           let subcategoryId = null;
 
-          // Don't assign subcategories for 'other' category
           if (product.categorySlug !== 'other') {
-            // First check product mapping
             let subcategorySlug = null;
             if (productSubcategoryMappingUk[product.categorySlug]) {
               const mapping = productSubcategoryMappingUk[product.categorySlug];
               subcategorySlug = mapping[product.name] || mapping['default'];
             }
 
-            // If we found subcategory slug, find its ID
             if (subcategorySlug) {
               const subcategory = categories.find(c => c.slug === subcategorySlug);
               subcategoryId = subcategory ? subcategory.id : null;
             }
 
-            // If not found through mapping, take random subcategory
             if (!subcategoryId) {
               const availableSubcategories = subcategoryMap[product.categorySlug];
               if (availableSubcategories && availableSubcategories.length > 0) {
-                // Select random subcategory
                 const randomIndex = Math.floor(Math.random() * availableSubcategories.length);
                 subcategoryId = availableSubcategories[randomIndex].id;
               }
             }
           }
 
-          await dataSource.query(`
+          //  seed data description to shortDescription
+          const shortDescriptionUk = product.description || '';
+          const shortDescriptionEn = productEn.description || shortDescriptionUk;
+
+          const productResult = await dataSource.query(`
             INSERT INTO products (
-              "id", "name", "description", "price", 
+              "id", "name", "description", "shortDescription", "price", 
               "supplierId", "categoryId", "subcategoryId",
               "images", "stock", "status", "tags", 
               "createdAt", "updatedAt"
             ) VALUES (
-              gen_random_uuid(), $1, $2, $3, $4, $5, $6,
-              $7, $8, $9, $10, $11, $12
-            )
+              gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7,
+              $8, $9, $10, $11, $12, $13
+            ) RETURNING id
           `, [
-            `${product.name}`,
-            `${product.description}. Supplier: ${supplier.companyName}.`,
+            product.name,
+            '', // description
+            shortDescriptionUk, // seed data description to shortDescription
             product.price,
             supplier.id,
             categoryId,
-            subcategoryId, // Add subcategoryId
-            '[]', // Empty array for images
-            Math.floor(Math.random() * 50) + 20, // 20-70 pieces
+            subcategoryId,
+            '[]',
+            Math.floor(Math.random() * 50) + 20,
             'active',
             JSON.stringify([
               product.categorySlug,
               supplier.theme.name,
               'фермерський',
-              // Add subcategory tag if exists
-              ...(subcategoryId ? [`підкатегорія`] : [])
+              ...(subcategoryId ? ['підкатегорія'] : [])
             ]),
             new Date(),
             new Date()
           ]);
 
+          const productId = productResult[0].id;
           createdCount++;
+
+          // Adding an English translation for the product
+          if (productEn.name || productEn.description) {
+            console.log(`   🌐 Adding English translations for product ${product.name}...`);
+
+            const translationsData = [
+              {
+                entityId: productId,
+                entityType: 'product',
+                languageCode: 'en',
+                fieldName: 'name',
+                translationText: productEn.name || product.name
+              },
+              {
+                entityId: productId,
+                entityType: 'product',
+                languageCode: 'en',
+                fieldName: 'shortDescription',
+                translationText: shortDescriptionEn
+              }
+            ];
+
+            for (const translation of translationsData) {
+              try {
+                await dataSource.query(`
+                  INSERT INTO translations (
+                    "id", "entityId", "entityType", "languageCode", 
+                    "fieldName", "translationText", "createdAt", "updatedAt"
+                  ) VALUES (
+                    gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7
+                  )
+                `, [
+                  translation.entityId,
+                  translation.entityType,
+                  translation.languageCode,
+                  translation.fieldName,
+                  translation.translationText,
+                  new Date(),
+                  new Date()
+                ]);
+
+                console.log(`     ✅ Translation added: ${translation.fieldName}`);
+              } catch (error) {
+                console.error(`     ❌ Failed to add translation: ${error.message}`);
+              }
+            }
+          }
 
           // Log with subcategory information
           let logMessage = `   [${i + 1}/22] ✅ ${product.name} - ${product.price} грн`;
@@ -227,7 +277,6 @@ export async function seedProducts(dataSource: any) {
       totalProducts += createdCount;
       console.log(`   📊 Created ${createdCount} products for ${supplier.companyName}`);
 
-      // Statistics for subcategories for this supplier
       const supplierProducts = await dataSource.query(
         `SELECT COUNT(*) as total, COUNT("subcategoryId") as with_subcategory 
          FROM products WHERE "supplierId" = $1`,
@@ -245,69 +294,25 @@ export async function seedProducts(dataSource: any) {
     // Statistics
     const productsCount = await dataSource.query('SELECT COUNT(*) FROM products');
     console.log(`\n🎉 Total products created: ${parseInt(productsCount[0].count)}`);
+
+    const translationsCount = await dataSource.query(
+      `SELECT COUNT(*) FROM translations WHERE "entityType" = 'product'`
+    );
+    console.log(`🌐 English translations added: ${parseInt(translationsCount[0].count)}`);
+
     console.log(`📈 Average per supplier: ${(parseInt(productsCount[0].count) / suppliersWithIds.length).toFixed(1)}`);
 
-    // Detailed statistics by category
-    console.log('\n📊 Products by category:');
-    for (const categorySlug in productsDataUk) {
-      const categoryInfo = allCategoryMap[categorySlug];
-      if (categoryInfo) {
-        const countResult = await dataSource.query(
-          'SELECT COUNT(*) FROM products WHERE "categoryId" = $1',
-          [categoryInfo.id]
-        );
-        const count = parseInt(countResult[0].count);
-        if (count > 0) {
-          console.log(`   📁 ${categorySlug}: ${count} products`);
-
-          // Show subcategories for this category
-          const subcategories = subcategoryMap[categorySlug];
-          if (subcategories && subcategories.length > 0) {
-            for (const subcat of subcategories) {
-              const subcatCount = await dataSource.query(
-                'SELECT COUNT(*) FROM products WHERE "subcategoryId" = $1',
-                [subcat.id]
-              );
-              const subCount = parseInt(subcatCount[0].count);
-              if (subCount > 0) {
-                console.log(`      ├── ${subcat.name}: ${subCount} products`);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Overall subcategory statistics
-    console.log('\n📊 Subcategory statistics:');
-    const totalWithSubcategory = await dataSource.query(
-      'SELECT COUNT(*) FROM products WHERE "subcategoryId" IS NOT NULL'
+    console.log('\n📊 Products with shortDescription:');
+    const shortDescCount = await dataSource.query(
+      'SELECT COUNT(*) FROM products WHERE "shortDescription" IS NOT NULL AND "shortDescription" != $1',
+      ['']
     );
-    const totalProductsCount = await dataSource.query('SELECT COUNT(*) FROM products');
-
-    const totalProductsNum = parseInt(totalProductsCount[0].count);
-    const withSubcategoryNum = parseInt(totalWithSubcategory[0].count);
-    const percentage = totalProductsNum > 0 ? Math.round((withSubcategoryNum / totalProductsNum) * 100) : 0;
-
-    console.log(`   ✅ Products with subcategory: ${withSubcategoryNum}/${totalProductsNum} (${percentage}%)`);
-    console.log(`   📝 Products without subcategory: ${totalProductsNum - withSubcategoryNum}`);
-
-    // 'other' category - special statistics
-    const otherCategoryId = categoryMap['other'];
-    if (otherCategoryId) {
-      const otherProducts = await dataSource.query(
-        'SELECT COUNT(*) FROM products WHERE "categoryId" = $1',
-        [otherCategoryId]
-      );
-      const otherCount = parseInt(otherProducts[0].count);
-      if (otherCount > 0) {
-        console.log(`   🎁 'other' category: ${otherCount} products (without subcategories)`);
-      }
-    }
+    console.log(`   ✅ Products with shortDescription: ${parseInt(shortDescCount[0].count)}/${parseInt(productsCount[0].count)}`);
 
     return {
-      totalProducts: totalProductsNum,
-      withSubcategory: withSubcategoryNum,
+      totalProducts: parseInt(productsCount[0].count),
+      withShortDescription: parseInt(shortDescCount[0].count),
+      translationsCount: parseInt(translationsCount[0].count),
       suppliersCount: suppliersWithIds.length,
       success: true
     };

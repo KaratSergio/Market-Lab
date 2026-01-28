@@ -18,21 +18,21 @@ export async function seedCategories(dataSource: DataSource) {
     await dataSource.query('DELETE FROM categories');
     console.log('✅ All categories and translations cleared');
 
-    // 3. Create main (parent) categories with English data
-    console.log('\n📝 Creating main categories...');
+    // 3. Create main (parent) categories with UKRAINIAN data as primary
+    console.log('\n📝 Creating main categories with Ukrainian data...');
     const savedCategories = {};
 
-    for (let i = 0; i < mainCategoriesDataEn.length; i++) {
-      const catData = mainCategoriesDataEn[i];
-      const catDataUk = mainCategoriesDataUk.find(c => c.slug === catData.slug);
+    for (let i = 0; i < mainCategoriesDataUk.length; i++) {
+      const catDataUk = mainCategoriesDataUk[i];
+      const catDataEn = mainCategoriesDataEn.find(c => c.slug === catDataUk.slug);
 
-      console.log(`[${i + 1}/${mainCategoriesDataEn.length}] Creating: ${catData.name}`);
+      console.log(`[${i + 1}/${mainCategoriesDataUk.length}] Creating: ${catDataUk.name}`);
 
       try {
         // Generate UUID for category
         const categoryId = crypto.randomUUID();
 
-        // Insert category with English data
+        // Insert category with UKRAINIAN data (primary)
         await dataSource.query(`
           INSERT INTO categories (
             "id", "name", "slug", "description", "status", "order", 
@@ -40,63 +40,63 @@ export async function seedCategories(dataSource: DataSource) {
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `, [
           categoryId,
-          catData.name,
-          catData.slug,
-          catData.description,
+          catDataUk.name,
+          catDataUk.slug,
+          catDataUk.description,
           'active',
-          catData.order,
-          catData.metaTitle,
-          catData.metaDescription,
+          catDataUk.order,
+          catDataUk.metaTitle || catDataUk.name,
+          catDataUk.metaDescription || catDataUk.description,
           new Date(),
           new Date()
         ]);
 
         // Save category info for creating subcategories
-        savedCategories[catData.slug] = {
+        savedCategories[catDataUk.slug] = {
           id: categoryId,
-          name: catData.name,
-          slug: catData.slug
+          name: catDataUk.name,
+          slug: catDataUk.slug
         };
 
-        // Insert Ukrainian translations if available
-        if (catDataUk) {
-          await insertCategoryTranslations(dataSource, categoryId, catDataUk);
-          console.log(`   ✅ Created with UK translations: ${catData.name} (ID: ${categoryId})`);
+        // Insert ENGLISH translations if available
+        if (catDataEn) {
+          await insertCategoryTranslations(dataSource, categoryId, catDataEn, 'en');
+          console.log(`   ✅ Created with EN translations: ${catDataUk.name} (ID: ${categoryId})`);
         } else {
-          console.log(`   ✅ Created (EN only): ${catData.name} (ID: ${categoryId})`);
+          console.log(`   ✅ Created (UK only): ${catDataUk.name} (ID: ${categoryId})`);
         }
 
       } catch (error) {
-        console.error(`   ❌ Failed to create category ${catData.name}:`, error.message);
+        console.error(`   ❌ Failed to create category ${catDataUk.name}:`, error.message);
         throw error;
       }
     }
 
-    console.log(`\n✅ Created ${mainCategoriesDataEn.length} main categories`);
+    console.log(`\n✅ Created ${mainCategoriesDataUk.length} main categories`);
 
-    // 4. Creating subcategories with translations
-    console.log('\n📝 Creating subcategories...');
+    // 4. Creating subcategories with Ukrainian data as primary
+    console.log('\n📝 Creating subcategories with Ukrainian data...');
     let totalSubcategories = 0;
 
-    for (const mainCategorySlug in subcategoriesDataEn) {
+    for (const mainCategorySlug in subcategoriesDataUk) {
       if (savedCategories[mainCategorySlug]) {
         const parentCategory = savedCategories[mainCategorySlug];
-        const subcategoriesEn = subcategoriesDataEn[mainCategorySlug];
-        const subcategoriesUk = subcategoriesDataUk?.[mainCategorySlug] || [];
+        const subcategoriesUk = subcategoriesDataUk[mainCategorySlug];
+        const subcategoriesEn = subcategoriesDataEn?.[mainCategorySlug] || [];
 
         console.log(`\n📋 Creating subcategories for "${parentCategory.name}"...`);
 
-        for (let i = 0; i < subcategoriesEn.length; i++) {
-          const subcatEn = subcategoriesEn[i];
-          const subcatUk = subcategoriesUk[i] || { name: subcatEn.name };
+        for (let i = 0; i < subcategoriesUk.length; i++) {
+          const subcatUk = subcategoriesUk[i];
+          const subcatEn = subcategoriesEn[i] || { name: subcatUk.name };
 
           const subcategoryId = crypto.randomUUID();
 
-          // Find Ukrainian subcategory with matching slug
-          const matchingUkSubcat = subcategoriesUk.find(s => s.slug === subcatEn.slug);
+          // Find English subcategory with matching slug
+          const matchingEnSubcat = subcategoriesEn.find(s => s.slug === subcatUk.slug);
 
           try {
-            // Insert subcategory with English data
+            // Insert subcategory with UKRAINIAN data (primary)
             await dataSource.query(`
               INSERT INTO categories (
                 "id", "name", "slug", "description", "status", "order", 
@@ -104,29 +104,30 @@ export async function seedCategories(dataSource: DataSource) {
               ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             `, [
               subcategoryId,
-              subcatEn.name,
-              subcatEn.slug,
-              `Subcategory of ${parentCategory.name}: ${subcatEn.name}`,
+              subcatUk.name,
+              subcatUk.slug,
+              `Підкатегорія ${parentCategory.name}: ${subcatUk.name}`,
               'active',
-              subcatEn.order,
+              subcatUk.order,
               parentCategory.id,
               new Date(),
               new Date()
             ]);
 
-            // Insert Ukrainian translations for subcategory
-            const ukSubcatData = {
-              name: matchingUkSubcat?.name || subcatUk.name,
-              slug: subcatEn.slug // Slug остается английским
+            // Insert ENGLISH translations for subcategory
+            const enSubcatData = {
+              name: matchingEnSubcat?.name || subcatEn.name,
+              slug: subcatUk.slug,
+              description: matchingEnSubcat?.description || `Subcategory of ${parentCategory.name}: ${subcatEn.name}`
             };
 
-            await insertCategoryTranslations(dataSource, subcategoryId, ukSubcatData);
+            await insertCategoryTranslations(dataSource, subcategoryId, enSubcatData, 'en');
 
-            console.log(`   ✅ Created subcategory: ${subcatEn.name}`);
+            console.log(`   ✅ Created subcategory: ${subcatUk.name}`);
             totalSubcategories++;
 
           } catch (error) {
-            console.error(`   ❌ Failed to create subcategory ${subcatEn.name}:`, error.message);
+            console.error(`   ❌ Failed to create subcategory ${subcatUk.name}:`, error.message);
             throw error;
           }
         }
@@ -146,7 +147,7 @@ export async function seedCategories(dataSource: DataSource) {
     console.log(`✅ Total categories: ${parseInt(totalCategories[0].count)}`);
     console.log(`✅ Parent categories: ${parseInt(parentCategories[0].count)}`);
     console.log(`✅ Child categories: ${parseInt(childCategories[0].count)}`);
-    console.log(`✅ Translations created: ${parseInt(translationsCount[0].count)}`);
+    console.log(`✅ English translations created: ${parseInt(translationsCount[0].count)}`);
     console.log(`✅ Subcategories created: ${totalSubcategories}`);
 
     // 6. Display category tree with translations info
@@ -165,23 +166,24 @@ export async function seedCategories(dataSource: DataSource) {
 }
 
 /**
- * Inserts Ukrainian translations for a category
+ * Inserts translations for a category
  */
 async function insertCategoryTranslations(
   dataSource: DataSource,
   categoryId: string,
-  ukData: {
+  translationData: {
     name: string;
     description?: string;
     metaTitle?: string;
     metaDescription?: string;
-  }
+  },
+  languageCode: string = 'en'
 ): Promise<void> {
   const translations = [
-    { fieldName: 'name', translationText: ukData.name },
-    { fieldName: 'description', translationText: ukData.description || '' },
-    { fieldName: 'metaTitle', translationText: ukData.metaTitle || '' },
-    { fieldName: 'metaDescription', translationText: ukData.metaDescription || '' }
+    { fieldName: 'name', translationText: translationData.name },
+    { fieldName: 'description', translationText: translationData.description || '' },
+    { fieldName: 'metaTitle', translationText: translationData.metaTitle || translationData.name },
+    { fieldName: 'metaDescription', translationText: translationData.metaDescription || translationData.description || '' }
   ];
 
   for (const translation of translations) {
@@ -195,7 +197,7 @@ async function insertCategoryTranslations(
         crypto.randomUUID(),
         categoryId,
         'category',
-        'uk',
+        languageCode, // 'en'
         translation.fieldName,
         translation.translationText,
         new Date(),
@@ -209,27 +211,29 @@ async function insertCategoryTranslations(
  * Displays category tree with translation info
  */
 async function displayCategoryTreeWithTranslations(dataSource: DataSource) {
-  console.log('\n🌳 Category structure with translations:');
+  console.log('\n🌳 Category structure (Ukrainian primary with English translations):');
 
   const parents = await dataSource.query(`
     SELECT c.id, c.name, c.slug,
     (SELECT COUNT(*) FROM translations t 
-    WHERE t."entityId" = c.id AND t."entityType" = 'category') as translation_count
+    WHERE t."entityId" = c.id AND t."entityType" = 'category' 
+    AND t."languageCode" = 'en') as english_translations_count
     FROM categories c 
     WHERE c."parentId" IS NULL 
     ORDER BY c."order"
   `);
 
   for (const parent of parents) {
-    const hasTranslations = parseInt(parent.translation_count) > 0;
-    const translationIcon = hasTranslations ? '🇺🇦' : '';
+    const hasEnglishTranslations = parseInt(parent.english_translations_count) > 0;
+    const translationIcon = hasEnglishTranslations ? '🇺🇸' : '❌';
 
     console.log(`├── ${parent.name} ${translationIcon} (${parent.slug})`);
 
     const children = await dataSource.query(`
-      SELECT c.name, 
+      SELECT c.name, c.slug,
       (SELECT COUNT(*) FROM translations t 
-      WHERE t."entityId" = c.id AND t."entityType" = 'category') as translation_count
+      WHERE t."entityId" = c.id AND t."entityType" = 'category'
+      AND t."languageCode" = 'en') as english_translations_count
       FROM categories c 
       WHERE c."parentId" = $1 
       ORDER BY c."order"
@@ -237,10 +241,10 @@ async function displayCategoryTreeWithTranslations(dataSource: DataSource) {
 
     children.forEach((child, index) => {
       const prefix = index === children.length - 1 ? '└──' : '├──';
-      const childHasTranslations = parseInt(child.translation_count) > 0;
-      const childTranslationIcon = childHasTranslations ? '🇺🇦' : '';
+      const childHasEnglishTranslations = parseInt(child.english_translations_count) > 0;
+      const childTranslationIcon = childHasEnglishTranslations ? '🇺🇸' : '❌';
 
-      console.log(`│   ${prefix} ${child.name} ${childTranslationIcon}`);
+      console.log(`│   ${prefix} ${child.name} ${childTranslationIcon} (${child.slug})`);
     });
   }
 }

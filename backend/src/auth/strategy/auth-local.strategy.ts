@@ -22,24 +22,11 @@ export class AuthLocalStrategy extends PassportStrategy(Strategy) {
   async validate(email: string, password: string): Promise<SessionUser> {
     const user = await this.authService.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Invalid credentials');
-
-    // checking the user`s status
     if (user.status !== 'active') throw new ForbiddenException('Account is not active');
 
     const roles = user.roles as Role[];
     const permissions = this.permissionsService.getPermissionsByRoles(roles);
-    let name: string | undefined;
-
-    if (roles.includes(Role.CUSTOMER) && user.customerProfile) {
-      name = `${user.customerProfile.firstName} ${user.customerProfile.lastName}`.trim();
-    } else if (roles.includes(Role.SUPPLIER) && user.supplierProfile) {
-      name = user.supplierProfile.companyName;
-    } else if (roles.includes(Role.ADMIN)) {
-      name = 'Administrator';
-    }
-
-    // If registration is not complete, name will be undefined
-    // The frontend will check regComplete and redirect to complete the registration.
+    const name = this._getSimpleName(roles);
 
     return {
       id: user.id,
@@ -49,5 +36,13 @@ export class AuthLocalStrategy extends PassportStrategy(Strategy) {
       regComplete: user.regComplete,
       permissions: permissions,
     };
+  }
+
+  private _getSimpleName(roles: Role[]): string | undefined {
+    if (roles.includes(Role.ADMIN) || roles.includes(Role.SUPER_ADMIN)) return 'Administrator';
+    if (roles.includes(Role.CUSTOMER)) return 'Customer';
+    if (roles.includes(Role.SUPPLIER)) return 'Supplier';
+
+    return undefined;
   }
 }

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 
 // Main auth components
@@ -13,67 +12,58 @@ import { RegistrationService } from './services/registration.service';
 import { EmailVerificationService } from './services/email-verification.service';
 import { PasswordResetService } from './services/password-reset.service';
 import { GoogleAuthService } from './services/google-auth.service';
+import { PermissionsService } from './services/permissions.service';
 import { UserService } from './services/user.service';
 
 // Auth strategies and guards
 import { AuthJwtConfig } from './config/auth-jwt.config';
 import { AuthLocalStrategy } from './strategy/auth-local.strategy';
 import { AuthJwtStrategy } from './strategy/auth-jwt.strategy';
-import { EncryptModule } from './encrypt/encrypt.module';
-import { TokensModule } from './tokens/token.module';
 import { RolesGuard } from './guard/roles.guard';
 import { PermissionsGuard } from './guard/permissions.guard';
-import { PermissionsService } from './services/permissions.service';
 
-// Infrastructure modules
-import { MailModule } from '@infrastructure/mail/mail.module';
-import { GoogleOAuthModule } from '@infrastructure/oauth/google/google-oauth.module';
-import { S3StorageModule } from '@infrastructure/storage/s3-storage.module';
-import { S3DocumentStorageAdapter } from '@infrastructure/storage/s3-doc.adapter';
-
-// Database entities
-import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
-import { AuthTokenOrmEntity } from '@infrastructure/database/postgres/users/token.entity';
-import { CustomerProfileOrmEntity } from '@infrastructure/database/postgres/customers/customer.entity';
-import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
+// modules
+import { GoogleOAuthModule } from '@module/google-oauth.module';
+import { MailModule } from '@module/mail.module';
+import { AddressModule } from '@module/address.module';
+import { TranslationsModule } from '@module/translations.module';
+import { EncryptModule } from './encrypt/encrypt.module';
+import { TokensModule } from './tokens/token.module';
+import { UsersModule } from '@module/users.module';
+import { CustomersModule } from '@module/customers.module';
+import { SuppliersModule } from '@module/suppliers.module';
+import { NotificationModule } from '@module/notification.module';
 
 // Test controller (for development only)
 import { TestOAuthController } from '@infrastructure/oauth/google/test-oauth.controller';
 
-import { AddressModule } from '@module/address.module';
-import { TranslationsModule } from '@module/translations.module';
 
 @Module({
   imports: [
     ConfigModule,
     PassportModule,
     EncryptModule,
-    MailModule,
     TokensModule,
     GoogleOAuthModule,
-    S3StorageModule,
+    MailModule,
+    NotificationModule,
     AddressModule,
     TranslationsModule,
+    UsersModule,
+    CustomersModule,
+    SuppliersModule,
 
     // Configure JWT module asynchronously
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useClass: AuthJwtConfig,
     }),
-
-    // Register TypeORM entities for dependency injection
-    TypeOrmModule.forFeature([
-      UserOrmEntity,
-      AuthTokenOrmEntity,
-      CustomerProfileOrmEntity,
-      SupplierProfileOrmEntity
-    ]),
   ],
   providers: [
     // Main auth service (coordinator)
     AuthService,
 
-    // Subservices (each with single responsibility)
+    // Subservices (SRP)
     RegistrationService,
     EmailVerificationService,
     PasswordResetService,
@@ -88,13 +78,6 @@ import { TranslationsModule } from '@module/translations.module';
     PermissionsService,
     RolesGuard,
     PermissionsGuard,
-
-    // S3 storage upload documents
-    S3DocumentStorageAdapter,
-    {
-      provide: 'DocumentStorage',
-      useClass: S3DocumentStorageAdapter,
-    },
   ],
   controllers: [
     AuthController,

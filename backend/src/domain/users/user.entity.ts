@@ -1,49 +1,23 @@
 import {
-  CreateUserDto,
-  UpdateUserDto,
-  RegisterUserDto,
-  UserModel,
-  UserRole,
-  UserStatus,
-  USER_ROLES,
-  USER_STATUS
+  CreateUserDto, UpdateUserDto, RegisterUserDto,
+  UserModel, UserRole, UserStatus,
+  USER_ROLES, USER_STATUS
 } from './types';
 
 export class UserDomainEntity implements UserModel {
-  public id: string;
-  public email: string;
-  public passwordHash: string | null;
-  public roles: UserRole[];
-  public status: UserStatus;
-  public emailVerified: boolean;
-  public regComplete: boolean;
-  public lastLoginAt?: Date;
-  public createdAt: Date;
-  public updatedAt: Date;
-
   constructor(
-    id: string,
-    email: string,
-    passwordHash: string | null,
-    roles: UserRole[] = [USER_ROLES.CUSTOMER],
-    status: UserStatus = USER_STATUS.ACTIVE,
-    emailVerified: boolean = false,
-    regComplete: boolean = false,
-    lastLoginAt?: Date,
-    createdAt: Date = new Date(),
-    updatedAt: Date = new Date()
-  ) {
-    this.id = id;
-    this.email = email;
-    this.passwordHash = passwordHash;
-    this.roles = roles;
-    this.status = status;
-    this.emailVerified = emailVerified;
-    this.regComplete = regComplete;
-    this.lastLoginAt = lastLoginAt;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-  }
+    public readonly id: string,
+    public email: string,
+    public passwordHash: string | null,
+    public roles: UserRole[] = [USER_ROLES.CUSTOMER],
+    public status: UserStatus = USER_STATUS.ACTIVE,
+    public emailVerified: boolean = false,
+    public regComplete: boolean = false,
+    public readonly googleId?: string,
+    public lastLoginAt?: Date,
+    public readonly createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
+  ) { }
 
   static create(createDto: CreateUserDto): UserDomainEntity {
     return new UserDomainEntity(
@@ -52,11 +26,11 @@ export class UserDomainEntity implements UserModel {
       createDto.password,
       createDto.roles,
       USER_STATUS.ACTIVE,
-      false
+      false,
+      false,
     );
   }
 
-  // STEP 1 email + password
   static register(registerDto: RegisterUserDto): UserDomainEntity {
     return new UserDomainEntity(
       crypto.randomUUID(),
@@ -64,11 +38,11 @@ export class UserDomainEntity implements UserModel {
       registerDto.password,
       [registerDto.role],
       USER_STATUS.ACTIVE,
-      false
+      false,
+      false,
     );
   }
 
-  // STEP 2 role + profile data
   completeRegistration(roles: UserRole[] = []): void {
     this.regComplete = true;
     if (roles.length > 0) {
@@ -88,7 +62,6 @@ export class UserDomainEntity implements UserModel {
     this.updatedAt = new Date();
   }
 
-  // Role management
   addRole(role: UserRole): void {
     if (!this.roles.includes(role)) {
       this.roles.push(role);
@@ -120,7 +93,6 @@ export class UserDomainEntity implements UserModel {
     return this.hasRole(USER_ROLES.ADMIN);
   }
 
-  // Status management
   activate(): void {
     this.status = USER_STATUS.ACTIVE;
     this.updatedAt = new Date();
@@ -136,7 +108,6 @@ export class UserDomainEntity implements UserModel {
     this.updatedAt = new Date();
   }
 
-  // Auth methods
   markEmailVerified(): void {
     this.emailVerified = true;
     this.updatedAt = new Date();

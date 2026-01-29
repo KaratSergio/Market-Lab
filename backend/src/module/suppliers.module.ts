@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AddressModule } from './address.module';
-import { AuthModule } from '@auth/auth.module';
 import { UsersModule } from './users.module';
 import { TranslationsModule } from './translations.module';
 
@@ -23,7 +22,6 @@ import {
   SupplierDocumentsController
 } from '@controller/suppliers';
 
-
 // Database infrastructure
 import { SupplierProfileOrmEntity } from '@infrastructure/database/postgres/suppliers/supplier.entity';
 import { PostgresSupplierRepository } from '@infrastructure/database/postgres/suppliers/supplier.repository';
@@ -37,7 +35,6 @@ import { S3DocumentStorageAdapter } from '@infrastructure/storage/s3-doc.adapter
   imports: [
     TypeOrmModule.forFeature([SupplierProfileOrmEntity]),
     ConfigModule.forRoot(),
-    AuthModule,
     AddressModule,
     S3StorageModule,
     UsersModule,
@@ -57,22 +54,25 @@ import { S3DocumentStorageAdapter } from '@infrastructure/storage/s3-doc.adapter
     SupplierDocumentsService,
 
     // Supplier repository
+    PostgresSupplierRepository,
     {
       provide: 'SupplierRepository',
       useClass: PostgresSupplierRepository,
     },
 
     // S3 storage via abstract interface
+    S3DocumentStorageAdapter,
     {
       provide: 'DocumentStorage',
       useExisting: S3DocumentStorageAdapter,
     },
-
-    // Direct access to the S3 service
-    S3DocumentStorageAdapter,
   ],
   exports: [
+    'SupplierRepository',
+    'DocumentStorage',
     SupplierService,
+    PostgresSupplierRepository,
+    S3DocumentStorageAdapter,
   ],
 })
 export class SuppliersModule { }

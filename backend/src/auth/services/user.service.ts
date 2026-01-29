@@ -1,157 +1,158 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 
-// Entities
-import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
+// Domain repository and entity
+import type { UserRepository } from '@domain/users/user.repository';
+import { UserDomainEntity } from '@domain/users/user.entity';
+import { USER_STATUS, USER_ROLES, UserRole, UserStatus } from '@domain/users/types';
 
-// Infrastructure services
-import { EncryptService } from '../encrypt/encrypt.service';
+// auth services
+import { EncryptService } from '@auth/encrypt/encrypt.service';
 
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(UserOrmEntity)
-    private readonly userRepo: Repository<UserOrmEntity>,
+    @Inject('UserRepository')
+    private readonly userRepository: UserRepository,
     private readonly encrypt: EncryptService,
   ) { }
 
-  /**
-   * Find user by email
-   */
-  async findByEmail(email: string): Promise<UserOrmEntity | null> {
-    return this.userRepo.findOne({ where: { email } });
+  // FIND METHODS
+
+  async findByEmail(email: string): Promise<UserDomainEntity | null> {
+    return this.userRepository.findByEmail(email);
   }
 
-  /**
-   * Find user by ID with relations
-   */
-  async findById(userId: string): Promise<UserOrmEntity | null> {
-    return this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['customerProfile', 'supplierProfile']
-    });
+  async findById(userId: string): Promise<UserDomainEntity | null> {
+    return this.userRepository.findById(userId);
   }
 
-  /**
-   * Find user by Google ID
-   */
-  async findByGoogleId(googleId: string): Promise<UserOrmEntity | null> {
-    return this.userRepo.findOne({ where: { googleId } });
+  async findByGoogleId(googleId: string): Promise<UserDomainEntity | null> {
+    const users = await this.userRepository.findMany({ googleId: googleId });
+    return users.length > 0 ? users[0] : null;
   }
 
-  /**
-   * Validate user credentials (email + password)
-   * @returns User object without password or null if invalid
-   */
+  // AUTH METHODS
+
   async validateUser(email: string, password: string) {
     const user = await this.findByEmail(email);
+    if (!user || !user.passwordHash) return null;
 
-    // Check if user exists and has password (Google users may not have one)
-    if (!user || !user.password) return null;
-
-    // Verify password
-    const isValid = await this.encrypt.compare(password, user.password);
+    const isValid = await this.encrypt.compare(password, user.passwordHash);
     if (!isValid) return null;
 
-    // Return user without password
-    const { password: _, ...safeUser } = user;
+    const { passwordHash, ...safeUser } = user;
     return safeUser;
   }
 
-  /**
-   * Update user roles
-   */
-  async updateUserRoles(userId: string, roles: string[]): Promise<UserOrmEntity> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+  // UPDATE METHODS
+
+  async updateUserRoles(userId: string, roles: string[]): Promise<UserDomainEntity> {
+    const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException('User not found');
 
-    // Remove duplicates and update
-    user.roles = [...new Set(roles)];
-    user.updatedAt = new Date();
+    const userRoles: UserRole[] = roles.map(role => this._convertToUserRole(role));
+    const uniqueRoles = [...new Set(userRoles)];
 
-    return this.userRepo.save(user);
+    const updatedUser = await this.userRepository.update(userId, {
+      roles: uniqueRoles,
+      updatedAt: new Date(),
+    });
+
+    if (!updatedUser) throw new NotFoundException('User not found');
+    return updatedUser;
   }
 
-  /**
-   * Deactivate user account
-   */
-  async deactivateUser(userId: string): Promise<UserOrmEntity> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+  async deactivateUser(userId: string): Promise<UserDomainEntity> {
+    const updatedUser = await this.userRepository.update(userId, {
+      status: USER_STATUS.INACTIVE,
+      updatedAt: new Date(),
+    });
 
-    user.status = 'inactive';
-    user.updatedAt = new Date();
-
-    return this.userRepo.save(user);
+    if (!updatedUser) throw new NotFoundException('User not found');
+    return updatedUser;
   }
 
-  /**
-   * Get paginated list of users with optional role filter
-   */
+  async updateUserStatus(userId: string, status: string): Promise<UserDomainEntity> {
+    const userStatus = this._convertToUserStatus(status);
+
+    const updatedUser = await this.userRepository.update(userId, {
+      status: userStatus,
+      updatedAt: new Date(),
+    });
+
+    if (!updatedUser) throw new NotFoundException('User not found');
+    return updatedUser;
+  }
+
+  // QUERY METHODS
+
   async getAllUsers(
     page: number = 1,
     limit: number = 10,
     role?: string
-  ): Promise<{ users: UserOrmEntity[]; total: number }> {
-    const queryBuilder = this.userRepo.createQueryBuilder('user');
+  ): Promise<{ users: UserDomainEntity[]; total: number }> {
+    const filter = role ? { roles: [this._convertToUserRole(role)] } : {};
 
-    // Filter by role if provided
-    if (role) {
-      queryBuilder.where(':role = ANY(user.roles)', { role });
-    }
+    const [allUsers, total] = await Promise.all([
+      this.userRepository.findMany(filter),
+      this._getUserCount(filter),
+    ]);
 
-    // Apply pagination
-    const [users, total] = await queryBuilder
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paginatedUsers = allUsers.slice(start, end);
 
-    return { users, total };
+    return { users: paginatedUsers, total };
   }
 
-  /**
-   * Get users by specific role
-   */
-  async getUsersByRole(role: string): Promise<UserOrmEntity[]> {
-    return this.userRepo
-      .createQueryBuilder('user')
-      .where(':role = ANY(user.roles)', { role })
-      .getMany();
+  async getUsersByRole(role: string): Promise<UserDomainEntity[]> {
+    const userRole = this._convertToUserRole(role);
+    return this.userRepository.findMany({ roles: [userRole] });
   }
 
-  /**
-   * Get all admin users (admin, super_admin, admin_moderator)
-   */
-  async getAdmins(): Promise<UserOrmEntity[]> {
-    return this.userRepo
-      .createQueryBuilder('user')
-      .where(`user.roles && ARRAY['admin', 'super_admin', 'admin_moderator']::text[]`)
-      .getMany();
+  async getAdmins(): Promise<UserDomainEntity[]> {
+    return this.userRepository.findMany({
+      roles: [USER_ROLES.ADMIN as UserRole]
+    });
   }
 
-  /**
-   * Update user status
-   */
-  async updateUserStatus(userId: string, status: string): Promise<UserOrmEntity> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-
-    user.status = status;
-    user.updatedAt = new Date();
-
-    return this.userRepo.save(user);
-  }
-
-  /**
-   * Check if user has admin role
-   */
   async isUserAdmin(userId: string): Promise<boolean> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findById(userId);
     if (!user) return false;
 
-    const adminRoles = ['admin', 'super_admin', 'admin_moderator'];
-    return user.roles.some(role => adminRoles.includes(role));
+    return user.roles.includes(USER_ROLES.ADMIN as UserRole);
+  }
+
+  // PRIVATE HELPERS
+
+  private async _getUserCount(filter: Partial<UserDomainEntity>): Promise<number> {
+    const users = await this.userRepository.findMany(filter);
+    return users.length;
+  }
+
+  private _convertToUserRole(role: string): UserRole {
+    const roleMap: Record<string, UserRole> = {
+      'customer': USER_ROLES.CUSTOMER as UserRole,
+      'supplier': USER_ROLES.SUPPLIER as UserRole,
+      'admin': USER_ROLES.ADMIN as UserRole,
+      'super_admin': USER_ROLES.ADMIN as UserRole,
+      'admin_moderator': USER_ROLES.ADMIN as UserRole,
+      'moderator': USER_ROLES.ADMIN as UserRole,
+      'support': USER_ROLES.ADMIN as UserRole,
+      'guest': USER_ROLES.CUSTOMER as UserRole,
+    };
+
+    return roleMap[role.toLowerCase()] || USER_ROLES.CUSTOMER as UserRole;
+  }
+
+  private _convertToUserStatus(status: string): UserStatus {
+    const statusMap: Record<string, UserStatus> = {
+      'active': USER_STATUS.ACTIVE,
+      'inactive': USER_STATUS.INACTIVE,
+      'suspended': USER_STATUS.SUSPENDED,
+    };
+
+    return statusMap[status.toLowerCase()] || USER_STATUS.ACTIVE;
   }
 }

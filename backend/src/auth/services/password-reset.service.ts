@@ -1,15 +1,15 @@
-import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Injectable, Inject } from '@nestjs/common';
 
-// Entities
-import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
+// Domain repository
+import { UserRepository } from '@domain/users/user.repository';
 
-// Infrastructure services
-import { EncryptService } from '../encrypt/encrypt.service';
-import { TokenService } from '../tokens/token.service';
-import { MailService } from '@infrastructure/mail/mail.service';
+// Auth services
+import { EncryptService } from '@auth/encrypt/encrypt.service';
+import { TokenService } from '@auth/tokens/token.service';
+
+// Domain services
+import { NotificationService } from '@domain/notifications/notification.service';
 
 
 @Injectable()
@@ -17,10 +17,11 @@ export class PasswordResetService {
   private readonly frontendUrl: string;
 
   constructor(
-    @InjectRepository(UserOrmEntity)
-    private readonly userRepo: Repository<UserOrmEntity>,
+    @Inject('UserRepository')
+    private readonly userRepository: UserRepository,
+
     private readonly tokenService: TokenService,
-    private readonly mailService: MailService,
+    private readonly mailService: NotificationService,
     private readonly encrypt: EncryptService,
     private readonly config: ConfigService,
   ) {
@@ -31,7 +32,7 @@ export class PasswordResetService {
    * Request password reset by sending email with reset link
    */
   async requestPasswordReset(email: string): Promise<void> {
-    const user = await this.userRepo.findOne({ where: { email } });
+    const user = await this.userRepository.findByEmail(email);
     if (!user) return; // Security: don't reveal if user exists
 
     // Generate password reset token (valid for 1 hour)
@@ -66,8 +67,11 @@ export class PasswordResetService {
     // Hash the new password
     const passwordHash = await this.encrypt.hash(newPassword);
 
-    // Update user's password
-    await this.userRepo.update(validation.userId!, { password: passwordHash });
+    // Update user's password using domain repository
+    await this.userRepository.update(validation.userId!, {
+      passwordHash: passwordHash,
+      updatedAt: new Date()
+    });
 
     // Mark token as used and clean up
     await this.tokenService.markTokenAsUsed(token);

@@ -1,108 +1,71 @@
 import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
+  BadRequestException, ConflictException,
+  Injectable, InternalServerErrorException,
+  NotFoundException, Inject,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
-// DTOs and entities
+// Domain interfaces and entity
+import { UserRepository } from '@domain/users/user.repository';
+import { type OAuthAdapter } from '@domain/users/types/oauth.type';
+import { UserDomainEntity } from '@domain/users/user.entity';
+import { USER_STATUS, USER_ROLES } from '@domain/users/types';
 import { GoogleAuthDto } from '../types';
-import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
-
-// Infrastructure services
-import { GoogleOAuthService } from '@infrastructure/oauth/google/google-oauth.service';
 
 
 @Injectable()
 export class GoogleAuthService {
   constructor(
-    @InjectRepository(UserOrmEntity)
-    private readonly userRepo: Repository<UserOrmEntity>,
-    private readonly googleOAuthService: GoogleOAuthService,
+    @Inject('UserRepository')
+    private readonly userRepository: UserRepository,
+
+    @Inject('OAuthAdapter')
+    private readonly oauthAdapter: OAuthAdapter,
   ) { }
 
-  /**
-   * Generate Google OAuth URL for frontend redirection
-   */
   async getGoogleAuthUrl(): Promise<string> {
     try {
-      const url = this.googleOAuthService.getAuthUrl();
-      return url;
+      return await this.oauthAdapter.getAuthUrl();
     } catch (error) {
       throw new InternalServerErrorException('Failed to generate Google auth URL');
     }
   }
 
-  /**
-   * Handle Google OAuth callback with authorization code
-   */
   async handleGoogleCallback(code: string) {
     try {
-      // Exchange code for Google tokens
-      const tokens = await this.googleOAuthService.getTokens(code);
-
-      // Verify ID token and get user info
-      const googleUser = await this.googleOAuthService.verifyIdToken(tokens.idToken);
-
-      // Find or create user
-      const user = await this._findOrCreateGoogleUser(googleUser);
-
+      const tokens = await this.oauthAdapter.getTokens(code);
+      const oauthUser = await this.oauthAdapter.verifyIdToken(tokens.idToken);
+      const user = await this._findOrCreateGoogleUser(oauthUser);
       return this._generateUserResponse(user);
     } catch (error) {
       throw new BadRequestException(`Google authentication failed: ${error.message}`);
     }
   }
 
-  /**
-   * Authenticate with Google using ID token (for mobile apps)
-   */
   async authWithGoogle(dto: GoogleAuthDto) {
     const { idToken } = dto;
 
     try {
-      // Verify Google ID token
-      const googleUser = await this.googleOAuthService.verifyIdToken(idToken);
-
-      // Find or create user
-      const user = await this._findOrCreateGoogleUser(googleUser);
-
+      const oauthUser = await this.oauthAdapter.verifyIdToken(idToken);
+      const user = await this._findOrCreateGoogleUser(oauthUser);
       return this._generateUserResponse(user);
     } catch (error) {
       throw new BadRequestException(`Google authentication failed: ${error.message}`);
     }
   }
 
-  /**
-   * Link Google account to existing user account
-   */
   async linkGoogleAccount(userId: string, dto: GoogleAuthDto) {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException('User not found');
-    if (user.googleId) throw new BadRequestException('Google account already linked');
+    if (user.googleId) throw new ConflictException('Google account is already linked to this user');
+    const oauthUser = await this.oauthAdapter.verifyIdToken(dto.idToken);
+    const existingUser = await this.userRepository.findByGoogleId(oauthUser.id);
+    if (existingUser) throw new ConflictException('This Google account is already linked to another user');
 
-    // Verify Google token
-    const googleUser = await this.googleOAuthService.verifyIdToken(dto.idToken);
-
-    // Check if Google account is already linked to another user
-    const existingUser = await this.userRepo.findOne({
-      where: { googleId: googleUser.id }
+    await this.userRepository.update(userId, {
+      googleId: oauthUser.id,
+      emailVerified: !user.emailVerified && oauthUser.verified_email ? true : user.emailVerified,
+      updatedAt: new Date(),
     });
-    if (existingUser) {
-      throw new ConflictException('This Google account is already linked to another user');
-    }
-
-    // Link Google account to user
-    user.googleId = googleUser.id;
-
-    // Auto-verify email if Google email is verified
-    if (!user.emailVerified && googleUser.verified_email) {
-      user.emailVerified = true;
-    }
-
-    await this.userRepo.save(user);
 
     return {
       success: true,
@@ -110,21 +73,16 @@ export class GoogleAuthService {
     };
   }
 
-  /**
-   * Unlink Google account from user
-   */
   async unlinkGoogleAccount(userId: string) {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException('User not found');
-    if (!user.googleId) throw new BadRequestException('Google account not linked');
+    if (!user.passwordHash) throw new BadRequestException('Cannot unlink Google account. User must have a password set');
+    if (!user.googleId) throw new BadRequestException('Google account is not linked to this user');
 
-    // Ensure user has a password before unlinking
-    if (!user.password) {
-      throw new BadRequestException('Cannot unlink Google account. Please set a password first');
-    }
-
-    user.googleId = null;
-    await this.userRepo.save(user);
+    await this.userRepository.update(userId, {
+      googleId: undefined,
+      updatedAt: new Date(),
+    });
 
     return {
       success: true,
@@ -132,42 +90,49 @@ export class GoogleAuthService {
     };
   }
 
-  /**
-   * Find existing user or create new one from Google user info
-   * @private Internal method for user lookup/creation
-   */
-  private async _findOrCreateGoogleUser(googleUser: any) {
-    let user = await this.userRepo.findOne({
-      where: [
-        { googleId: googleUser.id },
-        { email: googleUser.email }
-      ]
-    });
+  private async _findOrCreateGoogleUser(oauthUser: any): Promise<UserDomainEntity> {
+    let user = await this.userRepository.findByGoogleId(oauthUser.id);
+    if (!user) user = await this.userRepository.findByEmail(oauthUser.email);
 
     if (!user) {
-      // Create new user for Google registration
-      user = this.userRepo.create({
-        email: googleUser.email,
-        googleId: googleUser.id,
-        emailVerified: googleUser.verified_email,
-        roles: [],
-        regComplete: false,
-        password: null,
-      });
-    } else {
-      // Update Google ID if missing
-      if (!user.googleId) user.googleId = googleUser.id;
+      user = new UserDomainEntity(
+        '', // ID
+        oauthUser.email,
+        null, // passwordHash
+        [USER_ROLES.CUSTOMER],
+        USER_STATUS.ACTIVE,
+        oauthUser.verified_email,
+        false, // regComplete
+        oauthUser.id, // googleId
+        undefined, // lastLoginAt
+        new Date(), // createdAt
+        new Date(), // updatedAt
+      );
+
+      user = await this.userRepository.create(user);
+      return user;
     }
 
-    return this.userRepo.save(user);
+    if (!user.googleId) {
+      await this.userRepository.update(user.id, {
+        googleId: oauthUser.id,
+        emailVerified: !user.emailVerified && oauthUser.verified_email ? true : user.emailVerified,
+        updatedAt: new Date(),
+      });
+    }
+
+    await this.userRepository.update(user.id, {
+      lastLoginAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const updatedUser = await this.userRepository.findById(user.id);
+    if (!updatedUser) throw new InternalServerErrorException('Failed to retrieve updated user');
+    return updatedUser;
   }
 
-  /**
-   * Generate standardized user response
-   * @private Internal response formatter
-   */
-  private _generateUserResponse(user: UserOrmEntity) {
-    const { password, ...safeUser } = user;
+  private _generateUserResponse(user: UserDomainEntity) {
+    const { passwordHash, ...safeUser } = user;
     return { user: safeUser };
   }
 }

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 // Entities
-import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
+import { UserDomainEntity } from '@domain/users/user.entity';
 
 // Services
 import { UserService } from './user.service';
@@ -35,7 +35,7 @@ export class AuthService {
    * Generate authentication response with JWT token
    * @private Internal method for generating standardized auth response
    */
-  private _generateAuthResponse(user: UserOrmEntity) {
+  private _generateAuthResponse(user: UserDomainEntity) {
     const tokenPayload = {
       id: user.id,
       email: user.email,
@@ -44,7 +44,7 @@ export class AuthService {
     };
 
     const accessToken = this.jwtService.sign(tokenPayload);
-    const { password: _, ...safeUser } = user;
+    const { passwordHash: _, ...safeUser } = user;
 
     return {
       access_token: accessToken,

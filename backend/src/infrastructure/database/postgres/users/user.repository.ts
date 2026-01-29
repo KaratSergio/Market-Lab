@@ -6,6 +6,7 @@ import { UserDomainEntity } from '@domain/users/user.entity';
 import { UserOrmEntity } from './user.entity';
 import { UserStatus, UserRole } from '@domain/users/types';
 
+
 @Injectable()
 export class PostgresUserRepository extends DomainUserRepository {
   constructor(
@@ -129,6 +130,17 @@ export class PostgresUserRepository extends DomainUserRepository {
     return ormEntities.map(this.toDomainEntity);
   }
 
+  async findByGoogleId(googleId: string): Promise<UserDomainEntity | null> {
+    if (!googleId) return null;
+
+    const ormEntity = await this.repository.findOne({
+      where: { googleId },
+      relations: ['customerProfile', 'supplierProfile']
+    });
+
+    return ormEntity ? this.toDomainEntity(ormEntity) : null;
+  }
+
   // Utility methods
   async exists(id: string): Promise<boolean> {
     if (!id) return false;
@@ -145,7 +157,8 @@ export class PostgresUserRepository extends DomainUserRepository {
       ormEntity.status as UserStatus,
       ormEntity.emailVerified,
       ormEntity.regComplete,
-      ormEntity.lastLoginAt || undefined,
+      ormEntity.googleId || undefined,
+      ormEntity.lastLoginAt,
       ormEntity.createdAt,
       ormEntity.updatedAt
     );

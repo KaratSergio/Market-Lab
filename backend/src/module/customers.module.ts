@@ -24,11 +24,16 @@ import { AddressModule } from './address.module';
     CustomerService,
 
     // Customer repository
+    PostgresCustomerRepository,
     {
       provide: 'CustomerRepository',
       useClass: PostgresCustomerRepository,
     },
   ],
-  exports: [CustomerService, 'CustomerRepository'],
+  exports: [
+    CustomerService,
+    'CustomerRepository',
+    PostgresCustomerRepository,
+  ],
 })
 export class CustomersModule { }

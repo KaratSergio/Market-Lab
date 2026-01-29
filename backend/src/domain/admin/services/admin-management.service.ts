@@ -14,13 +14,13 @@ import { PermissionsService } from '@auth/services/permissions.service';
 
 // DTOs and types
 import { CreateAdminDto, AdminResponse, AdminStatus, GetAdminsListOptions } from '../types';
+import { RegCustomerProfileDto } from '@auth/types';
 import { Permission, Role } from '@shared/types';
 
 
 @Injectable()
 export class AdminManagementService {
   constructor(
-    // Use new services instead of old AuthService
     private readonly registrationService: RegistrationService,
     private readonly userService: UserService,
     private readonly adminService: AdminService,
@@ -44,9 +44,7 @@ export class AdminManagementService {
     const existingUser = await this.userService.findByEmail(createDto.email);
     if (existingUser) {
       const existingAdmin = await this.adminService.findAdminByUserId(existingUser.id);
-      if (existingAdmin) {
-        throw new ConflictException('User is already an admin');
-      }
+      if (existingAdmin) throw new ConflictException('User is already an admin');
     }
 
     // Create a user with roles using RegistrationService
@@ -66,7 +64,7 @@ export class AdminManagementService {
           country: createDto.address?.country || 'System Country',
           building: createDto.address?.building || 'Not specified'
         }
-      },
+      } as RegCustomerProfileDto,
     });
 
     const user = authResult.user;
@@ -206,13 +204,8 @@ export class AdminManagementService {
 
     // Check that at least one role is admin
     const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR'];
-    const hasAdminRole = roles.some(role =>
-      adminRoles.includes(role.toUpperCase())
-    );
-
-    if (!hasAdminRole) {
-      throw new BadRequestException('Admin must have at least one admin role');
-    }
+    const hasAdminRole = roles.some(role => adminRoles.includes(role.toUpperCase()));
+    if (!hasAdminRole) throw new BadRequestException('Admin must have at least one admin role');
 
     // Update roles in UserService
     await this.userService.updateUserRoles(targetAdmin.userId, roles);
@@ -225,8 +218,8 @@ export class AdminManagementService {
   }
 
   async deleteAdmin(deletedByUserId: string, targetAdminId: string) {
-    const deleterPermissions = await this._getUserPermissions(deletedByUserId);
-    if (!this.permissionsService.hasAllPermissions(deleterPermissions, [
+    const delPermissions = await this._getUserPermissions(deletedByUserId);
+    if (!this.permissionsService.hasAllPermissions(delPermissions, [
       Permission.ADMIN_ACCESS,
       Permission.ADMIN_USERS_MANAGE
     ])) {
@@ -235,15 +228,8 @@ export class AdminManagementService {
 
     const targetAdmin = await this.adminService.findAdminById(targetAdminId);
 
-    // Cannot delete yourself
-    if (targetAdmin.userId === deletedByUserId) {
-      throw new ForbiddenException('Cannot delete your own account');
-    }
-
-    // Cannot delete a super admin
-    if (this._isSuperAdmin(targetAdmin.roles)) {
-      throw new ForbiddenException('Cannot delete super admin');
-    }
+    if (targetAdmin.userId === deletedByUserId) throw new ForbiddenException('Cannot delete your own account');
+    if (this._isSuperAdmin(targetAdmin.roles)) throw new ForbiddenException('Cannot delete super admin');
 
     // Delete the admin
     await this.adminService.deleteAdmin(targetAdminId);
@@ -336,16 +322,10 @@ export class AdminManagementService {
 
     const targetAdmin = await this.adminService.findAdminById(targetAdminId);
 
-    // You can't change the super-admin status
-    if (this._isSuperAdmin(targetAdmin.roles)) {
-      throw new ForbiddenException('Cannot modify super admin status');
-    }
-
+    if (this._isSuperAdmin(targetAdmin.roles)) throw new ForbiddenException('Cannot modify super admin status');
     // Check the validity of the status
     const validStatuses = ['active', 'inactive', 'suspended'];
-    if (!validStatuses.includes(status)) {
-      throw new BadRequestException(`Invalid status. Allowed: ${validStatuses.join(', ')}`);
-    }
+    if (!validStatuses.includes(status)) throw new BadRequestException(`Invalid status. Allowed: ${validStatuses.join(', ')}`);
 
     const adminStatus = status as AdminStatus;
 
@@ -383,9 +363,7 @@ export class AdminManagementService {
     ];
 
     for (const role of roleHierarchy) {
-      if (roles.includes(role)) {
-        return role;
-      }
+      if (roles.includes(role)) return role;
     }
 
     return roles[0] || Role.CUSTOMER;

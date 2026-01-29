@@ -9,11 +9,15 @@ import { PostgresUserRepository } from '@infrastructure/database/postgres/users/
 @Module({
   imports: [TypeOrmModule.forFeature([UserOrmEntity])],
   providers: [
+    PostgresUserRepository,
     {
       provide: 'UserRepository',
       useClass: PostgresUserRepository,
     },
   ],
-  exports: ['UserRepository'],
+  exports: [
+    'UserRepository',
+    PostgresUserRepository,
+  ],
 })
 export class UsersModule { }

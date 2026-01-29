@@ -1,14 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
 
-// Entities
-import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
+// Auth service
+import { TokenService } from '@auth/tokens/token.service';
 
-// Infrastructure services
-import { TokenService } from '../tokens/token.service';
-import { MailService } from '@infrastructure/mail/mail.service';
+// Domain repository
+import { UserRepository } from '@domain/users/user.repository';
+
+// Domain services
+import { NotificationService } from '@domain/notifications/notification.service';
 
 
 @Injectable()
@@ -16,10 +16,11 @@ export class EmailVerificationService {
   private readonly frontendUrl: string;
 
   constructor(
-    @InjectRepository(UserOrmEntity)
-    private readonly userRepo: Repository<UserOrmEntity>,
+    @Inject('UserRepository')
+    private readonly userRepository: UserRepository,
+
     private readonly tokenService: TokenService,
-    private readonly mailService: MailService,
+    private readonly mailService: NotificationService,
     private readonly config: ConfigService,
   ) {
     this.frontendUrl = this.config.get<string>('FRONTEND_URL')!;
@@ -29,7 +30,7 @@ export class EmailVerificationService {
    * Send email verification link to user
    */
   async sendVerificationEmail(email: string): Promise<void> {
-    const user = await this.userRepo.findOne({ where: { email } });
+    const user = await this.userRepository.findByEmail(email);
 
     // Don't send if user doesn't exist or already verified
     if (!user || user.emailVerified) return;
@@ -59,8 +60,11 @@ export class EmailVerificationService {
       };
     }
 
-    // Update user's verification status
-    await this.userRepo.update(validation.userId!, { emailVerified: true });
+    // Update user's verification status using domain repository
+    await this.userRepository.update(validation.userId!, {
+      emailVerified: true,
+      updatedAt: new Date()
+    });
 
     // Mark token as used and clean up
     await this.tokenService.markTokenAsUsed(token);
@@ -73,7 +77,7 @@ export class EmailVerificationService {
    * Check if user's email is verified
    */
   async checkEmailVerification(userId: string): Promise<{ verified: boolean }> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException('User not found');
 
     return { verified: user.emailVerified };

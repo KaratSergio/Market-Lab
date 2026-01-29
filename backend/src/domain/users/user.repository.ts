@@ -19,4 +19,5 @@ export abstract class UserRepository implements
   abstract findByEmail(email: string): Promise<UserDomainEntity | null>;
   abstract findByRole(role: string): Promise<UserDomainEntity[]>;
   abstract findByStatus(status: string): Promise<UserDomainEntity[]>;
+  abstract findByGoogleId(googleId: string): Promise<UserDomainEntity | null>;
 }

@@ -58,6 +58,9 @@ export class RegCustomerProfileDto {
   lastName: string;
 
   @IsString()
+  birthday: string;
+
+  @IsString()
   phone: string;
 
   @IsOptional()

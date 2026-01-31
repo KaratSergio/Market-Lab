@@ -1,9 +1,8 @@
 import {
-  TranslationModel,
-  LanguageCode,
-  TranslationEntityType,
-  CreateTranslationDto
+  TranslationModel, LanguageCode,
+  TranslationEntityType, CreateTranslationDto
 } from './types';
+
 
 export class TranslationDomainEntity implements TranslationModel {
   constructor(

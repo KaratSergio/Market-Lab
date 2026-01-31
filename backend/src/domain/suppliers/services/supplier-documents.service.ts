@@ -7,6 +7,7 @@ import { UserRepository } from '@domain/users/user.repository';
 import { AddressService } from '@domain/addresses/address.service';
 import { SupplierCoreService } from './supplier-core.service';
 
+
 @Injectable()
 export class SupplierDocumentsService extends SupplierCoreService {
   constructor(

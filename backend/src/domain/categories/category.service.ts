@@ -1,18 +1,13 @@
 import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  ConflictException,
-  BadRequestException
+  Injectable, Inject, NotFoundException,
+  ConflictException, BadRequestException
 } from '@nestjs/common';
 
 import {
-  CreateCategoryDto,
-  UpdateCategoryDto,
-  CategoryTreeItem,
-  CategoryStatus,
-  BasicCategory
+  CreateCategoryDto, UpdateCategoryDto,
+  CategoryTreeItem, CategoryStatus, BasicCategory
 } from './types';
+
 import {
   LanguageCode,
   DEFAULT_LANGUAGE
@@ -21,6 +16,7 @@ import {
 import { CategoryRepository } from './category.repository';
 import { TranslationService } from '../translations/translation.service';
 import { CategoryDomainEntity } from './category.entity';
+
 
 @Injectable()
 export class CategoryService {
@@ -31,7 +27,7 @@ export class CategoryService {
     private readonly translationService: TranslationService
   ) { }
 
-  // ==================== PUBLIC METHODS ====================
+  // PUBLIC METHODS
 
   async findAll(languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<CategoryDomainEntity[]> {
     const categories = await this.categoryRepository.findAll();
@@ -71,18 +67,12 @@ export class CategoryService {
     return this.applyTranslationsToTree(tree, languageCode);
   }
 
-  // ==================== ADMIN METHODS ====================
+  // ADMIN METHODS 
 
   async create(createDto: CreateCategoryDto): Promise<CategoryDomainEntity> {
     const slug = createDto.slug || this.generateSlug(createDto.name);
-
-    if (await this.categoryRepository.existsBySlug(slug)) {
-      throw new ConflictException(`Category with slug "${slug}" already exists`);
-    }
-
-    if (createDto.parentId) {
-      await this.ensureCategoryExists(createDto.parentId);
-    }
+    if (await this.categoryRepository.existsBySlug(slug)) throw new ConflictException(`Category with slug "${slug}" already exists`);
+    if (createDto.parentId) await this.ensureCategoryExists(createDto.parentId);
 
     const category = CategoryDomainEntity.create({
       ...createDto,
@@ -107,22 +97,16 @@ export class CategoryService {
 
   async update(id: string, updateDto: UpdateCategoryDto): Promise<CategoryDomainEntity> {
     const category = await this.categoryRepository.findById(id);
-    if (!category) throw new NotFoundException(`Category ${id} not found`);
 
+    if (!category) throw new NotFoundException(`Category ${id} not found`);
     if (updateDto.slug && updateDto.slug !== category.slug) {
       if (await this.categoryRepository.existsBySlug(updateDto.slug)) {
         throw new ConflictException(`Category with slug "${updateDto.slug}" already exists`);
       }
     }
-
-    if (updateDto.parentId === id) {
-      throw new BadRequestException('Category cannot be its own parent');
-    }
-
+    if (updateDto.parentId === id) throw new BadRequestException('Category cannot be its own parent');
     if (updateDto.parentId !== undefined && updateDto.parentId !== category.parentId) {
-      if (updateDto.parentId !== null) {
-        await this.ensureCategoryExists(updateDto.parentId);
-      }
+      if (updateDto.parentId !== null) await this.ensureCategoryExists(updateDto.parentId);
       if (updateDto.parentId && await this.wouldCreateCycle(id, updateDto.parentId)) {
         throw new BadRequestException('Cannot create circular category hierarchy');
       }
@@ -152,9 +136,7 @@ export class CategoryService {
     if (!category) throw new NotFoundException(`Category ${id} not found`);
 
     const canDelete = await this.canDeleteCategory(id);
-    if (!canDelete.canDelete) {
-      throw new BadRequestException(canDelete.reason);
-    }
+    if (!canDelete.canDelete) throw new BadRequestException(canDelete.reason);
 
     await this.translationService.deleteTranslations(id, 'category');
     await this.categoryRepository.delete(id);
@@ -168,9 +150,7 @@ export class CategoryService {
       category.activate();
       if (category.isChild()) {
         const parent = await this.categoryRepository.findById(category.parentId!);
-        if (parent && !parent.isActive()) {
-          throw new BadRequestException('Parent category must be active');
-        }
+        if (parent && !parent.isActive()) throw new BadRequestException('Parent category must be active');
       }
     } else {
       category.deactivate();
@@ -219,7 +199,7 @@ export class CategoryService {
     await this.translationService.deleteTranslations(id, 'category', languageCode, fieldName);
   }
 
-  // ==================== PRIVATE HELPER METHODS ====================
+  // PRIVATE HELPER METHODS
 
   private async applyTranslationsToCategory(
     category: CategoryDomainEntity,

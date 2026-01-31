@@ -8,7 +8,7 @@ import {
 
 export class CategoryDomainEntity implements CategoryModel {
   constructor(
-    public id: string,
+    public readonly id: string,
     public name: string,
     public slug: string,
     public description: string = '',
@@ -18,7 +18,7 @@ export class CategoryDomainEntity implements CategoryModel {
     public order: number = 0,
     public metaTitle?: string,
     public metaDescription?: string,
-    public createdAt: Date = new Date(),
+    public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
   ) { }
 

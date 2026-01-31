@@ -23,7 +23,7 @@ export class UserDomainEntity implements UserModel {
     return new UserDomainEntity(
       crypto.randomUUID(),
       createDto.email,
-      createDto.password,
+      null,
       createDto.roles,
       USER_STATUS.ACTIVE,
       false,
@@ -35,7 +35,7 @@ export class UserDomainEntity implements UserModel {
     return new UserDomainEntity(
       crypto.randomUUID(),
       registerDto.email,
-      registerDto.password,
+      null,
       [registerDto.role],
       USER_STATUS.ACTIVE,
       false,
@@ -45,9 +45,7 @@ export class UserDomainEntity implements UserModel {
 
   completeRegistration(roles: UserRole[] = []): void {
     this.regComplete = true;
-    if (roles.length > 0) {
-      this.roles = roles;
-    }
+    if (roles.length > 0) this.roles = roles;
     this.updatedAt = new Date();
   }
 

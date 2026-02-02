@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AddressOrmEntity } from './address.entity';
 import { Address } from '@domain/addresses/address.entity';
 import { AddressRepository as DomainAddressRepository } from '@domain/addresses/address.repository';
+import { EntityRole } from '@shared/types';
 
 
 @Injectable()
@@ -48,7 +49,7 @@ export class PostgresAddressRepository implements DomainAddressRepository {
     return entities.map(this.toDomain);
   }
 
-  async findByEntity(entityId: string, entityType: 'supplier' | 'customer'): Promise<Address[]> {
+  async findByEntity(entityId: string, entityType: EntityRole): Promise<Address[]> {
     const entities = await this.repository.find({
       where: { entityId, entityType },
       order: { isPrimary: 'DESC', createdAt: 'ASC' }
@@ -56,7 +57,7 @@ export class PostgresAddressRepository implements DomainAddressRepository {
     return entities.map(this.toDomain);
   }
 
-  async findPrimaryByEntity(entityId: string, entityType: 'supplier' | 'customer'): Promise<Address | null> {
+  async findPrimaryByEntity(entityId: string, entityType: EntityRole): Promise<Address | null> {
     const entity = await this.repository.findOne({
       where: { entityId, entityType, isPrimary: true }
     });

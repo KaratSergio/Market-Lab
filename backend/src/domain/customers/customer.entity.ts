@@ -38,9 +38,7 @@ export class CustomerDomainEntity implements CustomerModel {
     if (updateDto.firstName !== undefined) this.firstName = updateDto.firstName;
     if (updateDto.lastName !== undefined) this.lastName = updateDto.lastName;
     if (updateDto.phone !== undefined) this.phone = updateDto.phone;
-    if (updateDto.birthday !== undefined) {
-      this.birthday = updateDto.birthday ? new Date(updateDto.birthday) : null;
-    }
+    if (updateDto.birthday !== undefined) this.birthday = updateDto.birthday ? new Date(updateDto.birthday) : null;
     if (updateDto.status !== undefined) this.status = updateDto.status;
 
     this.updatedAt = new Date();

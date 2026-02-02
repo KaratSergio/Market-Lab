@@ -1,5 +1,7 @@
 import { BaseRepository, QueryableRepository } from '@shared/types/repository.interface';
 import { Address } from './address.entity';
+import { EntityRole } from '@shared/types';
+
 
 export abstract class AddressRepository implements
   BaseRepository<Address>,
@@ -17,6 +19,6 @@ export abstract class AddressRepository implements
   abstract findAll(): Promise<Address[]>;
 
   // Address-specific
-  abstract findByEntity(entityId: string, entityType: 'supplier' | 'customer'): Promise<Address[]>;
-  abstract findPrimaryByEntity(entityId: string, entityType: 'supplier' | 'customer'): Promise<Address | null>;
+  abstract findByEntity(entityId: string, entityType: EntityRole): Promise<Address[]>;
+  abstract findPrimaryByEntity(entityId: string, entityType: EntityRole): Promise<Address | null>;
 }

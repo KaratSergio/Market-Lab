@@ -1,10 +1,12 @@
 import { AddressModel } from './types/address.type';
+import { EntityRole } from '@shared/types';
+
 
 export class Address implements AddressModel {
   constructor(
     public readonly id: string,
     public readonly entityId: string,
-    public readonly entityType: 'supplier' | 'customer',
+    public readonly entityType: EntityRole,
     public country: string,
     public city: string,
     public street: string,
@@ -20,11 +22,11 @@ export class Address implements AddressModel {
     this.validate();
   }
 
-  // ========== FACTORY METHODS ==========
+  // FACTORY METHODS
 
   static create(data: {
     entityId: string;
-    entityType: 'supplier' | 'customer';
+    entityType: EntityRole;
     country: string;
     city: string;
     street: string;
@@ -72,7 +74,7 @@ export class Address implements AddressModel {
     );
   }
 
-  // ========== BUSINESS METHODS ==========
+  // BUSINESS METHODS
 
   setAsPrimary(): void {
     this.isPrimary = true;
@@ -98,21 +100,13 @@ export class Address implements AddressModel {
     lng?: number;
     isPrimary?: boolean;
   }): void {
-    if (details.postalCode !== undefined) {
-      this.postalCode = details.postalCode;
-    }
-    if (details.state !== undefined) {
-      this.state = details.state;
-    }
-    if (details.lat !== undefined && details.lng !== undefined) {
-      this.setCoordinates(details.lat, details.lng);
-    }
-    if (details.isPrimary !== undefined) {
-      details.isPrimary ? this.setAsPrimary() : this.setAsSecondary();
-    }
+    if (details.postalCode !== undefined) this.postalCode = details.postalCode;
+    if (details.state !== undefined) this.state = details.state;
+    if (details.lat !== undefined && details.lng !== undefined) this.setCoordinates(details.lat, details.lng);
+    if (details.isPrimary !== undefined) details.isPrimary ? this.setAsPrimary() : this.setAsSecondary();
   }
 
-  // ========== VALIDATION ==========
+  // VALIDATION
 
   private validate(): void {
     const errors: string[] = [];
@@ -124,18 +118,11 @@ export class Address implements AddressModel {
     if (!this.city?.trim()) errors.push('City is required');
     if (!this.street?.trim()) errors.push('Street is required');
     if (!this.building?.trim()) errors.push('Building is required');
-    if (this.postalCode && !this.isValidPostalCode(this.postalCode)) {
-      errors.push('Invalid postal code');
-    }
+    if (this.postalCode && !this.isValidPostalCode(this.postalCode)) errors.push('Invalid postal code');
     if (this.lat !== undefined && this.lng !== undefined) {
-      if (!this.isValidCoordinates(this.lat, this.lng)) {
-        errors.push('Invalid coordinates');
-      }
+      if (!this.isValidCoordinates(this.lat, this.lng)) errors.push('Invalid coordinates');
     }
-
-    if (errors.length > 0) {
-      throw new Error(`Address validation failed: ${errors.join(', ')}`);
-    }
+    if (errors.length > 0) throw new Error(`Address validation failed: ${errors.join(', ')}`);
   }
 
   private validateCoordinates(lat: number, lng: number): void {
@@ -166,7 +153,7 @@ export class Address implements AddressModel {
     return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   }
 
-  // ========== AUXILIARY METHODS ==========
+  // AUXILIARY METHODS
 
   private updateTimestamp(): void {
     this.updatedAt = new Date();

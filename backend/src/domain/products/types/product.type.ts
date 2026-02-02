@@ -1,4 +1,3 @@
-// Use only within the domain, internal typing..
 import { Entity } from "@shared/types/entity.interface";
 import { WithTranslations } from "@domain/translations/types";
 
@@ -10,15 +9,8 @@ export const PRODUCT_STATUS = {
   DRAFT: 'draft'
 } as const;
 
-// for class-validator
-export enum ProductStatusEnum {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  ARCHIVED = 'archived',
-  DRAFT = 'draft'
-}
-
 export type ProductStatus = typeof PRODUCT_STATUS[keyof typeof PRODUCT_STATUS];
+export const PRODUCT_STATUS_VALUES = Object.values(PRODUCT_STATUS)
 
 export const DEFAULT_CATEGORY = 'general';
 export const MIN_STOCK_QUANTITY = 0;
@@ -73,6 +65,7 @@ export const UNITS = {
 } as const;
 
 export type Unit = typeof UNITS[keyof typeof UNITS];
+export const UNIT_VALUES = Object.values(UNITS)
 
 export const CURRENCIES = {
   UAH: 'UAH',
@@ -81,19 +74,4 @@ export const CURRENCIES = {
 } as const;
 
 export type Currency = typeof CURRENCIES[keyof typeof CURRENCIES];
-
-// enums for class-validator
-
-export enum UnitEnum {
-  KILOGRAM = 'kg',
-  GRAM = 'g',
-  LITER = 'l',
-  MILLILITER = 'ml',
-  PIECE = 'pcs'
-}
-
-export enum CurrencyEnum {
-  UAH = 'UAH',
-  USD = 'USD',
-  EUR = 'EUR'
-}
+export const CURRENCIES_VALUES = Object.values(CURRENCIES)

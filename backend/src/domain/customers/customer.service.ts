@@ -61,7 +61,7 @@ export class CustomerService {
     if (createDto.address) {
       await this.addressService.createAddress({
         entityId: savedCustomer.id,
-        entityType: 'customer',
+        entityType: Role.CUSTOMER,
         ...createDto.address,
         isPrimary: true,
       });

@@ -1,15 +1,4 @@
-import {
-  ApiProperty,
-  ApiPropertyOptional
-} from '@nestjs/swagger';
-
-import {
-  IsString, IsNumber,
-  IsOptional, IsArray, Min,
-  IsUrl, IsObject
-} from 'class-validator';
-import { Type } from 'class-transformer';
-
+import { ApiProperty, } from '@nestjs/swagger';
 
 export class CategoryResponseDtoSwagger {
   @ApiProperty({

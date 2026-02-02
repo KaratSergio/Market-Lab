@@ -1,10 +1,8 @@
 import {
-  CategoryModel,
-  CreateCategoryDto,
-  UpdateCategoryDto,
-  DEFAULT_CATEGORY_STATUS,
-  CategoryStatus
+  CategoryModel, CreateCategoryDto, UpdateCategoryDto,
+  DEFAULT_CATEGORY_STATUS, CategoryStatus
 } from './types';
+
 
 export class CategoryDomainEntity implements CategoryModel {
   constructor(
@@ -95,13 +93,9 @@ export class CategoryDomainEntity implements CategoryModel {
 
     if (!this.name?.trim()) errors.push('Category name is required');
     if (!this.slug?.trim()) errors.push('Category slug is required');
-    if (this.slug && !/^[a-z0-9-]+$/.test(this.slug)) {
-      errors.push('Slug can only contain lowercase letters, numbers, and hyphens');
-    }
+    if (this.slug && !/^[a-z0-9-]+$/.test(this.slug)) errors.push('Slug can only contain lowercase letters, numbers, and hyphens');
     if (this.order < 0) errors.push('Order cannot be negative');
-    if (this.isChild() && !this.parentId) {
-      errors.push('Child category must have a parentId');
-    }
+    if (this.isChild() && !this.parentId) errors.push('Child category must have a parentId');
 
     return errors;
   }

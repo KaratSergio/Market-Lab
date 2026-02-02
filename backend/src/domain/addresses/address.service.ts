@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Address } from './address.entity';
 import { AddressRepository } from './address.repository';
 import { CreateAddressDto, UpdateAddressDto } from './types/address.dto';
+import { EntityRole } from '@shared/types';
 
 
 @Injectable()
@@ -44,11 +45,11 @@ export class AddressService {
     return await this.addressRepository.update(id, address);
   }
 
-  async getEntityAddresses(entityId: string, entityType: 'supplier' | 'customer'): Promise<Address[]> {
+  async getEntityAddresses(entityId: string, entityType: EntityRole): Promise<Address[]> {
     return this.addressRepository.findByEntity(entityId, entityType);
   }
 
-  async getPrimaryAddress(entityId: string, entityType: 'supplier' | 'customer'): Promise<Address | null> {
+  async getPrimaryAddress(entityId: string, entityType: EntityRole): Promise<Address | null> {
     return this.addressRepository.findPrimaryByEntity(entityId, entityType);
   }
 
@@ -61,9 +62,7 @@ export class AddressService {
       address.entityType
     );
 
-    if (entityAddresses.length === 1) {
-      throw new Error('Cannot delete the only address of an entity');
-    }
+    if (entityAddresses.length === 1) throw new Error('Cannot delete the only address of an entity');
 
     if (address.isPrimary) {
       const otherAddress = entityAddresses.find(addr => addr.id !== id);
@@ -78,7 +77,7 @@ export class AddressService {
 
   private async _unsetOtherPrimaryAddresses(
     entityId: string,
-    entityType: 'supplier' | 'customer',
+    entityType: EntityRole,
     excludeAddressId?: string
   ): Promise<void> {
     const addresses = await this.addressRepository.findByEntity(entityId, entityType);

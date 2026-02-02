@@ -1,4 +1,3 @@
-// Use only within the domain, internal typing..
 import { Entity } from '@shared/types/entity.interface';
 import { Role } from '@shared/types';
 
@@ -9,6 +8,7 @@ export const ADMIN_STATUS = {
 } as const;
 
 export type AdminStatus = typeof ADMIN_STATUS[keyof typeof ADMIN_STATUS];
+export const ADMIN_STATUS_VALUES = Object.values(ADMIN_STATUS);
 
 export interface AdminModel extends Entity {
   userId: string;

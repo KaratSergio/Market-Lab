@@ -1,4 +1,3 @@
-// Use it to type the incoming data
 import {
   IsString, IsOptional, IsArray,
   IsEnum, IsObject, IsNotEmpty, Matches

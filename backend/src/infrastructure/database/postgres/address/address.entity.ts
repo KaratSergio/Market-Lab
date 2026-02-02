@@ -1,9 +1,8 @@
 import {
-  Entity, Column, Index,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
+  Entity, Column, Index, PrimaryGeneratedColumn,
+  CreateDateColumn, UpdateDateColumn,
 } from 'typeorm';
+import { type EntityRole } from '@shared/types';
 
 
 @Entity('addresses')
@@ -17,7 +16,7 @@ export class AddressOrmEntity {
   entityId: string;
 
   @Column()
-  entityType: 'supplier' | 'customer';
+  entityType: EntityRole;
 
   @Column()
   country: string;

@@ -1,4 +1,3 @@
-// Use only within the domain, internal typing..
 import { Entity } from '@shared/types';
 import { WithTranslations } from '@domain/translations/types';
 

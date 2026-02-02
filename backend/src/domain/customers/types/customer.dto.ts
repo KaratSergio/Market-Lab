@@ -3,8 +3,10 @@ import {
   MinLength, MaxLength, Matches,
   IsDateString, IsNumber, IsUUID
 } from 'class-validator';
+
 import { Type } from 'class-transformer';
 import { type CustomerStatus, CUSTOMER_STATUS_VALUES } from './customer.type';
+
 
 export class AddressDto {
   @IsString()

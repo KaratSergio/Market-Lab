@@ -65,7 +65,7 @@ export class ProductDomainEntity implements ProductModel {
     this.updatedAt = new Date();
   }
 
-  // Category management
+  // CATEGORY MANAGEMENT
   changeCategory(categoryId?: string, subcategoryId?: string): void {
     if (subcategoryId && !categoryId) {
       throw new Error('Category must be specified when subcategory is set');
@@ -90,7 +90,7 @@ export class ProductDomainEntity implements ProductModel {
     return !!this.subcategoryId;
   }
 
-  // Product activation
+  // PRODUCT ACTIVATION
   activate(): void {
     this.status = PRODUCT_STATUS.ACTIVE;
     this.updatedAt = new Date();
@@ -106,7 +106,7 @@ export class ProductDomainEntity implements ProductModel {
     this.updatedAt = new Date();
   }
 
-  // Stock management
+  // STOCK MANAGEMENT
   restock(quantity: number): void {
     if (quantity <= 0) throw new Error('Restock quantity must be positive');
     this.stock += quantity;
@@ -122,7 +122,6 @@ export class ProductDomainEntity implements ProductModel {
     this.updatedAt = new Date();
   }
 
-  // Check availability
   isAvailable(): boolean {
     return this.status === PRODUCT_STATUS.ACTIVE && this.stock > MIN_STOCK_QUANTITY;
   }
@@ -134,19 +133,17 @@ export class ProductDomainEntity implements ProductModel {
     return 'In stock';
   }
 
-  // Check ownership
   isOwnedBy(supplierId: string): boolean {
     return this.supplierId === supplierId;
   }
 
-  // Price change
   changePrice(newPrice: number): void {
     if (newPrice <= 0) throw new Error('Price must be positive');
     this.price = newPrice;
     this.updatedAt = new Date();
   }
 
-  // Images management
+  // IMAGES MANAGEMENT
   addImages(newImages: string[]): void {
     this.images = [...this.images, ...newImages];
     this.updatedAt = new Date();
@@ -157,7 +154,7 @@ export class ProductDomainEntity implements ProductModel {
     this.updatedAt = new Date();
   }
 
-  // Tags management
+  // TAGS MANAGEMENT
   addTags(newTags: string[]): void {
     const uniqueTags = [...new Set([...this.tags, ...newTags])];
     this.tags = uniqueTags;
@@ -169,7 +166,6 @@ export class ProductDomainEntity implements ProductModel {
     this.updatedAt = new Date();
   }
 
-  // Discount
   getDiscountedPrice(discountPercentage: number): number {
     if (discountPercentage < 0 || discountPercentage > 100) {
       throw new Error('Discount percentage must be between 0 and 100');
@@ -177,7 +173,7 @@ export class ProductDomainEntity implements ProductModel {
     return this.price * (1 - discountPercentage / 100);
   }
 
-  // Validation
+  // VALIDATION
   validate(): string[] {
     const errors: string[] = [];
 
@@ -192,12 +188,11 @@ export class ProductDomainEntity implements ProductModel {
     return errors;
   }
 
-  // Get display name
   getDisplayName(): string {
     return this.name;
   }
 
-  // Quick check methods
+  // QUICK CHECK METHODS
   isActive(): boolean {
     return this.status === PRODUCT_STATUS.ACTIVE;
   }

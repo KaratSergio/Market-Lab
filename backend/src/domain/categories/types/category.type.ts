@@ -7,15 +7,9 @@ export const CATEGORY_STATUS = {
   ARCHIVED: 'archived'
 } as const;
 
-// for class-validator
-export enum CategoryStatusEnum {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  ARCHIVED = 'archived'
-}
-
 export type CategoryStatus = typeof CATEGORY_STATUS[keyof typeof CATEGORY_STATUS];
 export const DEFAULT_CATEGORY_STATUS = CATEGORY_STATUS.ACTIVE;
+export const CATEGORY_STATUS_VALUES = Object.values(CATEGORY_STATUS);
 
 export interface CategoryModel extends Entity, WithTranslations<'category'> {
   name: string;

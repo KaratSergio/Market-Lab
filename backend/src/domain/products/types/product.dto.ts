@@ -1,7 +1,16 @@
-import { IsString, IsNumber, IsOptional, IsArray, IsEnum, IsUUID, Min, IsNotEmpty, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ProductStatusEnum, UnitEnum, CurrencyEnum } from './product.type';
 import { LanguageCode, TranslatableProductFields } from '@domain/translations/types';
+
+import {
+  IsString, IsNumber, IsOptional, IsArray,
+  IsIn, IsUUID, Min, IsNotEmpty, IsObject
+} from 'class-validator';
+
+import {
+  PRODUCT_STATUS_VALUES, UNIT_VALUES, CURRENCIES_VALUES,
+  type ProductStatus, type Unit, type Currency,
+  UNITS, CURRENCIES, PRODUCT_STATUS
+} from './product.type';
 
 
 export class CreateProductDto {
@@ -19,12 +28,13 @@ export class CreateProductDto {
 
   @IsNumber({}, { message: 'Price must be a number' })
   @Min(0, { message: 'Price cannot be negative' })
+  @Type(() => Number)
   price: number;
 
   @IsOptional()
   @IsArray({ message: 'Images must be an array' })
   @IsString({ each: true, message: 'Each image URL must be a string' })
-  images?: string[];
+  images?: string[] = [];
 
   @IsOptional()
   @IsUUID()
@@ -37,24 +47,25 @@ export class CreateProductDto {
   @IsOptional()
   @IsNumber({}, { message: 'Stock must be a number' })
   @Min(0, { message: 'Stock cannot be negative' })
-  stock?: number;
+  @Type(() => Number)
+  stock?: number = 0;
 
   @IsOptional()
-  @IsEnum(ProductStatusEnum, { message: 'Invalid status' })
-  status?: ProductStatusEnum;
+  @IsIn(PRODUCT_STATUS_VALUES, { message: 'Invalid status' })
+  status?: ProductStatus = PRODUCT_STATUS.DRAFT;
 
   @IsOptional()
   @IsArray({ message: 'Tags must be an array' })
   @IsString({ each: true, message: 'Each tag must be a string' })
-  tags?: string[];
+  tags?: string[] = [];
 
   @IsOptional()
-  @IsEnum(UnitEnum, { message: 'Invalid unit' })
-  unit: UnitEnum = UnitEnum.PIECE;
+  @IsIn(UNIT_VALUES, { message: 'Invalid unit' })
+  unit: Unit = UNITS.PIECE; // 'pcs'
 
   @IsOptional()
-  @IsEnum(CurrencyEnum, { message: 'Invalid currency' })
-  currency: CurrencyEnum = CurrencyEnum.UAH;
+  @IsIn(CURRENCIES_VALUES, { message: 'Invalid currency' })
+  currency: Currency = CURRENCIES.UAH; // 'UAH'
 
   @IsOptional()
   @IsObject({ message: 'Translations must be an object' })
@@ -79,6 +90,7 @@ export class UpdateProductDto {
   @IsOptional()
   @IsNumber({}, { message: 'Price must be a number' })
   @Min(0, { message: 'Price cannot be negative' })
+  @Type(() => Number)
   price?: number;
 
   @IsOptional()
@@ -92,11 +104,12 @@ export class UpdateProductDto {
   @IsOptional()
   @IsNumber({}, { message: 'Stock must be a number' })
   @Min(0, { message: 'Stock cannot be negative' })
+  @Type(() => Number)
   stock?: number;
 
   @IsOptional()
-  @IsEnum(ProductStatusEnum, { message: 'Invalid status' })
-  status?: ProductStatusEnum;
+  @IsIn(PRODUCT_STATUS_VALUES, { message: 'Invalid status' })
+  status?: ProductStatus;
 
   @IsOptional()
   @IsArray({ message: 'Images must be an array' })
@@ -109,12 +122,12 @@ export class UpdateProductDto {
   tags?: string[];
 
   @IsOptional()
-  @IsEnum(UnitEnum, { message: 'Invalid unit' })
-  unit?: UnitEnum;
+  @IsIn(UNIT_VALUES, { message: 'Invalid unit' })
+  unit?: Unit;
 
   @IsOptional()
-  @IsEnum(CurrencyEnum, { message: 'Invalid currency' })
-  currency?: CurrencyEnum;
+  @IsIn(CURRENCIES_VALUES, { message: 'Invalid currency' })
+  currency?: Currency;
 
   @IsOptional()
   @IsObject({ message: 'Translations must be an object' })
@@ -136,7 +149,7 @@ export class PurchaseProductDto {
 }
 
 export class UpdateProductStatusDto {
-  @IsEnum(ProductStatusEnum, { message: 'Invalid status' })
+  @IsIn(PRODUCT_STATUS_VALUES, { message: 'Invalid status' })
   @IsNotEmpty({ message: 'Status is required' })
-  status: ProductStatusEnum;
+  status: ProductStatus;
 }

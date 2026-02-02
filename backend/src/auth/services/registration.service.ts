@@ -227,7 +227,7 @@ export class RegistrationService {
     if (profile.address) {
       await this.addressService.createAddress({
         entityId: savedCustomer.id,
-        entityType: 'customer',
+        entityType: Role.CUSTOMER,
         country: profile.address.country,
         city: profile.address.city,
         street: profile.address.street,
@@ -301,7 +301,7 @@ export class RegistrationService {
     if (profile.address) {
       await this.addressService.createAddress({
         entityId: savedSupplier.id,
-        entityType: 'supplier',
+        entityType: Role.SUPPLIER,
         country: profile.address.country,
         city: profile.address.city,
         street: profile.address.street,

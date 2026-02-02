@@ -1,8 +1,8 @@
-import { Entity } from "@shared/types"
+import { Entity, EntityRole } from "@shared/types"
 
 export interface AddressModel extends Entity {
   entityId: string;
-  entityType: 'supplier' | 'customer';
+  entityType: EntityRole;
   country: string,
   city: string,
   street: string,

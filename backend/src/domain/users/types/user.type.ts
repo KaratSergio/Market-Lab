@@ -1,4 +1,3 @@
-// Use only within the domain, internal typing..
 import { Entity } from '@shared/types/entity.interface';
 import { Role } from '@shared/types';
 
@@ -9,7 +8,6 @@ export const USER_ROLES = {
 } as const;
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
-// for class-validator
 export const USER_ROLE_VALUES = Object.values(USER_ROLES);
 
 export const USER_STATUS = {
@@ -19,7 +17,6 @@ export const USER_STATUS = {
 } as const;
 
 export type UserStatus = typeof USER_STATUS[keyof typeof USER_STATUS];
-// for class-validator
 export const USER_STATUS_VALUES = Object.values(USER_STATUS)
 
 export interface UserModel extends Entity {

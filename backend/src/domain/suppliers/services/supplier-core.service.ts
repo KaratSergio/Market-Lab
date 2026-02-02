@@ -17,6 +17,8 @@ import {
 
 import { TranslationService } from '@domain/translations/translation.service';
 import { LanguageCode, DEFAULT_LANGUAGE } from '@domain/translations/types';
+import { Role } from '@shared/types';
+import { AddressModel } from '@domain/addresses/types/address.type';
 
 
 @Injectable()
@@ -60,7 +62,7 @@ export class SupplierCoreService {
     if (createDto.address) {
       await this.addressService.createAddress({
         entityId: savedSupplier.id,
-        entityType: 'supplier',
+        entityType: Role.SUPPLIER,
         country: createDto.address.country,
         city: createDto.address.city,
         street: createDto.address.street || '',
@@ -109,12 +111,12 @@ export class SupplierCoreService {
       );
     }
 
-    const allTranslations = await this.translationService.getEntityTranslations(supplier.id, 'supplier');
+    const allTranslations = await this.translationService.getEntityTranslations(supplier.id, Role.SUPPLIER);
     const translationsByLanguage = this._groupTranslationsByLanguage(allTranslations);
     const translationMap = this._createTranslationMap(translations);
 
-    const primaryAddress = await this.addressService.getPrimaryAddress(supplier.id, 'supplier');
-    const addresses = await this.addressService.getEntityAddresses(supplier.id, 'supplier');
+    const primaryAddress = await this.addressService.getPrimaryAddress(supplier.id, Role.SUPPLIER);
+    const addresses = await this.addressService.getEntityAddresses(supplier.id, Role.SUPPLIER);
 
     const supplierDto: SupplierProfileDto = {
       id: supplier.id,
@@ -210,9 +212,9 @@ export class SupplierCoreService {
     }
 
     const user = await this.userRepository.findById(supplier.userId);
-    const primaryAddress = await this.addressService.getPrimaryAddress(supplierId, 'supplier');
+    const primaryAddress = await this.addressService.getPrimaryAddress(supplierId, Role.SUPPLIER);
 
-    const allTranslations = await this.translationService.getEntityTranslations(supplierId, 'supplier');
+    const allTranslations = await this.translationService.getEntityTranslations(supplierId, Role.SUPPLIER);
     const translationsByLanguage = this._groupTranslationsByLanguage(allTranslations);
 
     return {
@@ -264,7 +266,7 @@ export class SupplierCoreService {
     const supplierIds = suppliers.map(s => s.id);
     const translations = await this.translationService.getTranslationsForEntities(
       supplierIds,
-      'supplier',
+      Role.SUPPLIER,
       languageCode
     );
 
@@ -308,7 +310,7 @@ export class SupplierCoreService {
     return result;
   }
 
-  protected _mapAddressToResponse(address: any): AddressResponseDto {
+  protected _mapAddressToResponse(address: AddressResponseDto): AddressResponseDto {
     return {
       id: address.id,
       country: address.country,

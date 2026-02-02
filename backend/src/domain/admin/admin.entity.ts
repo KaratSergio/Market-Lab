@@ -71,7 +71,7 @@ export class AdminDomainEntity implements AdminModel {
     this.updatedAt = new Date();
   }
 
-  // Role management
+  // ROLE MANAGEMENT
   isSuperAdmin(): boolean {
     return this.hasRole(Role.SUPER_ADMIN);
   }
@@ -84,7 +84,7 @@ export class AdminDomainEntity implements AdminModel {
     return this.hasRole(Role.MODERATOR);
   }
 
-  // Status management
+  // STATUS MANAGEMENT
   activate(): void {
     this.status = ADMIN_STATUS.ACTIVE;
     this.updatedAt = new Date();
@@ -100,7 +100,7 @@ export class AdminDomainEntity implements AdminModel {
     this.updatedAt = new Date();
   }
 
-  // Activity tracking
+  // ACTIVITY TRACKING
   recordActivity(): void {
     this.lastActiveAt = new Date();
     this.updatedAt = new Date();
@@ -110,7 +110,7 @@ export class AdminDomainEntity implements AdminModel {
     return `${this.firstName} ${this.lastName}`;
   }
 
-  // Role methods
+  // ROLE METHODS
   hasRole(role: Role): boolean {
     return this.roles.includes(role);
   }

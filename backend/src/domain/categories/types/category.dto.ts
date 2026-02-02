@@ -1,9 +1,10 @@
 import {
-  IsString, IsOptional, IsEnum, IsUUID,
+  IsString, IsOptional, IsIn, IsUUID,
   IsNotEmpty, Min, Max, IsUrl, IsObject
 } from 'class-validator';
+
 import { Type } from 'class-transformer';
-import { CategoryStatusEnum } from './category.type';
+import { type CategoryStatus, CATEGORY_STATUS_VALUES } from './category.type';
 import { LanguageCode, TranslatableCategoryFields } from '@domain/translations/types';
 
 
@@ -22,8 +23,8 @@ export class CreateCategoryDto {
   description?: string;
 
   @IsOptional()
-  @IsEnum(CategoryStatusEnum, { message: 'Invalid status' })
-  status?: CategoryStatusEnum;
+  @IsIn(CATEGORY_STATUS_VALUES, { message: 'Invalid status' })
+  status?: CategoryStatus;
 
   @IsOptional()
   @IsUrl({}, { message: 'Image URL must be a valid URL' })
@@ -70,8 +71,8 @@ export class UpdateCategoryDto {
   description?: string;
 
   @IsOptional()
-  @IsEnum(CategoryStatusEnum, { message: 'Invalid status' })
-  status?: CategoryStatusEnum;
+  @IsIn(CATEGORY_STATUS_VALUES, { message: 'Invalid status' })
+  status?: CategoryStatus;
 
   @IsOptional()
   @IsUrl({}, { message: 'Image URL must be a valid URL' })

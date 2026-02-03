@@ -211,15 +211,20 @@ export class PostgresProductRepository extends DomainProductRepository {
   }
 
   async searchByText(text: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
-    const query = this._buildBaseQuery()
-      .andWhere(
-        '(LOWER(product.name) LIKE LOWER(:text) OR LOWER(product.description) LIKE LOWER(:text))',
-        { text: `%${text}%` }
-      );
+    const searchTerm = `%${text.toLowerCase()}%`;
 
-    const entities = await query.getMany();
+    if (languageCode === DEFAULT_LANGUAGE) {
+      const query = this._buildBaseQuery()
+        .andWhere(
+          '(LOWER(product.name) LIKE LOWER(:text) OR LOWER(product.description) LIKE LOWER(:text))',
+          { text: searchTerm }
+        );
 
-    return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode)));
+      const entities = await query.getMany();
+      return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode)));
+    }
+
+    return this._searchProductTranslate(text, languageCode);
   }
 
   async existsBySupplierAndName(supplierId: string, name: string): Promise<boolean> {
@@ -427,6 +432,48 @@ export class PostgresProductRepository extends DomainProductRepository {
         query.andWhere('product.tags @> :tags', { tags });
       }
     }
+  }
+
+  private async _searchProductTranslate(text: string, languageCode: LanguageCode): Promise<ProductDomainEntity[]> {
+    const searchTerm = `%${text.toLowerCase()}%`;
+
+    const translationQuery = this.repository
+      .createQueryBuilder('product')
+      .select('product.id')
+      .innerJoin(
+        'translations',
+        'translation',
+        'translation.entityId = product.id AND translation.entityType = :entityType AND translation.languageCode = :languageCode',
+        { entityType: 'product', languageCode }
+      )
+      .where('product.status = :status', { status: 'active' })
+      .andWhere('LOWER(translation.translationText) LIKE LOWER(:text)', { text: searchTerm })
+      .andWhere('translation.fieldName IN (:...fields)', { fields: ['name', 'description'] });
+
+    const productIds = (await translationQuery.getMany()).map(p => p.id);
+    if (productIds.length === 0) return [];
+
+    const productsQuery = this._buildBaseQuery().andWhere('product.id IN (:...ids)', { ids: productIds });
+
+    const entities = await productsQuery.getMany();
+
+    const translations = await this.translationService.getTranslationsForEntities(
+      productIds,
+      'product',
+      languageCode
+    );
+
+    const translateMap = new Map<string, Map<string, string>>();
+    translations.forEach(t => {
+      let fieldMap = translateMap.get(t.entityId);
+      if (!fieldMap) {
+        fieldMap = new Map<string, string>();
+        translateMap.set(t.entityId, fieldMap);
+      }
+      fieldMap.set(t.fieldName, t.translationText);
+    });
+
+    return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode, translateMap)));
   }
 
   private _prepareUpdateData(data: Partial<ProductDomainEntity>): Partial<ProductOrmEntity> {

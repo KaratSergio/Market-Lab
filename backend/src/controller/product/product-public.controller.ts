@@ -56,7 +56,19 @@ export class ProductPublicController {
     @Query('sortBy') sortBy?: 'price' | 'name' | 'createdAt' | 'stock',
     @Query('sortOrder') sortOrder?: 'ASC' | 'DESC'
   ) {
-    if (search) return this.productService.searchByText(search, locale);
+    if (search) {
+      const searchResults = await this.productService.searchByText(search, locale);
+
+      const jsonProducts = JSON.parse(JSON.stringify(searchResults));
+
+      return {
+        data: jsonProducts,
+        total: jsonProducts.length,
+        page: 1,
+        limit: jsonProducts.length,
+        totalPages: 1
+      };
+    }
     if (id) return this.productService.findByCategoryId(id, locale);
     if (page || limit) {
       const pageNum = parseInt(page || '1');

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 
 export const HomeBanner = () => {
   const [typedText, setTypedText] = useState('');
@@ -8,38 +9,41 @@ export const HomeBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [stats, setStats] = useState({ farmers: 0, products: 0, orders: 0 });
 
-  const fullText = 'Greenly - свіжі фермерські продукти з доставкою';
+  const t = useTranslations('Home');
+  const locale = useLocale();
+
+  const fullText = t('title');
 
   const features = [
     {
-      icon: '🥛',
-      title: 'Свіжі молочні продукти',
-      desc: 'Молоко, сир, масло, сметана прямо з ферми'
+      icon: t('features.0.icon'),
+      title: t('features.0.title'),
+      desc: t('features.0.desc')
     },
     {
-      icon: '🥩',
-      title: 'Натуральне м\'ясо',
-      desc: 'Яловичина, свинина, птиця без антибіотиків'
+      icon: t('features.1.icon'),
+      title: t('features.1.title'),
+      desc: t('features.1.desc')
     },
     {
-      icon: '🧀',
-      title: 'Домашні сири',
-      desc: 'Авторські сири від українських фермерів'
+      icon: t('features.2.icon'),
+      title: t('features.2.title'),
+      desc: t('features.2.desc')
     },
     {
-      icon: '🥬',
-      title: 'Органічні овочі',
-      desc: 'Сезонні овочі без пестицидів та ГМО'
+      icon: t('features.3.icon'),
+      title: t('features.3.title'),
+      desc: t('features.3.desc')
     },
     {
-      icon: '🍯',
-      title: 'Натуральний мед',
-      desc: 'Мед різних сортів від пасічників'
+      icon: t('features.4.icon'),
+      title: t('features.4.title'),
+      desc: t('features.4.desc')
     },
     {
-      icon: '🥚',
-      title: 'Домашні яйця',
-      desc: 'Яйця від курок вільного вигулу'
+      icon: t('features.5.icon'),
+      title: t('features.5.title'),
+      desc: t('features.5.desc')
     },
   ];
 
@@ -80,7 +84,7 @@ export const HomeBanner = () => {
       clearTimeout(statsTimer);
       clearInterval(featureInterval);
     };
-  }, []);
+  }, [fullText]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-50 via-amber-50 to-white flex items-center justify-center p-4 md:p-8">
@@ -109,17 +113,17 @@ export const HomeBanner = () => {
                   <h1 className="text-4xl font-bold bg-linear-to-r from-green-700 to-amber-600 bg-clip-text text-transparent">
                     Greenly
                   </h1>
-                  <p className="text-gray-600 font-medium">Маркетплейс фермерських продуктів</p>
+                  <p className="text-gray-600 font-medium">{t('tagline')}</p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-4">
                 <div className="hidden md:flex items-center space-x-2 text-sm text-green-700 font-medium">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>Доставка по всій Україні</span>
+                  <span>{t('delivery')}</span>
                 </div>
                 <div className="px-4 py-2 bg-linear-to-r from-green-100 to-amber-100 rounded-full text-green-800 font-medium border border-green-200">
-                  🇺🇦 Підтримуємо фермерів
+                  {t('supportFarmers')}
                 </div>
               </div>
             </div>
@@ -131,8 +135,7 @@ export const HomeBanner = () => {
                 <span className="inline-block w-1 h-12 bg-white ml-1 animate-pulse"></span>
               </div>
               <p className="text-xl text-gray-600 max-w-3xl">
-                Платформа для покупки свіжих фермерських продуктів без посередників.
-                Прямий зв'язок між фермерами та покупцями.
+                {t('subtitle')}
               </p>
             </div>
 
@@ -175,42 +178,42 @@ export const HomeBanner = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12 relative z-10">
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <div className="text-3xl font-bold text-green-600 mb-2">{stats.farmers}+</div>
-                <div className="text-gray-600">Фермерів приєдналось</div>
-                <div className="text-sm text-green-500 mt-2">З 24 областей України</div>
+                <div className="text-gray-600">{t('stats.farmers')}</div>
+                <div className="text-sm text-green-500 mt-2">{t('stats.fromRegions')}</div>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-amber-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <div className="text-3xl font-bold text-amber-600 mb-2">{stats.products}+</div>
-                <div className="text-gray-600">Найменувань продуктів</div>
-                <div className="text-sm text-amber-500 mt-2">Всі категорії</div>
+                <div className="text-gray-600">{t('stats.products')}</div>
+                <div className="text-sm text-amber-500 mt-2">{t('stats.allCategories')}</div>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 col-span-2 md:col-span-1">
                 <div className="text-3xl font-bold text-green-600 mb-2">{stats.orders}+</div>
-                <div className="text-gray-600">Успішних замовлень</div>
-                <div className="text-sm text-green-500 mt-2">Щодня зростає</div>
+                <div className="text-gray-600">{t('stats.orders')}</div>
+                <div className="text-sm text-green-500 mt-2">{t('stats.growing')}</div>
               </div>
             </div>
 
             {/* Three roles */}
             <div className="mb-12 relative z-10">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Три ключові ролі на платформі</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">{t('roles.title')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-linear-to-b from-green-50 to-white rounded-2xl p-6 border border-green-200 hover:shadow-xl transition-all duration-300">
                   <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl mb-4">
                     👨‍🌾
                   </div>
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">Фермер</h4>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">{t('roles.farmer.title')}</h4>
                   <ul className="text-gray-600 space-y-2">
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      Додавання продуктів
+                      {t('roles.farmer.features.0')}
                     </li>
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      Управління замовленнями
+                      {t('roles.farmer.features.1')}
                     </li>
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      Особистий кабінет
+                      {t('roles.farmer.features.2')}
                     </li>
                   </ul>
                 </div>
@@ -219,19 +222,19 @@ export const HomeBanner = () => {
                   <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-2xl mb-4">
                     🛒
                   </div>
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">Покупець</h4>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">{t('roles.buyer.title')}</h4>
                   <ul className="text-gray-600 space-y-2">
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                      Пошук фермерських продуктів
+                      {t('roles.buyer.features.0')}
                     </li>
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                      Оформлення замовлення
+                      {t('roles.buyer.features.1')}
                     </li>
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                      Відстеження доставки
+                      {t('roles.buyer.features.2')}
                     </li>
                   </ul>
                 </div>
@@ -240,19 +243,19 @@ export const HomeBanner = () => {
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl mb-4">
                     ⚙️
                   </div>
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">Адміністратор</h4>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">{t('roles.admin.title')}</h4>
                   <ul className="text-gray-600 space-y-2">
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                      Модерація контенту
+                      {t('roles.admin.features.0')}
                     </li>
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                      Управління користувачами
+                      {t('roles.admin.features.1')}
                     </li>
                     <li className="flex items-center">
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                      Аналітика платформи
+                      {t('roles.admin.features.2')}
                     </li>
                   </ul>
                 </div>
@@ -270,15 +273,15 @@ export const HomeBanner = () => {
                     🚀
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-800">Платформа в розробці</h3>
-                    <p className="text-gray-600">Ми активно працюємо над повним функціоналом</p>
+                    <h3 className="text-2xl font-bold text-gray-800">{t('development.title')}</h3>
+                    <p className="text-gray-600">{t('development.description')}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>Загальний прогрес</span>
+                      <span>{t('development.progress')}</span>
                       <span className="font-bold text-green-600">28%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -292,27 +295,27 @@ export const HomeBanner = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span>Карта фермерів - готова</span>
+                      <span>{t('development.features.0')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
                       <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
-                      <span>Авторизація - тестується</span>
+                      <span>{t('development.features.1')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
                       <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                      <span>Кошик та оплата - в розробці</span>
+                      <span>{t('development.features.2')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
                       <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                      <span>Кабінет постачальника - в розробці</span>
+                      <span>{t('development.features.3')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
                       <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                      <span>Кабінет Покупця - в розробці</span>
+                      <span>{t('development.features.4')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
                       <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                      <span>Адмін панель - в розробці</span>
+                      <span>{t('development.features.5')}</span>
                     </div>
                   </div>
                 </div>

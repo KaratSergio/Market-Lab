@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { SIZE_STYLES, COLORS, FARM_ICONS } from './constants'
+import { useTranslations } from 'next-intl';
 
 interface LogoProps {
   className?: string
@@ -23,6 +24,7 @@ export function Logo({
   iconIndex
 }: LogoProps) {
   const currentSize = SIZE_STYLES[size]
+  const t = useTranslations('Logo');
 
   // Select an icon: if iconIndex is passed, take it from the list, or the default one
   const selectedIcon = icon
@@ -127,10 +129,10 @@ export function Logo({
           <div className="flex items-center space-x-2 mt-1">
             <div className={`w-1.5 h-1.5 ${COLORS.pulseDot} rounded-full animate-pulse`}></div>
             <p className={`${currentSize.subtitle} text-gray-600 font-medium tracking-wider`}>
-              Свіжі фермерські продукти
+              {t('description')}
             </p>
             <div className={`${currentSize.badge} ${COLORS.ecoBadge} rounded-full font-medium`}>
-              🍃 ЕКО
+              🍃{t('text')}
             </div>
           </div>
         )}

@@ -8,6 +8,12 @@
   },
 
 
+  "Logo": { 
+    "description": "Farm fresh products", 
+    "text": "ECO" 
+  },
+
+
   "Cart": {
     "cart": "Cart"
   },
@@ -675,6 +681,99 @@
     "searchFilter": "Search: \"{query}\"",
     "categoryFilter": "Category: {category}",
     "sortFilter": "Sort: {sort}"
+  },
+
+
+  "Home": {
+    "title": "Greenly - fresh farm products with delivery",
+    "subtitle": "Platform for buying fresh farm products without intermediaries. Direct connection between farmers and buyers.",
+    "tagline": "Farm products marketplace",
+    "delivery": "Delivery across Ukraine",
+    "supportFarmers": "🇺🇦 Support farmers",
+    
+    "features": [
+      {
+        "icon": "🥛",
+        "title": "Fresh dairy products",
+        "desc": "Milk, cheese, butter, sour cream directly from the farm"
+      },
+      {
+        "icon": "🥩",
+        "title": "Natural meat",
+        "desc": "Beef, pork, poultry without antibiotics"
+      },
+      {
+        "icon": "🧀",
+        "title": "Homemade cheeses",
+        "desc": "Artisanal cheeses from Ukrainian farmers"
+      },
+      {
+        "icon": "🥬",
+        "title": "Organic vegetables",
+        "desc": "Seasonal vegetables without pesticides and GMO"
+      },
+      {
+        "icon": "🍯",
+        "title": "Natural honey",
+        "desc": "Various types of honey from beekeepers"
+      },
+      {
+        "icon": "🥚",
+        "title": "Farm eggs",
+        "desc": "Eggs from free-range chickens"
+      }
+    ],
+    
+    "stats": {
+      "farmers": "Farmers joined",
+      "products": "Product items",
+      "orders": "Successful orders",
+      "fromRegions": "From 24 regions of Ukraine",
+      "allCategories": "All categories",
+      "growing": "Growing daily"
+    },
+    
+    "roles": {
+      "title": "Three key roles on the platform",
+      "farmer": {
+        "title": "Farmer",
+        "features": [
+          "Adding products",
+          "Order management",
+          "Personal cabinet"
+        ]
+      },
+      "buyer": {
+        "title": "Buyer",
+        "features": [
+          "Search for farm products",
+          "Order placement",
+          "Delivery tracking"
+        ]
+      },
+      "admin": {
+        "title": "Administrator",
+        "features": [
+          "Content moderation",
+          "User management",
+          "Platform analytics"
+        ]
+      }
+    },
+    
+    "development": {
+      "title": "Platform under development",
+      "description": "We are actively working on full functionality",
+      "progress": "Overall progress",
+      "features": [
+        "Farmers map - ready",
+        "Authorization - testing",
+        "Cart and payment - in development",
+        "Supplier cabinet - in development",
+        "Buyer cabinet - in development",
+        "Admin panel - in development"
+      ]
+    }
   }
 
 

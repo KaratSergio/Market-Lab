@@ -37,9 +37,7 @@ export function ProductDetails({
   };
 
   const handleAddToCart = () => {
-    if (onAddToCart && hasStock) {
-      onAddToCart(quantity);
-    }
+    if (onAddToCart && hasStock) onAddToCart(quantity);
   };
 
   const formatPrice = (price: number) => {
@@ -50,11 +48,10 @@ export function ProductDetails({
     }).format(price);
   };
 
-
   return (
     <>
       {/* Back button */}
-      <div className="mb-6">
+      <div className="mb-4 mt-1 ml-2">
         <Link
           href={`/${locale}/products`}
           className="text-green-600 hover:text-green-700 hover:underline inline-flex items-center gap-2"
@@ -63,11 +60,11 @@ export function ProductDetails({
         </Link>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-8 mx-4">
         {/* Left Column - Images */}
         <div className="space-y-4">
           {/* Main Image */}
-          <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 aspect-square">
+          <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex h-[600px]">
             {images.length > 0 ? (
               <img
                 src={images[selectedImage]}
@@ -76,7 +73,7 @@ export function ProductDetails({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <span className="text-gray-400 text-6xl">📦</span>
+                <span className="text-gray-400 text-6xl">📷</span>
               </div>
             )}
 

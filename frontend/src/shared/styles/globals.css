@@ -25,7 +25,11 @@
 @layer base {
   body {
     background: var(--gradient-app);
-    min-height: 100vh;
+    /* min-height: 100vh; */
+  }
+
+  #__next, #root {
+    height: 100%;
   }
 }
 

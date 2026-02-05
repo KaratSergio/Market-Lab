@@ -1,5 +1,3 @@
-
-
 export function BannerLogo() {
   return (
     <div className="inline-flex items-center space-x-4 group cursor-pointer">

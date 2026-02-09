@@ -30,6 +30,8 @@
     "total": "Total",
     "emptyCart": "Cart is Empty",
     "proceedToCheckout": "Proceed to Checkout",
+    "freeDeliveryAchieved": "Free delivery unlocked!",
+    "freeDeliveryUnlocked": "Congratulations! You've unlocked free delivery",
     "benefits": {
       "title": "Shopping Benefits",
       "freshDelivery": "Fresh Delivery",

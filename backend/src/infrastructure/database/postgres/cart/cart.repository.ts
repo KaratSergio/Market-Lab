@@ -45,12 +45,11 @@ export class PostgresCartRepository extends DomainCartRepository {
       updatedAt: new Date()
     });
 
-    // If there are items, update them
-    if (data.items && data.items.length > 0) {
-      // Deleting old items
-      await this.cartItemRepository.delete({ cartId: id });
+    // Deleting old items
+    await this.cartItemRepository.delete({ cartId: id });
 
-      // Creating new items
+    // Creating new items
+    if (data.items && data.items.length > 0) {
       const cartItems = data.items.map(item =>
         this.cartItemRepository.create({
           cartId: id,

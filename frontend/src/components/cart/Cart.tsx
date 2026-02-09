@@ -1,19 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { X, Plus, Minus, ShoppingBag, Truck, Shield, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/core/store/authStore';
 
 import {
-  useCart,
-  useUpdateCartItem,
-  useRemoveFromCart,
-  useApplyDiscount,
-  useClearCart,
-  usePrepareCheckout,
-} from '@/core/hooks/useCart';
+  useCart, useUpdateCartItem,
+  useRemoveFromCart, useApplyDiscount,
+  useClearCart, usePrepareCheckout,
+} from '@/core/hooks';
 
 
 export default function Cart() {
@@ -96,9 +93,16 @@ export default function Cart() {
   const cartItems = cart?.items || [];
   const subtotal = cart?.totalAmount || 0;
   const discountAmount = cart?.discountAmount || 0;
-  const deliveryFee = 2.99;
-  const tax = (subtotal - discountAmount) * 0.08;
-  const total = subtotal - discountAmount + deliveryFee + tax;
+
+  const hasItems = cartItems.length > 0;
+  const deliveryFee = hasItems ? 2.99 : 0;
+  const taxableAmount = Math.max(0, subtotal - discountAmount);
+  const tax = hasItems ? taxableAmount * 0.08 : 0;
+  const total = taxableAmount + deliveryFee + tax;
+
+  const freeDeliveryThreshold = 50;
+  const remainingForFreeDelivery = Math.max(0, freeDeliveryThreshold - subtotal);
+  const progressPercentage = Math.min((subtotal / freeDeliveryThreshold) * 100, 100);
 
   const updateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) {
@@ -189,20 +193,31 @@ export default function Cart() {
               </div>
 
               {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>{t('freeDeliveryProgress', { amount: (50 - subtotal).toFixed(2) })}</span>
-                  <span className="font-bold text-green-600">
-                    ${subtotal.toFixed(2)} / $50
-                  </span>
+              {hasItems && (
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>
+                      {remainingForFreeDelivery > 0
+                        ? t('freeDeliveryProgress', { amount: remainingForFreeDelivery.toFixed(2) })
+                        : t('freeDeliveryAchieved')}
+                    </span>
+                    <span className="font-bold text-green-600">
+                      ${subtotal.toFixed(2)} / ${freeDeliveryThreshold}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-linear-to-r from-green-500 to-amber-500 h-3 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${progressPercentage}%` }}
+                    ></div>
+                  </div>
+                  {remainingForFreeDelivery <= 0 && (
+                    <p className="text-green-600 text-sm mt-2">
+                      🎉 {t('freeDeliveryUnlocked')}
+                    </p>
+                  )}
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-linear-to-r from-green-500 to-amber-500 h-3 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${Math.min((subtotal / 50) * 100, 100)}%` }}
-                  ></div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Cart Items List */}
@@ -309,7 +324,7 @@ export default function Cart() {
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('emptyCartTitle')}</h3>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">{t('emptyCartDescription')}</p>
                 <Link
-                  href={`/${locale}`}
+                  href={`/${locale}/products`}
                   className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-600 to-amber-500 text-white font-medium rounded-full hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                 >
                   <ShoppingBag size={20} />
@@ -379,7 +394,7 @@ export default function Cart() {
 
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
+                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 shrink-0">
                       <Truck size={20} />
                     </div>
                     <div>
@@ -389,7 +404,7 @@ export default function Cart() {
                   </div>
 
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 flex-shrink-0">
+                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                       <Shield size={20} />
                     </div>
                     <div>
@@ -430,22 +445,24 @@ export default function Cart() {
         </div>
 
         {/* Farmer Support Note */}
-        <div className="mt-8 bg-linear-to-r from-green-50 via-amber-50 to-green-50 rounded-3xl shadow-xl p-8 border border-green-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-linear-to-r from-green-500 to-amber-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
-                👨‍🌾
+        {hasItems && (
+          <div className="mt-8 bg-linear-to-r from-green-50 via-amber-50 to-green-50 rounded-3xl shadow-xl p-8 border border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-linear-to-r from-green-500 to-amber-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
+                  👨‍🌾
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">{t('farmerSupport.title')}</h3>
+                  <p className="text-gray-600">{t('farmerSupport.description')}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">{t('farmerSupport.title')}</h3>
-                <p className="text-gray-600">{t('farmerSupport.description')}</p>
+              <div className="text-green-700 font-bold text-lg">
+                ${(taxableAmount * 0.15).toFixed(2)} {t('farmerSupport.donated')}
               </div>
-            </div>
-            <div className="text-green-700 font-bold text-lg">
-              ${((subtotal - discountAmount) * 0.15).toFixed(2)} {t('farmerSupport.donated')}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

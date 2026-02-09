@@ -63,15 +63,12 @@ export class CartController {
     description: 'Cart retrieved successfully',
     type: CartResponseDtoSwagger,
   })
-  @ApiNotFoundResponse({
-    description: 'Cart not found for this user',
-  })
-  @ApiForbiddenResponse({
-    description: 'User is not a customer',
-  })
+  @ApiNotFoundResponse({ description: 'Cart not found for this user' })
+  @ApiForbiddenResponse({ description: 'User is not a customer' })
   async getCart(@Request() req: AuthRequest) {
     const userId = req.user.id;
-    return this.cartService.getOrCreateCart(userId);
+    const userRoles = req.user.roles;
+    return this.cartService.getOrCreateCart(userId, 'USD', userRoles);
   }
 
   /**
@@ -90,18 +87,15 @@ export class CartController {
     description: 'Item added to cart successfully',
     type: CartResponseDtoSwagger,
   })
-  @ApiBadRequestResponse({
-    description: 'Invalid item data or insufficient stock',
-  })
-  @ApiNotFoundResponse({
-    description: 'Product not found or not available',
-  })
+  @ApiBadRequestResponse({ description: 'Invalid item data or insufficient stock' })
+  @ApiNotFoundResponse({ description: 'Product not found or not available' })
   async addItem(
     @Request() req: AuthRequest,
     @Body() addItemDto: AddItemToCartDto
   ) {
     const userId = req.user.id;
-    return this.cartService.addItemToCart(userId, addItemDto);
+    const userRoles = req.user.roles;
+    return this.cartService.addItemToCart(userId, addItemDto, userRoles);
   }
 
   /**
@@ -125,19 +119,23 @@ export class CartController {
     description: 'Cart item updated successfully',
     type: CartResponseDtoSwagger,
   })
-  @ApiBadRequestResponse({
-    description: 'Invalid quantity or insufficient stock',
-  })
-  @ApiNotFoundResponse({
-    description: 'Item not found in cart',
-  })
+  @ApiBadRequestResponse({ description: 'Invalid quantity or insufficient stock' })
+  @ApiNotFoundResponse({ description: 'Item not found in cart' })
   async updateItem(
     @Request() req: AuthRequest,
     @Param('productId') productId: string,
     @Body() updateDto: UpdateCartItemDto,
   ) {
-    const cart = await this.cartService.getCartByUserId(req.user.id);
-    return this.cartService.updateItemQuantity(cart.id, productId, updateDto);
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    return this.cartService.updateItemQuantity(
+      cart.id,
+      productId,
+      updateDto,
+      userId,
+      userRoles
+    );
   }
 
   /**
@@ -157,18 +155,21 @@ export class CartController {
     description: 'Product ID (UUID format)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiNoContentResponse({
-    description: 'Item removed from cart successfully',
-  })
-  @ApiNotFoundResponse({
-    description: 'Item not found in cart',
-  })
+  @ApiNoContentResponse({ description: 'Item removed from cart successfully', })
+  @ApiNotFoundResponse({ description: 'Item not found in cart', })
   async removeItem(
     @Request() req: AuthRequest,
     @Param('productId') productId: string,
   ) {
-    const cart = await this.cartService.getCartByUserId(req.user.id);
-    return this.cartService.removeItemFromCart(cart.id, productId);
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    return this.cartService.removeItemFromCart(
+      cart.id,
+      productId,
+      userId,
+      userRoles
+    );
   }
 
   /**
@@ -194,8 +195,15 @@ export class CartController {
     @Request() req: AuthRequest,
     @Body() discountDto: ApplyDiscountDto,
   ) {
-    const cart = await this.cartService.getCartByUserId(req.user.id);
-    return this.cartService.applyDiscount(cart.id, discountDto);
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    return this.cartService.applyDiscount(
+      cart.id,
+      discountDto,
+      userId,
+      userRoles
+    );
   }
 
   /**
@@ -214,8 +222,14 @@ export class CartController {
     description: 'Cart cleared successfully',
   })
   async clearCart(@Request() req: AuthRequest) {
-    const cart = await this.cartService.getCartByUserId(req.user.id);
-    return this.cartService.clearCart(cart.id);
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    return this.cartService.clearCart(
+      cart.id,
+      userId,
+      userRoles
+    );
   }
 
   /**
@@ -237,8 +251,14 @@ export class CartController {
     description: 'Cart validation failed (e.g., out of stock items)',
   })
   async prepareCheckout(@Request() req: AuthRequest) {
-    const cart = await this.cartService.getCartByUserId(req.user.id);
-    return this.cartService.markCartAsPendingCheckout(cart.id);
+    const userId = req.user.id;
+    const userRoles = req.user.roles;
+    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    return this.cartService.markCartAsPendingCheckout(
+      cart.id,
+      userId,
+      userRoles
+    );
   }
 
   // ================= ADMIN ENDPOINTS =================
@@ -261,8 +281,11 @@ export class CartController {
   @ApiForbiddenResponse({
     description: 'User lacks admin permissions',
   })
-  async getExpiredCarts() {
-    return this.cartService.findExpiredCarts();
+  async getExpiredCarts(@Request() req: AuthRequest) {
+    return this.cartService.findExpiredCarts(
+      req.user.id,
+      req.user.roles
+    );
   }
 
   /**
@@ -281,8 +304,11 @@ export class CartController {
     description: 'Expired carts cleaned up successfully',
     type: SuccessResponseCartDtoSwagger,
   })
-  async cleanupExpiredCarts() {
-    return this.cartService.cleanupExpiredCarts();
+  async cleanupExpiredCarts(@Request() req: AuthRequest) {
+    return this.cartService.cleanupExpiredCarts(
+      req.user.id,
+      req.user.roles
+    );
   }
 
   // ================= SUPPLIER ENDPOINTS =================
@@ -306,6 +332,10 @@ export class CartController {
     description: 'User is not a supplier',
   })
   async getSupplierCartActivity(@Request() req: AuthRequest) {
-    return this.cartService.getSupplierCartStats(req.user.id);
+    return this.cartService.getSupplierCartStats(
+      req.user.id,
+      req.user.id,
+      req.user.roles
+    );
   }
 }

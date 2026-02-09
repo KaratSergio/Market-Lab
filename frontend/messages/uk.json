@@ -30,6 +30,8 @@
     "total": "Загалом",
     "emptyCart": "Кошик порожній",
     "proceedToCheckout": "Перейти до оформлення",
+    "freeDeliveryAchieved": "Безкоштовна доставка розблокована!",
+    "freeDeliveryUnlocked": "Вітаємо! Ви розблокували безкоштовну доставку",
     "benefits": {
       "title": "Переваги покупок",
       "freshDelivery": "Свіжа доставка",

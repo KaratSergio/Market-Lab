@@ -13,7 +13,7 @@ import {
 } from '@/core/schemas';
 
 import { getCustomerRegistrationDefaultValues } from '@/core/utils/form-defaults';
-import { customerStepFieldPaths } from '@/core/types/form-types';
+import { customerStepFieldPaths } from '@/core/types/formTypes';
 
 // step components
 import { PersonalInfoStep } from './steps/PersonalInfoStep';

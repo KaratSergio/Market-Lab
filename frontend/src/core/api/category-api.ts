@@ -1,45 +1,7 @@
 import { apiFetch } from '@/core/utils/api-utils';
 import { CATEGORY_ENDPOINTS } from '@/core/constants/api-config';
+import { Category, CategoryTreeNode, CreateCategoryDto, UpdateCategoryDto } from '../types';
 
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  parentId: string | null;
-  order: number;
-  status: 'active' | 'inactive' | 'archived';
-  imageUrl?: string;
-  children?: Category[];
-}
-
-export interface CategoryTreeNode extends Category {
-  children: CategoryTreeNode[];
-}
-
-export interface CreateCategoryDto {
-  name: string;
-  slug?: string;
-  description?: string;
-  parentId?: string | null;
-  order?: number;
-  status?: 'active' | 'inactive' | 'archived';
-  imageUrl?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-}
-
-export interface UpdateCategoryDto {
-  name?: string;
-  slug?: string;
-  description?: string;
-  parentId?: string | null;
-  order?: number;
-  status?: 'active' | 'inactive' | 'archived';
-  imageUrl?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-}
 
 export const categoryApi = {
   /**

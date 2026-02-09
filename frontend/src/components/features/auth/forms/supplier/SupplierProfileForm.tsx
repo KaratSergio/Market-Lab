@@ -14,7 +14,7 @@ import {
 } from '@/core/schemas/supplier-schemas';
 
 import { getSupplierRegistrationDefaultValues } from '@/core/utils/form-defaults';
-import { supplierStepFieldPaths } from '@/core/types/form-types';
+import { supplierStepFieldPaths } from '@/core/types/formTypes';
 
 // step components
 import { PersonalInfoStep } from './steps/PersonalInfoStep';

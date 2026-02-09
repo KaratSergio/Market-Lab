@@ -3,79 +3,132 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { X, Plus, Minus, ShoppingBag, Truck, Shield } from 'lucide-react';
+import { X, Plus, Minus, ShoppingBag, Truck, Shield, AlertCircle } from 'lucide-react';
+import { useAuthStore } from '@/core/store/authStore';
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  farmer: string;
-  category: string;
-  weight: string;
-}
+import {
+  useCart,
+  useUpdateCartItem,
+  useRemoveFromCart,
+  useApplyDiscount,
+  useClearCart,
+  usePrepareCheckout,
+} from '@/core/hooks/useCart';
+
 
 export default function Cart() {
   const locale = useLocale();
   const t = useTranslations('Cart');
+  const { isAuthenticated } = useAuthStore();
   const [isVisible, setIsVisible] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: '1',
-      name: 'Organic Tomatoes',
-      price: 4.99,
-      quantity: 2,
-      image: '🍅',
-      farmer: 'Green Valley Farm',
-      category: 'Vegetables',
-      weight: '1 kg'
-    },
-    {
-      id: '2',
-      name: 'Fresh Milk',
-      price: 3.49,
-      quantity: 1,
-      image: '🥛',
-      farmer: 'Happy Cows Dairy',
-      category: 'Dairy',
-      weight: '1 L'
-    },
-    {
-      id: '3',
-      name: 'Whole Grain Bread',
-      price: 2.99,
-      quantity: 3,
-      image: '🍞',
-      farmer: 'Artisan Bakery',
-      category: 'Bakery',
-      weight: '500g'
-    },
-  ]);
+  const [promoCode, setPromoCode] = useState('');
+
+  const { data: cart, isLoading, error } = useCart();
+  const updateItemMutation = useUpdateCartItem();
+  const removeItemMutation = useRemoveFromCart();
+  const applyDiscountMutation = useApplyDiscount();
+  const clearCartMutation = useClearCart();
+  const checkoutMutation = usePrepareCheckout();
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 2.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + deliveryFee + tax;
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-green-50 via-amber-50 to-white flex items-center justify-center p-4">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl p-8 max-w-md w-full text-center border border-green-100">
+          <div className="w-16 h-16 bg-linear-to-r from-amber-100 to-green-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">
+            🔒
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-3">
+            {t('authenticationRequired')}
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {t('pleaseLoginToViewCart')}
+          </p>
+          <Link
+            href={`/${locale}/login`}
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-600 to-amber-500 text-white font-medium rounded-full hover:shadow-lg transition-all duration-300"
+          >
+            <span>{t('login')}</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-  const updateQuantity = (id: string, newQuantity: number) => {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-green-50 via-amber-50 to-white flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('loadingCart')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-green-50 via-amber-50 to-white flex items-center justify-center p-4">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl p-8 max-w-md w-full text-center border border-green-100">
+          <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center text-3xl text-red-500 mx-auto mb-6">
+            <AlertCircle className="w-10 h-10" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-3">
+            {t('errorLoadingCart')}
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {error.message}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-600 to-amber-500 text-white font-medium rounded-full hover:shadow-lg transition-all duration-300"
+          >
+            <span>{t('retry')}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const cartItems = cart?.items || [];
+  const subtotal = cart?.totalAmount || 0;
+  const discountAmount = cart?.discountAmount || 0;
+  const deliveryFee = 2.99;
+  const tax = (subtotal - discountAmount) * 0.08;
+  const total = subtotal - discountAmount + deliveryFee + tax;
+
+  const updateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) {
-      removeItem(id);
+      removeItem(productId);
       return;
     }
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    updateItemMutation.mutate({ productId, quantity: newQuantity });
   };
 
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
+  const removeItem = (productId: string) => {
+    removeItemMutation.mutate(productId);
+  };
+
+  const applyPromoCode = () => {
+    if (promoCode.trim()) {
+      applyDiscountMutation.mutate({ code: promoCode });
+      setPromoCode('');
+    }
+  };
+
+  const handleClearCart = () => {
+    if (window.confirm(t('confirmClearCart'))) {
+      clearCartMutation.mutate();
+    }
+  };
+
+  const handleCheckout = () => {
+    checkoutMutation.mutate();
+    //! переходимо до оформлення заказу
+    // window.location.href = `/${locale}/checkout`;
   };
 
   return (
@@ -87,7 +140,7 @@ export default function Cart() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
-                href={`/${locale}`}
+                href={`/${locale}/products`}
                 className="flex items-center space-x-3 text-green-700 hover:text-green-800 transition-colors"
               >
                 <div className="w-10 h-10 bg-linear-to-r from-green-600 to-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg">
@@ -124,15 +177,21 @@ export default function Cart() {
                   </div>
                 </div>
 
-                <div className="px-4 py-2 bg-linear-to-r from-green-100 to-amber-100 rounded-full text-green-800 font-medium border border-green-200">
-                  {t('supportFarmers')}
-                </div>
+                {cartItems.length > 0 && (
+                  <button
+                    onClick={handleClearCart}
+                    disabled={clearCartMutation.isPending}
+                    className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {clearCartMutation.isPending ? t('clearing') : t('clearAll')}
+                  </button>
+                )}
               </div>
 
               {/* Progress Bar */}
               <div className="mb-4">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>{t('freeDeliveryProgress', { amount: 50 - subtotal })}</span>
+                  <span>{t('freeDeliveryProgress', { amount: (50 - subtotal).toFixed(2) })}</span>
                   <span className="font-bold text-green-600">
                     ${subtotal.toFixed(2)} / $50
                   </span>
@@ -150,18 +209,27 @@ export default function Cart() {
             <div className="space-y-4">
               {cartItems.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.productId}
                   className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-lg p-6 border border-green-100 hover:shadow-xl transition-all duration-300 group"
                 >
                   <div className="flex items-start space-x-6">
                     {/* Product Image */}
                     <div className="relative">
                       <div className="w-24 h-24 bg-linear-to-br from-green-100 to-amber-100 rounded-2xl flex items-center justify-center text-4xl shadow-md">
-                        {item.image}
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-full h-full object-cover rounded-2xl"
+                          />
+                        ) : (
+                          '🛍️'
+                        )}
                       </div>
                       <button
-                        onClick={() => removeItem(item.id)}
-                        className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"
+                        onClick={() => removeItem(item.productId)}
+                        disabled={removeItemMutation.isPending}
+                        className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110 disabled:opacity-50"
                       >
                         <X size={16} />
                       </button>
@@ -173,29 +241,43 @@ export default function Cart() {
                         <div>
                           <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
                           <div className="flex items-center space-x-3 mt-2">
-                            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full font-medium">
-                              {item.category}
-                            </span>
-                            <span className="text-gray-500 text-sm">{item.weight}</span>
+                            {item.category && (
+                              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full font-medium">
+                                {item.category}
+                              </span>
+                            )}
+                            {item.farmer && (
+                              <span className="text-gray-600 text-sm">
+                                {t('from')} {item.farmer}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="text-2xl font-bold text-green-700">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ${((item.price - item.discount) * item.quantity).toFixed(2)}
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between mt-4">
                         <div className="text-gray-600">
-                          <span className="text-sm">{t('from')} </span>
-                          <span className="font-medium text-green-700">{item.farmer}</span>
+                          <span className="text-sm">{t('price')}: </span>
+                          <span className="font-medium">
+                            ${(item.price - item.discount).toFixed(2)}
+                            {item.discount > 0 && (
+                              <span className="text-red-500 ml-2 line-through">
+                                ${item.price.toFixed(2)}
+                              </span>
+                            )}
+                          </span>
                         </div>
 
                         {/* Quantity Controls */}
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center space-x-2 bg-green-50 rounded-full p-1">
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-700 hover:bg-green-100 transition-colors shadow-sm"
+                              onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                              disabled={updateItemMutation.isPending}
+                              className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-700 hover:bg-green-100 transition-colors shadow-sm disabled:opacity-50"
                             >
                               <Minus size={16} />
                             </button>
@@ -203,14 +285,12 @@ export default function Cart() {
                               {item.quantity}
                             </span>
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-700 hover:bg-green-100 transition-colors shadow-sm"
+                              onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                              disabled={updateItemMutation.isPending || item.quantity >= item.maxQuantity}
+                              className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-700 hover:bg-green-100 transition-colors shadow-sm disabled:opacity-50"
                             >
                               <Plus size={16} />
                             </button>
-                          </div>
-                          <div className="text-gray-500">
-                            ${item.price.toFixed(2)} {t('each')}
                           </div>
                         </div>
                       </div>
@@ -252,6 +332,14 @@ export default function Cart() {
                     <span>{t('subtotal')}</span>
                     <span className="font-medium">${subtotal.toFixed(2)}</span>
                   </div>
+
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>{t('discount')}</span>
+                      <span className="font-medium">-${discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between text-gray-600">
                     <span>{t('delivery')}</span>
                     <span className="font-medium">${deliveryFee.toFixed(2)}</span>
@@ -273,13 +361,15 @@ export default function Cart() {
 
                 {/* Checkout Button */}
                 <button
-                  disabled={cartItems.length === 0}
-                  className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${cartItems.length === 0
+                  onClick={handleCheckout}
+                  disabled={cartItems.length === 0 || checkoutMutation.isPending}
+                  className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${cartItems.length === 0 || checkoutMutation.isPending
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : 'bg-linear-to-r from-green-600 to-amber-500 text-white hover:shadow-xl hover:-translate-y-0.5'
                     }`}
                 >
-                  {cartItems.length === 0 ? t('emptyCart') : t('proceedToCheckout')}
+                  {checkoutMutation.isPending ? t('preparing') :
+                    cartItems.length === 0 ? t('emptyCart') : t('proceedToCheckout')}
                 </button>
               </div>
 
@@ -316,13 +406,24 @@ export default function Cart() {
                 <div className="flex space-x-2">
                   <input
                     type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
                     placeholder={t('enterPromoCode')}
                     className="flex-1 px-4 py-3 border border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
-                  <button className="px-6 py-3 bg-linear-to-r from-green-500 to-green-600 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300">
-                    {t('apply')}
+                  <button
+                    onClick={applyPromoCode}
+                    disabled={applyDiscountMutation.isPending || !promoCode.trim()}
+                    className="px-6 py-3 bg-linear-to-r from-green-500 to-green-600 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                  >
+                    {applyDiscountMutation.isPending ? t('applying') : t('apply')}
                   </button>
                 </div>
+                {applyDiscountMutation.error && (
+                  <p className="text-red-500 text-sm mt-2">
+                    {applyDiscountMutation.error.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -341,55 +442,11 @@ export default function Cart() {
               </div>
             </div>
             <div className="text-green-700 font-bold text-lg">
-              ${(subtotal * 0.15).toFixed(2)} {t('farmerSupport.donated')}
+              ${((subtotal - discountAmount) * 0.15).toFixed(2)} {t('farmerSupport.donated')}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Background elements */}
-      <div className="hidden lg:block">
-        <div className="absolute top-1/4 left-8 animate-float">
-          <div className="w-8 h-8 bg-green-300 rounded-full opacity-40"></div>
-        </div>
-        <div className="absolute top-1/3 right-12 animate-float-delayed">
-          <div className="w-12 h-12 bg-amber-200 rounded-full opacity-30"></div>
-        </div>
-        <div className="absolute bottom-1/4 left-20 animate-float-slow">
-          <div className="w-6 h-6 bg-green-400 rounded-full opacity-50"></div>
-        </div>
-      </div>
-
-      {/* Global styles for animations */}
-      <style jsx global>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) translateX(0px); }
-          50% { transform: translateY(-15px) translateX(10px); }
-        }
-        
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-        
-        .animate-float-delayed {
-          animation: float-delayed 4s ease-in-out infinite;
-          animation-delay: 1s;
-        }
-        
-        .animate-float-slow {
-          animation: float-slow 5s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }

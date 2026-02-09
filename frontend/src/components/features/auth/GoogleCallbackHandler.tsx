@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/core/api/auth-api.ts';
 import { useAuthStore } from '@/core/store/authStore';
+import { useLocale } from 'next-intl';
 
 interface GoogleCallbackHandlerProps {
   code?: string;
@@ -13,36 +14,37 @@ interface GoogleCallbackHandlerProps {
 export function GoogleCallbackHandler({ code, error }: GoogleCallbackHandlerProps) {
   const router = useRouter();
   const { setAuth } = useAuthStore();
+  const locale = useLocale();
 
   useEffect(() => {
     const handleCallback = async () => {
       if (error) {
         console.error('Error from URL:', error);
-        router.push(`/login?error=${encodeURIComponent(error)}`);
+        router.push(`/${locale}/login?error=${encodeURIComponent(error)}`);
         return;
       }
 
       if (!code) {
         console.error('No code parameter received');
-        router.push('/login?error=no_code');
+        router.push(`/${locale}/login?error=no_code`);
         return;
       }
 
       try {
-        const result = await authApi.googleCallback(code);
+        const result = await authApi.googleCallback(code, locale);
         setAuth(result.user, result.access_token);
 
         if (!result.user.regComplete) {
-          router.push('/register/role');
+          router.push(`/${locale}/register/role`);
         } else {
           const role = result.user.roles[0];
 
           if (role === 'customer') {
-            router.push('/customer-dashboard');
+            router.push(`/${locale}/customer-dashboard`);
           } else if (role === 'supplier') {
-            router.push('/supplier-dashboard');
+            router.push(`/${locale}/supplier-dashboard`);
           } else {
-            router.push('/dashboard');
+            router.push(`/${locale}/login`);
           }
         }
 

@@ -8,9 +8,8 @@ import {
 import { UserRepository } from '@domain/users/user.repository';
 import { type OAuthAdapter } from '@domain/users/types/oauth.type';
 import { UserDomainEntity } from '@domain/users/user.entity';
-import { USER_STATUS, USER_ROLES } from '@domain/users/types';
+import { USER_STATUS, OAuthUser } from '@domain/users/types';
 import { GoogleAuthDto } from '../types';
-
 
 @Injectable()
 export class GoogleAuthService {
@@ -90,7 +89,7 @@ export class GoogleAuthService {
     };
   }
 
-  private async _findOrCreateGoogleUser(oauthUser: any): Promise<UserDomainEntity> {
+  private async _findOrCreateGoogleUser(oauthUser: OAuthUser): Promise<UserDomainEntity> {
     let user = await this.userRepository.findByGoogleId(oauthUser.id);
     if (!user) user = await this.userRepository.findByEmail(oauthUser.email);
 
@@ -99,7 +98,7 @@ export class GoogleAuthService {
         '', // ID
         oauthUser.email,
         null, // passwordHash
-        [USER_ROLES.CUSTOMER],
+        [], // user role user will choose later
         USER_STATUS.ACTIVE,
         oauthUser.verified_email,
         false, // regComplete

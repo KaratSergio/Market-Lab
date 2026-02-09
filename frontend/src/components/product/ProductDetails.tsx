@@ -4,6 +4,7 @@ import { usePublicProduct } from '@/core/hooks';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import Link from 'next/link';
+import { AddToCartButton } from '@/components/cart/AddToCartButton';
 
 interface ProductDetailsProps {
   productId: string;
@@ -20,25 +21,41 @@ export function ProductDetails({
   const t = useTranslations('Product');
   const tCommon = useTranslations('Common');
   const { data: product, isLoading } = usePublicProduct(productId);
-  const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  if (isLoading) return <p>Loading...</p>
-  if (!product) return <p>Product not found</p>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center text-3xl text-red-500 mx-auto mb-6">
+            ❌
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('productNotFound')}</h3>
+          <Link
+            href={`/${locale}/products`}
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-600 to-amber-500 text-white font-medium rounded-full hover:shadow-lg transition-all duration-300"
+          >
+            ← {t('backToCatalog')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const hasStock = product.stock > 0;
   const isLowStock = product.stock <= 10 && product.stock > 0;
   const images = product.images || [];
-
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity < 1) return;
-    if (newQuantity > product.stock) return;
-    setQuantity(newQuantity);
-  };
-
-  const handleAddToCart = () => {
-    if (onAddToCart && hasStock) onAddToCart(quantity);
-  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('uk-UA', {
@@ -54,9 +71,12 @@ export function ProductDetails({
       <div className="mb-4 mt-1 ml-2">
         <Link
           href={`/${locale}/products`}
-          className="text-green-600 hover:text-green-700 hover:underline inline-flex items-center gap-2"
+          className="flex items-center space-x-3 text-green-700 hover:text-green-800 transition-colors"
         >
-          ← {t('backToCatalog')}
+          <div className="w-10 h-10 bg-linear-to-r from-green-600 to-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+            ←
+          </div>
+          <span className="font-medium">{t('backToCatalog')}</span>
         </Link>
       </div>
 
@@ -119,9 +139,12 @@ export function ProductDetails({
         <div className="space-y-6">
           {/* Category */}
           <div>
-            {/* <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
-              {product.categoryId ? `${t('category')}: ${product.categoryId.slice(0, 8)}...` : t('noCategory')}
-            </span> */}
+            {/* Category badge with better styling */}
+            {/* {product.category && (
+              <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                {product.category.name}
+              </span>
+            )} */}
           </div>
 
           {/* Title and Description */}
@@ -134,14 +157,70 @@ export function ProductDetails({
             </p>
           </div>
 
+          {/* Farmer/Seller Info */}
+          {/* {product.supplier && (
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                  👨‍🌾
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">{t('soldBy')}</p>
+                  <p className="text-amber-700 font-semibold">{product.supplier.businessName}</p>
+                  <p className="text-sm text-gray-600 mt-1">{product.supplier.description}</p>
+                </div>
+              </div>
+            </div>
+          )} */}
+
           {/* Price and Stock */}
-          <div className="flex items-center justify-between bg-green-50 p-4 rounded-xl">
-            <div className="text-3xl font-bold text-green-600">
-              {formatPrice(product.price)}
+          <div className="bg-linear-to-r from-green-50 to-amber-50 p-6 rounded-2xl border border-green-100">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <div className="text-4xl font-bold text-green-600">
+                  {formatPrice(product.price)}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">
+                  {t('pricePerUnit')}
+                </div>
+              </div>
+
+              <div className={`text-lg font-medium ${hasStock ? 'text-green-700' : 'text-red-700'}`}>
+                {hasStock ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>{t('inStock')}: {product.stock}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span>{t('outOfStock')}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className={`text-lg font-medium ${hasStock ? 'text-green-700' : 'text-red-700'}`}>
-              {hasStock ? `${t('inStock')}: ${product.stock}` : t('outOfStock')}
-            </div>
+
+            {isLowStock && hasStock && (
+              <div className="mt-3 px-4 py-2 bg-yellow-100 border border-yellow-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <span className="text-yellow-700">⚠️</span>
+                  <span className="text-yellow-800 font-medium">{t('hurryUp')}</span>
+                  <span className="text-yellow-600 text-sm">- {t('onlyLeft', { count: product.stock })}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Add to Cart Button */}
+          <div className="pt-4">
+            <AddToCartButton
+              productId={product.id}
+              price={product.price}
+              name={product.name}
+              imageUrl={images[0]}
+              maxQuantity={Math.min(product.stock, 99)}
+              className="mt-2"
+            />
           </div>
 
           {/* Tags */}
@@ -152,7 +231,7 @@ export function ProductDetails({
                 {product.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-white border border-gray-200 text-gray-700 rounded-full text-sm"
+                    className="px-3 py-1 bg-white border border-green-200 text-green-700 rounded-full text-sm hover:bg-green-50 transition-colors"
                   >
                     {tag}
                   </span>
@@ -161,59 +240,61 @@ export function ProductDetails({
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="space-y-4">
-            {/* Quantity Selector and Add to Cart */}
-            {hasStock && (
-              <div className="flex gap-4 items-center">
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button
-                    onClick={() => handleQuantityChange(quantity - 1)}
-                    disabled={quantity <= 1}
-                    className="px-4 py-2 text-gray-600 disabled:opacity-50 hover:bg-gray-100 transition-colors"
-                  >
-                    -
-                  </button>
-                  <span className="px-4 py-2 font-medium min-w-10 text-center">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= product.stock}
-                    className="px-4 py-2 text-gray-600 disabled:opacity-50 hover:bg-gray-100 transition-colors"
-                  >
-                    +
-                  </button>
+          {/* Product Details */}
+          <div className="space-y-4 pt-4 border-t border-gray-200">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">{t('details')}</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-500">{t('weight')}</p>
+                  <p className="font-medium">1 кг</p>
                 </div>
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!hasStock}
-                >
-                  🛒 {tCommon('addToCart')}
-                </button>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-500">{t('organic')}</p>
+                  <p className="font-medium text-green-600">✅ {t('yes')}</p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-500">{t('deliveryTime')}</p>
+                  <p className="font-medium">1-2 {t('days')}</p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-500">{t('country')}</p>
+                  <p className="font-medium">🇺🇦 Україна</p>
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* Other Actions */}
+          <div className="flex gap-4 pt-4 border-t border-gray-200">
+            {onSave && (
+              <button
+                onClick={onSave}
+                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                💖 {t('save')}
+              </button>
             )}
 
-            {/* Other Actions */}
-            <div className="flex gap-4">
-              {onSave && (
-                <button
-                  onClick={onSave}
-                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                >
-                  💖 {t('save')}
-                </button>
-              )}
-              {!hasStock && (
-                <button
-                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors opacity-75 cursor-not-allowed"
-                  disabled
-                >
-                  🔔 {t('notifyWhenAvailable')}
-                </button>
-              )}
-            </div>
+            {!hasStock && (
+              <button
+                className="flex-1 px-6 py-3 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 hover:-translate-y-0.5"
+              >
+                🔔 {t('notifyWhenAvailable')}
+              </button>
+            )}
+
+            {/* Share button */}
+            <button
+              onClick={() => navigator.share?.({
+                title: product.name,
+                text: product.description,
+                url: window.location.href,
+              })}
+              className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+            >
+              📤 {t('share')}
+            </button>
           </div>
         </div>
       </div>

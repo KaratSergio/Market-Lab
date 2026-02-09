@@ -157,6 +157,24 @@ export const CATEGORY_ENDPOINTS = {
 } as const;
 
 /**
+ * Cart management API endpoints
+ */
+export const CART_ENDPOINTS = {
+  // Customer cart endpoints
+  GET_CART: `${API_PREFIX}/cart`,
+  ADD_ITEM: `${API_PREFIX}/cart/items`,
+  UPDATE_ITEM: (productId: string) => `${API_PREFIX}/cart/items/${productId}`,
+  REMOVE_ITEM: (productId: string) => `${API_PREFIX}/cart/items/${productId}`,
+  APPLY_DISCOUNT: `${API_PREFIX}/cart/apply-discount`,
+  CLEAR_CART: `${API_PREFIX}/cart/clear`,
+  CHECKOUT: `${API_PREFIX}/cart/checkout`,
+
+  SUPPLIER_STATS: `${API_PREFIX}/cart/supplier/activity`,
+  EXPIRED_CARTS: `${API_PREFIX}/cart/admin/expired`,
+  CLEANUP_CARTS: `${API_PREFIX}/cart/admin/cleanup`,
+} as const;
+
+/**
  * Builds complete URL for API requests
  * @param endpoint - API endpoint path
  * @returns Full URL string

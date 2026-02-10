@@ -17,6 +17,13 @@ interface AddToCartButtonProps {
   onAddToCart?: (data: { name: string; quantity: number; price: number }) => void;
 }
 
+interface NotificationData {
+  itemName: string;
+  quantity: number;
+  price: number;
+  imageUrl?: string;
+}
+
 export function AddToCartButton({
   productId,
   price,
@@ -30,6 +37,7 @@ export function AddToCartButton({
   const addToCartMutation = useAddToCart();
   const [quantity, setQuantity] = useState(1);
   const [showNotification, setShowNotification] = useState(false);
+  const [notificationData, setNotificationData] = useState<NotificationData | null>(null);
 
   const handleAddToCart = async () => {
     const itemData: AddItemToCartDto = {
@@ -42,25 +50,19 @@ export function AddToCartButton({
 
     try {
       await addToCartMutation.mutateAsync(itemData);
+      setNotificationData({ itemName: name, quantity, price, imageUrl });
+
       setShowNotification(true);
       if (onAddToCart) onAddToCart({ name, quantity, price });
+
       setQuantity(1);
     } catch (error) {
       console.error('Failed to add to cart:', error);
     }
   };
 
-  const increment = () => {
-    if (quantity < maxQuantity) {
-      setQuantity(quantity + 1);
-    }
-  };
-
-  const decrement = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
+  const increment = () => { if (quantity < maxQuantity) setQuantity(quantity + 1) };
+  const decrement = () => { if (quantity > 1) setQuantity(quantity - 1) };
 
   return (
     <>
@@ -122,13 +124,16 @@ export function AddToCartButton({
       </div>
 
       {/* Notification */}
-      {showNotification && (
+      {showNotification && notificationData && (
         <CartNotification
-          itemName={name}
-          quantity={quantity}
-          price={price}
-          imageUrl={imageUrl}
-          onClose={() => setShowNotification(false)}
+          itemName={notificationData.itemName}
+          quantity={notificationData.quantity}
+          price={notificationData.price}
+          imageUrl={notificationData.imageUrl}
+          onClose={() => {
+            setShowNotification(false);
+            setNotificationData(null);
+          }}
         />
       )}
     </>

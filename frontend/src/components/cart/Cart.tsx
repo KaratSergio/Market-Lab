@@ -100,7 +100,7 @@ export default function Cart() {
   const tax = hasItems ? taxableAmount * 0.08 : 0;
   const total = taxableAmount + deliveryFee + tax;
 
-  const freeDeliveryThreshold = 50;
+  const freeDeliveryThreshold = 1500;
   const remainingForFreeDelivery = Math.max(0, freeDeliveryThreshold - subtotal);
   const progressPercentage = Math.min((subtotal / freeDeliveryThreshold) * 100, 100);
 
@@ -202,7 +202,7 @@ export default function Cart() {
                         : t('freeDeliveryAchieved')}
                     </span>
                     <span className="font-bold text-green-600">
-                      ${subtotal.toFixed(2)} / ${freeDeliveryThreshold}
+                      ₴{subtotal.toFixed(2)} / ₴{freeDeliveryThreshold}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -269,7 +269,7 @@ export default function Cart() {
                           </div>
                         </div>
                         <div className="text-2xl font-bold text-green-700">
-                          ${((item.price - item.discount) * item.quantity).toFixed(2)}
+                          ₴{((item.price - item.discount) * item.quantity).toFixed(2)}
                         </div>
                       </div>
 
@@ -277,10 +277,10 @@ export default function Cart() {
                         <div className="text-gray-600">
                           <span className="text-sm">{t('price')}: </span>
                           <span className="font-medium">
-                            ${(item.price - item.discount).toFixed(2)}
+                            ₴{(item.price - item.discount).toFixed(2)}
                             {item.discount > 0 && (
                               <span className="text-red-500 ml-2 line-through">
-                                ${item.price.toFixed(2)}
+                                ₴{item.price.toFixed(2)}
                               </span>
                             )}
                           </span>
@@ -345,30 +345,30 @@ export default function Cart() {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-gray-600">
                     <span>{t('subtotal')}</span>
-                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">₴{subtotal.toFixed(2)}</span>
                   </div>
 
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>{t('discount')}</span>
-                      <span className="font-medium">-${discountAmount.toFixed(2)}</span>
+                      <span className="font-medium">-₴{discountAmount.toFixed(2)}</span>
                     </div>
                   )}
 
                   <div className="flex justify-between text-gray-600">
                     <span>{t('delivery')}</span>
-                    <span className="font-medium">${deliveryFee.toFixed(2)}</span>
+                    <span className="font-medium">₴{deliveryFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>{t('tax')}</span>
-                    <span className="font-medium">${tax.toFixed(2)}</span>
+                    <span className="font-medium">₴{tax.toFixed(2)}</span>
                   </div>
 
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-xl font-bold text-gray-800">
                       <span>{t('total')}</span>
                       <span className="bg-linear-to-r from-green-700 to-amber-600 bg-clip-text text-transparent">
-                        ${total.toFixed(2)}
+                        ₴{total.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -458,7 +458,7 @@ export default function Cart() {
                 </div>
               </div>
               <div className="text-green-700 font-bold text-lg">
-                ${(taxableAmount * 0.15).toFixed(2)} {t('farmerSupport.donated')}
+                ₴{(taxableAmount * 0.15).toFixed(2)} {t('farmerSupport.donated')}
               </div>
             </div>
           </div>

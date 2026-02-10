@@ -77,10 +77,10 @@ export function CartNotification({
             <h4 className="font-medium text-gray-800">{itemName}</h4>
             <div className="flex items-center space-x-4 mt-2">
               <span className="text-gray-600">
-                {quantity} × ${price.toFixed(2)}
+                {quantity} × ₴{price.toFixed(2)}
               </span>
               <span className="font-bold text-green-600">
-                ${(quantity * price).toFixed(2)}
+                ₴{(quantity * price).toFixed(2)}
               </span>
             </div>
           </div>
@@ -96,7 +96,8 @@ export function CartNotification({
           <Link
             href={`/${locale}/cart`}
             onClick={handleClose}
-            className="py-3 px-4 bg-linear-to-r from-green-600 to-amber-500 text-white rounded-xl font-medium text-center hover:shadow-lg transition-all duration-300"
+            className="py-3 px-4 bg-linear-to-r from-green-600 to-amber-500 text-white rounded-xl
+              font-medium flex items-center justify-center text-center hover:shadow-lg transition-all duration-300"
           >
             {t('viewCart')}
           </Link>

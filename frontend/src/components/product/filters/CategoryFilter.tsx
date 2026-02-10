@@ -1,4 +1,5 @@
 import { useCategoryTranslations } from '@/core/utils/i18n';
+import { FolderOpen } from 'lucide-react';
 
 interface CategoryFilterProps {
   value: string;
@@ -40,7 +41,7 @@ export function CategoryFilter({
           ))}
         </select>
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-          📂
+          <FolderOpen />
         </div>
       </div>
     </div>

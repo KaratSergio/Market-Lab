@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Funnel } from 'lucide-react';
 
 interface SortFilterProps {
   value: string;
@@ -34,7 +35,7 @@ export function SortFilter({ value, onChange, label }: SortFilterProps) {
           <option value="name-desc">{t('Catalog.sortNameDesc')}</option>
         </select>
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-          🔼
+          <Funnel />
         </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import { Search } from "lucide-react";
+
 interface SearchFilterProps {
   value: string;
   onChange: (value: string) => void;
@@ -24,7 +26,7 @@ export function SearchFilter({ value, onChange, placeholder, label }: SearchFilt
           className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-          🔍
+          <Search />
         </div>
       </div>
     </div>

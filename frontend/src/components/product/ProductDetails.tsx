@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import Link from 'next/link';
 import { AddToCartButton } from '@/components/cart/AddToCartButton';
+import { Share2 } from 'lucide-react';
 
 interface ProductDetailsProps {
   productId: string;
@@ -44,7 +45,7 @@ export function ProductDetails({
           <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('productNotFound')}</h3>
           <Link
             href={`/${locale}/products`}
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-600 to-amber-500 text-white font-medium rounded-full hover:shadow-lg transition-all duration-300"
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-200 to-amber-100 font-medium rounded-full hover:shadow-lg transition-all duration-300"
           >
             ← {t('backToCatalog')}
           </Link>
@@ -73,7 +74,7 @@ export function ProductDetails({
           href={`/${locale}/products`}
           className="flex items-center space-x-3 text-green-700 hover:text-green-800 transition-colors"
         >
-          <div className="w-10 h-10 bg-linear-to-r from-green-600 to-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+          <div className="w-10 h-10 bg-linear-to-r from-green-200 to-amber-100 rounded-xl flex items-center justify-center shadow-lg">
             ←
           </div>
           <span className="font-medium">{t('backToCatalog')}</span>
@@ -251,7 +252,7 @@ export function ProductDetails({
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-sm text-gray-500">{t('organic')}</p>
-                  <p className="font-medium text-green-600">✅ {t('yes')}</p>
+                  <p className="font-medium text-green-600">🌿 {t('yes')}</p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-sm text-gray-500">{t('deliveryTime')}</p>
@@ -293,7 +294,7 @@ export function ProductDetails({
               })}
               className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
             >
-              📤 {t('share')}
+              <Share2 /> {t('share')}
             </button>
           </div>
         </div>

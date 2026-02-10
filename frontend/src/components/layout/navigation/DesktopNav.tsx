@@ -29,7 +29,7 @@ export function DesktopNav() {
           href={`/${locale}/${item.path}`}
           className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(item.path)
             ? 'bg-green-100 text-green-700'
-            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+            : 'text-gray-700 hover:bg-green-100 hover:text-gray-900'
             }`}
         >
           {item.label}

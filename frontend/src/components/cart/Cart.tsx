@@ -147,7 +147,7 @@ export default function Cart() {
                 href={`/${locale}/products`}
                 className="flex items-center space-x-3 text-green-700 hover:text-green-800 transition-colors"
               >
-                <div className="w-10 h-10 bg-linear-to-r from-green-600 to-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                <div className="w-10 h-10 bg-linear-to-r from-green-200 to-amber-100 rounded-xl flex items-center justify-center shadow-lg">
                   ←
                 </div>
                 <span className="font-medium">{t('continueShopping')}</span>
@@ -170,7 +170,7 @@ export default function Cart() {
             <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl p-6 mb-6 border border-green-100">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 bg-linear-to-r from-green-600 to-amber-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
                     🛒
                   </div>
                   <div>

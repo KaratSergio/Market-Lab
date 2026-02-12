@@ -282,19 +282,19 @@ export const HomeBanner = () => {
                   <div>
                     <div className="flex justify-between text-sm text-gray-600 mb-2">
                       <span>{t('development.progress')}</span>
-                      <span className="font-bold text-green-600">28%</span>
+                      <span className="font-bold text-green-600">38%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
                       <div
                         className="bg-linear-to-r from-green-500 to-amber-500 h-3 rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: '28%' }}
+                        style={{ width: '38%' }}
                       ></div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
                       <span>{t('development.features.0')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
@@ -306,7 +306,7 @@ export const HomeBanner = () => {
                       <span>{t('development.features.2')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-                      <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-300 rounded-full"></div>
                       <span>{t('development.features.3')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
@@ -314,7 +314,7 @@ export const HomeBanner = () => {
                       <span>{t('development.features.4')}</span>
                     </div>
                     <div className="flex items-center space-x-2 p-3 bg-white rounded-lg">
-                      <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                      <div className="w-3 h-3 bg-amber-400 rounded-full"></div>
                       <span>{t('development.features.5')}</span>
                     </div>
                   </div>

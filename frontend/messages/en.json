@@ -791,13 +791,45 @@
       "description": "We are actively working on full functionality",
       "progress": "Overall progress",
       "features": [
-        "Farmers map - ready",
+        "Farmers map - in development",
         "Authorization - testing",
         "Cart and payment - in development",
-        "Supplier cabinet - in development",
+        "Supplier cabinet - ready",
         "Buyer cabinet - in development",
-        "Admin panel - in development"
+        "Admin panel - testing"
       ]
+    }
+  },
+  "Maps": {
+    "title": "Farmers Map",
+    "subtitle": "Interactive map coming soon",
+    "status": "Under development",
+    "hero": {
+      "title": "Interactive Farmers Map",
+      "description": "We're working on a convenient map where you can find farmers near you"
+    },
+    "map": {
+      "placeholder": "Map is preparing for launch",
+      "eta": "Estimated release: April 2026"
+    },
+    "features": [
+      {
+        "title": "Farmers nearby",
+        "desc": "Find local producers in your region"
+      },
+      {
+        "title": "Seasonal products",
+        "desc": "Track what's ripening right now in your area"
+      },
+      {
+        "title": "Delivery routes",
+        "desc": "Optimal paths from farm to your table"
+      }
+    ],
+    "cta": {
+      "title": "Want to be part of the map?",
+      "description": "Leave a request and we'll notify you when the map is ready",
+      "button": "Notify me"
     }
   }
 }

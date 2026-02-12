@@ -48,7 +48,7 @@ export async function seedProducts(dataSource: any) {
 
     // Get ALL categories (both parent and child)
     const categories = await dataSource.query(
-      `SELECT id, slug, "parentId" FROM categories ORDER BY "parentId" NULLS FIRST, "order"`
+      `SELECT id, slug, "parentId", name FROM categories ORDER BY "parentId" NULLS FIRST, "order"`
     );
 
     // Create maps for quick access
@@ -59,7 +59,8 @@ export async function seedProducts(dataSource: any) {
     for (const cat of categories) {
       allCategoryMap[cat.slug] = {
         id: cat.id,
-        parentId: cat.parentId
+        parentId: cat.parentId,
+        name: cat.name
       };
 
       if (!cat.parentId) {
@@ -102,7 +103,7 @@ export async function seedProducts(dataSource: any) {
           productsForSupplier.push(...products.map((p, index) => ({
             ...p,
             categorySlug,
-            englishData: productsEn[index]
+            englishData: productsEn[index] || {}
           })));
         } else {
           console.log(`   ⚠️  No products found for category: ${categorySlug}`);
@@ -123,7 +124,7 @@ export async function seedProducts(dataSource: any) {
             productsForSupplier.push(...additionalProducts.map((p, index) => ({
               ...p,
               categorySlug,
-              englishData: additionalProductsEn[index]
+              englishData: additionalProductsEn[index] || {}
             })));
           }
         }
@@ -149,6 +150,7 @@ export async function seedProducts(dataSource: any) {
 
           // Determine subcategory for product
           let subcategoryId = null;
+          let subcategoryName = '';
 
           if (product.categorySlug !== 'other') {
             let subcategorySlug = null;
@@ -160,6 +162,7 @@ export async function seedProducts(dataSource: any) {
             if (subcategorySlug) {
               const subcategory = categories.find(c => c.slug === subcategorySlug);
               subcategoryId = subcategory ? subcategory.id : null;
+              subcategoryName = subcategory ? subcategory.name : '';
             }
 
             if (!subcategoryId) {
@@ -167,13 +170,25 @@ export async function seedProducts(dataSource: any) {
               if (availableSubcategories && availableSubcategories.length > 0) {
                 const randomIndex = Math.floor(Math.random() * availableSubcategories.length);
                 subcategoryId = availableSubcategories[randomIndex].id;
+                subcategoryName = availableSubcategories[randomIndex].name;
               }
             }
           }
 
-          //  seed data description to shortDescription
-          const shortDescriptionUk = product.description || '';
-          const shortDescriptionEn = productEn.description || shortDescriptionUk;
+          const descriptionUk = product.description; // full description from seed
+          const shortDescriptionUk = product.shortDescription; // short description from seed
+
+          const descriptionEn = productEn.description; // English full description
+          const shortDescriptionEn = productEn.shortDescription; // English short description
+
+          // Generate smart tags for better search and filtering
+          const tags = generateProductTags({
+            productName: product.name,
+            categorySlug: product.categorySlug,
+            subcategoryName: subcategoryName,
+            supplierTheme: supplier.theme.name,
+            price: product.price
+          });
 
           const productResult = await dataSource.query(`
             INSERT INTO products (
@@ -187,21 +202,16 @@ export async function seedProducts(dataSource: any) {
             ) RETURNING id
           `, [
             product.name,
-            '', // description
-            shortDescriptionUk, // seed data description to shortDescription
+            descriptionUk,
+            shortDescriptionUk,
             product.price,
             supplier.id,
             categoryId,
             subcategoryId,
-            '[]',
+            JSON.stringify([]),      // empty images array
             Math.floor(Math.random() * 50) + 20,
             'active',
-            JSON.stringify([
-              product.categorySlug,
-              supplier.theme.name,
-              'фермерський',
-              ...(subcategoryId ? ['підкатегорія'] : [])
-            ]),
+            JSON.stringify(tags),
             new Date(),
             new Date()
           ]);
@@ -209,8 +219,8 @@ export async function seedProducts(dataSource: any) {
           const productId = productResult[0].id;
           createdCount++;
 
-          // Adding an English translation for the product
-          if (productEn.name || productEn.description) {
+          // Add English translations for all fields
+          if (productEn.name || productEn.description || productEn.shortDescription) {
             console.log(`   🌐 Adding English translations for product ${product.name}...`);
 
             const translationsData = [
@@ -220,6 +230,13 @@ export async function seedProducts(dataSource: any) {
                 languageCode: 'en',
                 fieldName: 'name',
                 translationText: productEn.name || product.name
+              },
+              {
+                entityId: productId,
+                entityType: 'product',
+                languageCode: 'en',
+                fieldName: 'description',
+                translationText: descriptionEn
               },
               {
                 entityId: productId,
@@ -259,14 +276,14 @@ export async function seedProducts(dataSource: any) {
           // Log with subcategory information
           let logMessage = `   [${i + 1}/22] ✅ ${product.name} - ${product.price} грн`;
           if (subcategoryId && product.categorySlug !== 'other') {
-            const availableSubcategories = subcategoryMap[product.categorySlug];
-            if (availableSubcategories) {
-              const subcat = availableSubcategories.find(sc => sc.id === subcategoryId);
-              if (subcat) {
-                logMessage += ` (subcat.: ${subcat.name})`;
-              }
+            if (subcategoryName) {
+              logMessage += ` (${subcategoryName})`;
             }
           }
+
+          // Log if descriptions exist
+          if (descriptionUk) logMessage += ` 📝`;
+          if (shortDescriptionUk) logMessage += ` 📋`;
           console.log(logMessage);
 
         } catch (error) {
@@ -302,16 +319,23 @@ export async function seedProducts(dataSource: any) {
 
     console.log(`📈 Average per supplier: ${(parseInt(productsCount[0].count) / suppliersWithIds.length).toFixed(1)}`);
 
-    console.log('\n📊 Products with shortDescription:');
-    const shortDescCount = await dataSource.query(
-      'SELECT COUNT(*) FROM products WHERE "shortDescription" IS NOT NULL AND "shortDescription" != $1',
-      ['']
-    );
-    console.log(`   ✅ Products with shortDescription: ${parseInt(shortDescCount[0].count)}/${parseInt(productsCount[0].count)}`);
+    // Detailed statistics
+    const descriptionStats = await dataSource.query(`
+      SELECT 
+        COUNT(*) as total,
+        COUNT(CASE WHEN "description" IS NOT NULL AND "description" != '' THEN 1 END) as with_description,
+        COUNT(CASE WHEN "shortDescription" IS NOT NULL AND "shortDescription" != '' THEN 1 END) as with_short_description
+      FROM products
+    `);
+
+    console.log('\n📊 Product descriptions:');
+    console.log(`   📝 Products with full description: ${parseInt(descriptionStats[0].with_description)}/${parseInt(descriptionStats[0].total)}`);
+    console.log(`   📋 Products with short description: ${parseInt(descriptionStats[0].with_short_description)}/${parseInt(descriptionStats[0].total)}`);
 
     return {
       totalProducts: parseInt(productsCount[0].count),
-      withShortDescription: parseInt(shortDescCount[0].count),
+      withDescription: parseInt(descriptionStats[0].with_description),
+      withShortDescription: parseInt(descriptionStats[0].with_short_description),
       translationsCount: parseInt(translationsCount[0].count),
       suppliersCount: suppliersWithIds.length,
       success: true
@@ -324,4 +348,128 @@ export async function seedProducts(dataSource: any) {
     }
     throw error;
   }
+}
+
+/**
+ * Generate smart product tags for better search and filtering
+ */
+function generateProductTags({
+  productName,
+  categorySlug,
+  subcategoryName,
+  supplierTheme,
+  price
+}) {
+  const tags = [];
+
+  // 1. Keywords from product name (important for search)
+  const nameWords = productName
+    .toLowerCase()
+    .split(' ')
+    .filter(word => word.length > 3)
+    .slice(0, 5);
+  tags.push(...nameWords);
+
+  // 2. Category and subcategory
+  tags.push(categorySlug);
+  if (subcategoryName) {
+    tags.push(subcategoryName.toLowerCase());
+  }
+
+  // 3. Supplier theme (but not as generic tag)
+  // We use theme name without adding extra generic tags
+
+  // 4. Category-specific tags (relevant for search)
+  switch (categorySlug) {
+    case 'vegetables':
+      tags.push('овочі', 'городина');
+      break;
+    case 'fruits':
+      tags.push('фрукти', 'ягоди');
+      break;
+    case 'dairy-products':
+      tags.push('молочні', 'сир', 'молоко', 'сметана');
+      break;
+    case 'meat-poultry':
+      tags.push('м\'ясо', 'птиця', 'ковбаса');
+      break;
+    case 'eggs':
+      tags.push('яйця');
+      break;
+    case 'honey-bee-products':
+      tags.push('мед', 'прополіс', 'бджолиний');
+      break;
+    case 'bread-bakery':
+      tags.push('хліб', 'випічка', 'булочки');
+      break;
+    case 'grains-cereals':
+      tags.push('крупи', 'зерно', 'борошно');
+      break;
+    case 'preserves':
+      tags.push('консервація', 'варення', 'соління');
+      break;
+    case 'drinks':
+      tags.push('напої', 'сік', 'квас', 'чай');
+      break;
+    case 'nuts-dried-fruits':
+      tags.push('горіхи', 'сухофрукти');
+      break;
+    case 'vegetable-oils':
+      tags.push('олія');
+      break;
+    case 'spices-herbs':
+      tags.push('спеції', 'приправи', 'трави');
+      break;
+    case 'farm-delicacies':
+      tags.push('делікатеси', 'домашні');
+      break;
+    case 'baby-food':
+      tags.push('дитяче', 'харчування');
+      break;
+  }
+
+  // 5. Price category
+  if (price < 50) {
+    tags.push('недорогі');
+  } else if (price >= 50 && price < 150) {
+    tags.push('середня-ціна');
+  } else {
+    tags.push('преміум');
+  }
+
+  // 6. Special product attributes (only if present in name)
+  if (productName.toLowerCase().includes('органічний') ||
+    productName.toLowerCase().includes('біо') ||
+    productName.toLowerCase().includes('еко')) {
+    tags.push('органічний');
+  }
+
+  if (productName.toLowerCase().includes('домашній') ||
+    productName.toLowerCase().includes('домашня') ||
+    productName.toLowerCase().includes('домашнє')) {
+    tags.push('домашній');
+  }
+
+  if (productName.toLowerCase().includes('копчений') ||
+    productName.toLowerCase().includes('копчена')) {
+    tags.push('копчений');
+  }
+
+  if (productName.toLowerCase().includes('маринований')) {
+    tags.push('маринований');
+  }
+
+  if (productName.toLowerCase().includes('сушений') ||
+    productName.toLowerCase().includes('сушена')) {
+    tags.push('сушений');
+  }
+
+  if (productName.toLowerCase().includes('свіжий') ||
+    productName.toLowerCase().includes('свіжа')) {
+    tags.push('свіжий');
+  }
+
+  // 7. Remove duplicates and limit to 15 tags
+  const uniqueTags = [...new Set(tags)];
+  return uniqueTags.slice(0, 15);
 }

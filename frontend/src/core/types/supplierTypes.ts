@@ -8,6 +8,14 @@ export const SUPPLIER_STATUS = {
 } as const;
 
 export type SupplierStatus = typeof SUPPLIER_STATUS[keyof typeof SUPPLIER_STATUS];
+type Translations = Record<string, Record<string, string>>;
+
+interface TranslationFields {
+  companyName?: string;
+  description?: string;
+  firstName?: string;
+  lastName?: string;
+}
 
 export interface Address {
   id: string;
@@ -41,7 +49,11 @@ export interface Supplier {
   // Address information
   primaryAddress: Address;
   addresses: Address[];
+  address: Address;
 
+  products: [];
+
+  translations?: Record<string, TranslationFields>;
   // Timestamps
   createdAt: string;
   updatedAt: string;

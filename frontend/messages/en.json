@@ -896,5 +896,68 @@
       "roadmap": "Roadmap",
       "contact": "Contact us"
     }
+  },
+  "Sellers": {
+    "title": "Our Suppliers",
+    "subtitle": "Real farmers and producers you can trust",
+    "stats": {
+      "active": "Active Suppliers",
+      "cities": "Cities in Ukraine",
+      "organic": "Natural Products",
+      "support": "Support"
+    },
+    "search": {
+      "placeholder": "Search by name or city..."
+    },
+    "filters": {
+      "allCities": "All cities",
+      "live": "Updates in real time"
+    },
+    "viewProfile": "View profile",
+    "noResults": {
+      "title": "Nothing found",
+      "description": "Try changing your search criteria"
+    },
+    "error": {
+      "title": "Loading error",
+      "description": "Failed to load suppliers list. Please try again later."
+    }
+  },
+  "SellerDetail": {
+    "back": "Back to list",
+    "reviews": "reviews",
+    "active": "Active",
+    "contact": "Contact",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "workingHours": "Working hours",
+    "tabs": {
+      "products": "Products",
+      "about": "About supplier",
+      "reviews": "Reviews"
+    },
+    "certificates": "Certificates & awards",
+    "products": {
+      "noProducts": "No products",
+      "noProductsDescription": "This supplier doesn't have active products yet",
+      "stock": "pcs",
+      "lowStock": "Low",
+      "outOfStock": "Out of stock"
+    },
+    "reviewsSection": {
+      "daysAgo": "days ago",
+      "reviewText": "Very satisfied with the quality of products! Fresh vegetables and fruits, pleasant service. I will definitely order again!"
+    },
+    "certificatesList": {
+      "organic": "🌱 Organic certified",
+      "quality": "📄 Quality guarantee",
+      "family": "🏆 Family farm"
+    },
+    "notFound": {
+      "title": "Supplier not found",
+      "description": "It may have been deleted or is no longer active",
+      "goBack": "Go back"
+    }
   }
 }

@@ -1,29 +1,13 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { TranslationService } from '@domain/translations/translation.service';
-
 import { SupplierRepository } from '../supplier.repository';
-import { UserRepository } from '@domain/users/user.repository';
-import { AddressService } from '@domain/addresses/address.service';
-import { SupplierCoreService } from './supplier-core.service';
-
 
 @Injectable()
-export class SupplierDocumentsService extends SupplierCoreService {
+export class SupplierDocumentsService {
   constructor(
     @Inject('SupplierRepository')
-    supplierRepository: SupplierRepository,
-
-    @Inject('UserRepository')
-    userRepository: UserRepository,
-
-    addressService: AddressService,
-
-    @Inject(TranslationService)
-    translationService: TranslationService,
-  ) {
-    super(supplierRepository, userRepository, addressService, translationService);
-  }
+    private readonly supplierRepository: SupplierRepository,
+  ) { }
 
   async uploadDocuments(
     id: string,

@@ -3,22 +3,19 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { SupplierDomainEntity } from '../supplier.entity';
 import { SupplierRepository } from '../supplier.repository';
 
-import { UserRepository } from '@domain/users/user.repository';
+import { UserService } from '@auth/services/user.service';
 import { AddressService } from '@domain/addresses/address.service';
-import { AddressResponseDto } from '@domain/addresses/types/address.dto';
+import { TranslationService } from '@domain/translations/translation.service';
+import { ProductService } from '@domain/products/services';
 
 import {
-  CreateSupplierDto,
-  UpdateSupplierDto,
-  SupplierProfileDto,
-  SupplierPublicDto,
-  SupplierStatus
+  CreateSupplierDto, UpdateSupplierDto,
+  SupplierProfileDto, SupplierPublicDto, SupplierStatus
 } from '../types';
 
-import { TranslationService } from '@domain/translations/translation.service';
+import { AddressResponseDto } from '@domain/addresses/types/address.dto';
 import { LanguageCode, DEFAULT_LANGUAGE } from '@domain/translations/types';
 import { Role } from '@shared/types';
-import { AddressModel } from '@domain/addresses/types/address.type';
 
 
 @Injectable()
@@ -27,13 +24,10 @@ export class SupplierCoreService {
     @Inject('SupplierRepository')
     protected readonly supplierRepository: SupplierRepository,
 
-    @Inject('UserRepository')
-    protected readonly userRepository: UserRepository,
-
     protected readonly addressService: AddressService,
-
-    @Inject(TranslationService)
     private readonly translationService: TranslationService,
+    private readonly userService?: UserService,
+    private readonly productService?: ProductService,
   ) { }
 
   async create(createDto: CreateSupplierDto): Promise<SupplierDomainEntity> {
@@ -89,9 +83,7 @@ export class SupplierCoreService {
         languageCode
       );
 
-      if (translations.length > 0) {
-        return this._applyTranslationsToSupplier(supplier, translations);
-      }
+      if (translations.length > 0) return this._applyTranslationsToSupplier(supplier, translations);
     }
 
     return supplier;
@@ -99,7 +91,7 @@ export class SupplierCoreService {
 
   async findByUserId(userId: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<SupplierProfileDto> {
     const supplier = await this.supplierRepository.findByUserId(userId);
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userService?.findById(userId);
     if (!supplier || !user) throw new NotFoundException('Supplier not found');
 
     let translations: any[] = [];
@@ -150,9 +142,7 @@ export class SupplierCoreService {
 
     if (updateDto.registrationNumber && updateDto.registrationNumber !== supplier.registrationNumber) {
       const existing = await this.supplierRepository.findByRegistrationNumber(updateDto.registrationNumber);
-      if (existing) {
-        throw new ConflictException('Supplier with this registration number already exists');
-      }
+      if (existing) throw new ConflictException('Supplier with this registration number already exists');
     }
 
     supplier.update(updateDto);
@@ -211,7 +201,19 @@ export class SupplierCoreService {
       translationMap = this._createTranslationMap(translations);
     }
 
-    const user = await this.userRepository.findById(supplier.userId);
+    const productsResult = await this.productService?.getPaginated(
+      1, // page
+      50, // limit
+      languageCode,
+      {
+        supplierId: supplierId,
+        status: 'active'
+      },
+      'createdAt',
+      'DESC'
+    );
+
+    const user = await this.userService?.findById(supplier.userId);
     const primaryAddress = await this.addressService.getPrimaryAddress(supplierId, Role.SUPPLIER);
 
     const allTranslations = await this.translationService.getEntityTranslations(supplierId, Role.SUPPLIER);
@@ -228,6 +230,17 @@ export class SupplierCoreService {
         city: primaryAddress.city,
         fullAddress: primaryAddress.fullAddress,
       } : undefined,
+      products: productsResult?.data?.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        unit: product.unit,
+        // categoryId: product.categoryId,
+        images: product.images,
+        createdAt: product.createdAt,
+      })),
       translations: translationsByLanguage
     };
   }

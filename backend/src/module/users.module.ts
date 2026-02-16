@@ -1,14 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// Database infrastructure
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
 import { PostgresUserRepository } from '@infrastructure/database/postgres/users/user.repository';
 
+import { UserService } from '@auth/services/user.service';
+import { EncryptModule } from '@auth/encrypt/encrypt.module';
+
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserOrmEntity])],
+  imports: [
+    EncryptModule,
+    TypeOrmModule.forFeature([UserOrmEntity])
+  ],
   providers: [
+    UserService,
     PostgresUserRepository,
     {
       provide: 'UserRepository',
@@ -16,6 +22,7 @@ import { PostgresUserRepository } from '@infrastructure/database/postgres/users/
     },
   ],
   exports: [
+    UserService,
     'UserRepository',
     PostgresUserRepository,
   ],

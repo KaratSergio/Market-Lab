@@ -122,6 +122,17 @@ export interface SupplierProfileDto extends Omit<SupplierModel, 'translations'>,
   translations?: Record<LanguageCode, Partial<Record<TranslatableSupplierFields, string>>>;
 }
 
+export class SupplierPublicProductDto {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  stock: number;
+  unit: string;
+  images?: string[];
+  createdAt: Date;
+}
+
 export interface SupplierPublicDto {
   id: string;
   companyName: string;
@@ -133,5 +144,6 @@ export interface SupplierPublicDto {
     city: string;
     fullAddress: string;
   };
+  products?: SupplierPublicProductDto[];
   translations?: Record<LanguageCode, Partial<Record<TranslatableSupplierFields, string>>>;
 }

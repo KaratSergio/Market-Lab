@@ -3,34 +3,17 @@ import { Role, Permission } from '@shared/types';
 import { SupplierStatus } from '../types';
 import { SupplierDomainEntity } from '../supplier.entity';
 import { SupplierRepository } from '../supplier.repository';
-
-import { UserRepository } from '@domain/users/user.repository';
-import { AddressService } from '@domain/addresses/address.service';
-import { TranslationService } from '@domain/translations/translation.service';
 import { LanguageCode, DEFAULT_LANGUAGE } from '@domain/translations/types';
-
-import { SupplierCoreService } from './supplier-core.service';
 import { SupplierAccessService } from './supplier-access.service';
 
 
 @Injectable()
-export class SupplierAdminService extends SupplierCoreService {
+export class SupplierAdminService {
   constructor(
     @Inject('SupplierRepository')
-    supplierRepository: SupplierRepository,
-
-    @Inject('UserRepository')
-    userRepository: UserRepository,
-
-    addressService: AddressService,
-
-    @Inject(TranslationService)
-    translationService: TranslationService,
-
+    private readonly supplierRepository: SupplierRepository,
     private readonly accessService: SupplierAccessService,
-  ) {
-    super(supplierRepository, userRepository, addressService, translationService);
-  }
+  ) { }
 
   async searchSuppliers(
     filter: {

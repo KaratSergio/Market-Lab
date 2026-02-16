@@ -13,7 +13,7 @@ export class UserDomainEntity implements UserModel {
     public status: UserStatus = USER_STATUS.ACTIVE,
     public emailVerified: boolean = false,
     public regComplete: boolean = false,
-    public readonly googleId?: string,
+    public googleId?: string,
     public lastLoginAt?: Date,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()

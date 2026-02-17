@@ -1,16 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 
 export default function LanguageSwitcher() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = useLocale();
 
   const newLocale = locale === 'uk' ? 'en' : 'uk';
   const pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
-  const newPath = `/${newLocale}${pathWithoutLocale}`;
+
+  const supplierId = searchParams.get('supplierId');
+  const queryString = supplierId ? `?supplierId=${supplierId}` : '';
+
+  const newPath = `/${newLocale}${pathWithoutLocale}${queryString}`;
 
   const flagEmojis = {
     uk: '🇺🇦',

@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useSupplierPublic } from '@/core/hooks';
 import { Product } from '@/core/types';
+import { BackButton } from '../ui/button/BackButton';
 
 export function SellerDetail({ supplierId }: { supplierId: string }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -83,21 +84,14 @@ export function SellerDetail({ supplierId }: { supplierId: string }) {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-200 rounded-full translate-y-48 -translate-x-48 opacity-20"></div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 relative">
-        <button
-          onClick={() => router.back()}
-          className="mb-6 flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors group"
-        >
-          <div className="w-10 h-10 bg-linear-to-r from-green-200 to-amber-100 rounded-xl flex items-center justify-center shadow-lg">
-            ←
-          </div>
-          <span>{t('back')}</span>
-        </button>
 
         {/* Card */}
-        <div className={`bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-green-100 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+        <div className={`bg-white/90 backdrop-blur-xl  rounded-3xl shadow-2xl overflow-hidden ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
 
           {/* header */}
           <div className="h-32 bg-linear-to-r from-green-500 to-amber-500 relative">
+            <BackButton classText="text-green-300" classIcon='shadow-lg hover:shadow-xl mr-2' text={t('back')} />
+
             <div className="absolute -bottom-16 left-8">
               <div className="w-32 h-32 bg-white rounded-2xl shadow-xl flex items-center justify-center text-5xl border-4 border-white">
                 {supplier.companyName?.charAt(0)}
@@ -214,7 +208,7 @@ export function SellerDetail({ supplierId }: { supplierId: string }) {
                         <div
                           key={product.id}
                           className="bg-white rounded-xl p-4 border border-green-100 hover:shadow-lg transition-all group cursor-pointer"
-                          onClick={() => router.push(`/${locale}/products/${product.id}`)}
+                          onClick={() => router.push(`/${locale}/products/${product.id}?supplierId=${supplierId}`)}
                         >
                           <div className="relative mb-3">
                             <div className="aspect-square bg-linear-to-br from-green-100 to-amber-100 rounded-lg flex items-center justify-center text-4xl group-hover:scale-105 transition-transform overflow-hidden">

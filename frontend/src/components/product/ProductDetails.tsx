@@ -6,6 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { AddToCartButton } from '@/components/cart/AddToCartButton';
 import { Share2 } from 'lucide-react';
+import { BackButton } from '../ui/button/BackButton';
 
 interface ProductDetailsProps {
   productId: string;
@@ -43,12 +44,7 @@ export function ProductDetails({
             ❌
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('productNotFound')}</h3>
-          <Link
-            href={`/${locale}/products`}
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-200 to-amber-100 font-medium rounded-full hover:shadow-lg transition-all duration-300"
-          >
-            ← {t('backToCatalog')}
-          </Link>
+          <BackButton text={t('backToCatalog')} />
         </div>
       </div>
     );
@@ -68,18 +64,7 @@ export function ProductDetails({
 
   return (
     <>
-      {/* Back button */}
-      <div className="mb-4 mt-1 ml-2">
-        <Link
-          href={`/${locale}/products`}
-          className="flex items-center space-x-3 text-green-700 hover:text-green-800 transition-colors"
-        >
-          <div className="w-10 h-10 bg-linear-to-r from-green-200 to-amber-100 rounded-xl flex items-center justify-center shadow-lg">
-            ←
-          </div>
-          <span className="font-medium">{t('backToCatalog')}</span>
-        </Link>
-      </div>
+      <BackButton className='ml-4' classIcon='mr-0' text={t('backToCatalog')} />
 
       <div className="grid md:grid-cols-2 gap-8 mx-4">
         {/* Left Column - Images */}

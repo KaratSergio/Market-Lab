@@ -3,18 +3,13 @@
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useCart } from '@/core/hooks/useCart';
-import { useAuthStore } from '@/core/store/authStore';
 import { ShoppingCart } from 'lucide-react';
 
 
 export function CartIcon() {
   const locale = useLocale();
   const t = useTranslations();
-  const { isAuthenticated } = useAuthStore();
-
-  const { data: cart } = useCart();
-
-  const cartItemsCount = isAuthenticated ? cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0 : 0;
+  const { itemsCount } = useCart();
 
   return (
     <Link
@@ -26,9 +21,9 @@ export function CartIcon() {
       <span className="hidden md:inline text-sm font-medium">
         {t('Cart.cart')}
       </span>
-      {cartItemsCount > 0 && (
+      {itemsCount > 0 && (
         <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-          {cartItemsCount > 99 ? '99+' : cartItemsCount}
+          {itemsCount > 99 ? '99+' : itemsCount}
         </span>
       )}
     </Link>

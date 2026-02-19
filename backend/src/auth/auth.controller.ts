@@ -632,6 +632,7 @@ export class AuthController {
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      domain: isProduction ? '.onrender.com' : undefined
     });
   }
 

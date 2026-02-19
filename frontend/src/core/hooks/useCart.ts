@@ -21,13 +21,18 @@ export const cartKeys = {
 export const useCart = () => {
   const { token, isAuthenticated } = useAuthStore();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: cartKeys.details(),
     queryFn: () => cartApi.getCart(token!),
     enabled: !!token && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
+
+  return {
+    ...query,
+    itemsCount: query.data?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
+  }
 };
 
 /**

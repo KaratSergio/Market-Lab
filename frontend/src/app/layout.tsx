@@ -13,7 +13,7 @@ export default function GlobalRootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uk" className="h-full">
+    <html lang="uk" className="">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>

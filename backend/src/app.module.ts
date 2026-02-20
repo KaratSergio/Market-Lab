@@ -31,6 +31,10 @@ import { OrderOrmEntity } from '@infrastructure/database/postgres/order/order.en
 import { OrderItemOrmEntity } from '@infrastructure/database/postgres/order/order-item.entity';
 import { PaymentOrmEntity } from '@infrastructure/database/postgres/payment/payment.entity';
 
+// Health Check
+import { HealthController } from '@controller/health.controller';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -63,6 +67,7 @@ import { PaymentOrmEntity } from '@infrastructure/database/postgres/payment/paym
       PaymentOrmEntity
     ]),
   ],
+  controllers: [HealthController],
   providers: [SuperAdminInitService],
 })
 export class AppModule implements OnModuleInit {

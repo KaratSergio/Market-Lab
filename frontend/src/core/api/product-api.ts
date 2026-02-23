@@ -38,6 +38,7 @@ export const productApi = {
     if (params?.status) searchParams.append('status', params.status);
     if (params?.sortBy) searchParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder);
+    if (params?.stock) searchParams.append('stock', params.stock);
 
     const url = params ?
       `${PRODUCT_ENDPOINTS.GET_ALL_PUBLIC}?${searchParams.toString()}` :

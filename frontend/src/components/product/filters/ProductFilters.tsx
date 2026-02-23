@@ -26,6 +26,8 @@ interface ProductFiltersProps {
   onSortChange: (sortValue: string) => void;
   onToggleAdvanced: () => void;
   onClearFilters: () => void;
+  onStockFilter: (filter: string) => void;
+  stockFilter: string;
 }
 
 export function ProductFilters({
@@ -41,10 +43,12 @@ export function ProductFilters({
   onSortChange,
   onToggleAdvanced,
   onClearFilters,
+  onStockFilter,
+  stockFilter,
 }: CatalogFiltersProps) {
   const t = useTranslations();
 
-  const hasActiveFilters = searchInput || category || sort !== 'newest';
+  const hasActiveFilters = searchInput || category || sort !== 'newest' || stockFilter !== 'all';
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -88,7 +92,11 @@ export function ProductFilters({
       </div>
 
       {isAdvancedOpen && (
-        <AdvancedFilters stats={stats} />
+        <AdvancedFilters
+          stats={stats}
+          stockFilter={stockFilter}
+          onStockFilter={onStockFilter}
+        />
       )}
     </div>
   );

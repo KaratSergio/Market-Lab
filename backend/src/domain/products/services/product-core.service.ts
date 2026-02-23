@@ -50,7 +50,8 @@ export class ProductCoreService {
     languageCode: LanguageCode = DEFAULT_LANGUAGE,
     filter?: Partial<ProductDomainEntity>,
     sortBy?: keyof ProductDomainEntity,
-    sortOrder?: 'ASC' | 'DESC'
+    sortOrder?: 'ASC' | 'DESC',
+    stock?: 'in-stock' | 'low-stock' | 'out-of-stock'
   ): Promise<{
     data: ProductDomainEntity[];
     total: number;
@@ -64,7 +65,8 @@ export class ProductCoreService {
       filter,
       languageCode,
       sortBy,
-      sortOrder
+      sortOrder,
+      stock
     );
   }
 

@@ -9,16 +9,12 @@ interface AdvancedFiltersProps {
     lowStock: number;
     outOfStock: number;
   };
+  stockFilter: string;
+  onStockFilter: (filter: string) => void;
 }
 
-export function AdvancedFilters({ stats }: AdvancedFiltersProps) {
+export function AdvancedFilters({ stats, stockFilter, onStockFilter }: AdvancedFiltersProps) {
   const t = useTranslations();
-  const [stockFilter, setStockFilter] = useState<string>('all');
-
-  const handleStockFilter = (filter: string) => {
-    setStockFilter(filter);
-    // TODO: Реализовать фильтрацию по наличию
-  };
 
   return (
     <div className="mt-6 pt-6 border-t border-gray-200">
@@ -33,7 +29,7 @@ export function AdvancedFilters({ stats }: AdvancedFiltersProps) {
           </label>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => handleStockFilter('all')}
+              onClick={() => onStockFilter('all')}
               className={`px-3 py-2 rounded-md transition-colors ${stockFilter === 'all'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -42,7 +38,7 @@ export function AdvancedFilters({ stats }: AdvancedFiltersProps) {
               {t('Catalog.stockAll')}
             </button>
             <button
-              onClick={() => handleStockFilter('in-stock')}
+              onClick={() => onStockFilter('in-stock')}
               className={`px-3 py-2 rounded-md transition-colors ${stockFilter === 'in-stock'
                 ? 'bg-green-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -51,7 +47,7 @@ export function AdvancedFilters({ stats }: AdvancedFiltersProps) {
               {t('Catalog.stockInStock', { count: stats.inStock })}
             </button>
             <button
-              onClick={() => handleStockFilter('low-stock')}
+              onClick={() => onStockFilter('low-stock')}
               className={`px-3 py-2 rounded-md transition-colors ${stockFilter === 'low-stock'
                 ? 'bg-yellow-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -60,7 +56,7 @@ export function AdvancedFilters({ stats }: AdvancedFiltersProps) {
               {t('Catalog.stockLowWithCount', { count: stats.lowStock })}
             </button>
             <button
-              onClick={() => handleStockFilter('out-of-stock')}
+              onClick={() => onStockFilter('out-of-stock')}
               className={`px-3 py-2 rounded-md transition-colors ${stockFilter === 'out-of-stock'
                 ? 'bg-red-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

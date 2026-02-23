@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ReactNode } from 'react';
 import { locales, isValidLocale } from '@/core/constants/locales';
 import { ReactQueryProvider } from '@/core/providers/reactQueryProvider';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Header } from '@/components/layout/Header'
 
 type Props = {
@@ -32,6 +33,7 @@ export default async function LocaleLayout({
       key={locale}
     >
       <ReactQueryProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">{children}</main>

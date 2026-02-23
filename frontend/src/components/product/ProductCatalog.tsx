@@ -26,6 +26,7 @@ export function ProductCatalog() {
   const search = searchParams.get('search') || '';
   const category = searchParams.get('category') || '';
   const sort = searchParams.get('sort') || 'newest';
+  const stock = searchParams.get('stock') || 'all';
 
   // local state
   const [searchInput, setSearchInput] = useState(search);
@@ -33,6 +34,10 @@ export function ProductCatalog() {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   const { data: categories = [] } = useCategories();
+  const { data: allProductsData } = usePublicActiveProducts({
+    limit: 1000,
+    page: 1
+  });
 
   const SORT_MAPPING = {
     newest: { sortBy: 'createdAt' as const, sortOrder: 'DESC' as const },
@@ -59,6 +64,7 @@ export function ProductCatalog() {
     search: debouncedSearch || undefined,
     sortBy: sortParams.sortBy,
     sortOrder: sortParams.sortOrder,
+    stock: stock !== 'all' ? stock : 'all',
   });
 
   const products = data?.products || [];
@@ -80,6 +86,7 @@ export function ProductCatalog() {
     search?: string;
     category?: string;
     sort?: string;
+    stock?: string;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -96,19 +103,24 @@ export function ProductCatalog() {
       if (updates.sort) params.set('sort', updates.sort);
       else params.delete('sort');
     }
+    if (updates.stock !== undefined) {
+      if (updates.stock && updates.stock !== 'all') params.set('stock', updates.stock);
+      else params.delete('stock');
+    }
 
     router.push(`?${params.toString()}`);
   }, [router, searchParams]);
 
   // filter statistics
-  const stats = useMemo(() => {
-    const total = totalItems;
-    const inStock = products.filter(p => p.stock > 0).length;
-    const lowStock = products.filter(p => p.stock <= 10 && p.stock > 0).length;
-    const outOfStock = products.filter(p => p.stock === 0).length;
-
-    return { total, inStock, lowStock, outOfStock };
-  }, [products, totalItems]);
+  const allStats = useMemo(() => {
+    const allProducts = allProductsData?.products || [];
+    return {
+      total: allProducts.length,
+      inStock: allProducts.filter(p => p.stock > 10).length,
+      lowStock: allProducts.filter(p => p.stock > 0 && p.stock <= 10).length,
+      outOfStock: allProducts.filter(p => p.stock === 0).length
+    };
+  }, [allProductsData]);
 
   // handlers
   const handlePageChange = (newPage: number) => {
@@ -124,9 +136,17 @@ export function ProductCatalog() {
     updateUrl({ sort: sortValue, page: 1 });
   };
 
+  const handleStockChange = (stockValue: string) => {
+    updateUrl({ stock: stockValue, page: 1 });
+  };
+
   const handleClearFilters = () => {
     setSearchInput('');
-    updateUrl({ search: '', category: '', sort: '', page: 1 });
+    updateUrl({
+      search: '', category: '',
+      sort: 'newest', stock: 'all',
+      page: 1
+    });
   };
 
   const handleSearchChange = (value: string) => {
@@ -154,7 +174,7 @@ export function ProductCatalog() {
       </div>
 
       <ProductFilters
-        stats={stats}
+        stats={allStats}
         searchInput={searchInput}
         category={category}
         sort={sort}
@@ -166,6 +186,8 @@ export function ProductCatalog() {
         onSortChange={handleSortChange}
         onToggleAdvanced={handleToggleAdvanced}
         onClearFilters={handleClearFilters}
+        onStockFilter={handleStockChange}
+        stockFilter={stock}
       />
 
       <ActiveFilters

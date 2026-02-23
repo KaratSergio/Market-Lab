@@ -36,7 +36,8 @@ export abstract class ProductRepository implements
     filter?: Partial<ProductDomainEntity>,
     languageCode?: LanguageCode,
     sortBy?: keyof ProductDomainEntity,
-    sortOrder?: 'ASC' | 'DESC'
+    sortOrder?: 'ASC' | 'DESC',
+    stock?: 'in-stock' | 'low-stock' | 'out-of-stock'
   ): Promise<{
     data: ProductDomainEntity[];
     total: number;

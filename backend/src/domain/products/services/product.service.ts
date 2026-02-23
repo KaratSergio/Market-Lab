@@ -47,9 +47,14 @@ export class ProductService {
     languageCode: LanguageCode = DEFAULT_LANGUAGE,
     filter?: Partial<ProductDomainEntity>,
     sortBy?: 'price' | 'name' | 'createdAt' | 'stock',
-    sortOrder?: 'ASC' | 'DESC'
+    sortOrder?: 'ASC' | 'DESC',
+    stock?: 'in-stock' | 'low-stock' | 'out-of-stock'
   ): Promise<PaginatedResult<ProductDomainEntity>> {
-    return this.productCore.getPaginated(page, limit, languageCode, filter || { status: 'active' }, sortBy, sortOrder);
+    return this.productCore.getPaginated(
+      page, limit, languageCode,
+      filter || { status: 'active' },
+      sortBy, sortOrder, stock
+    );
   }
 
   // Supplier methods

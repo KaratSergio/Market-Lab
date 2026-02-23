@@ -6,7 +6,7 @@ export function RenderWarmer() {
   useEffect(() => {
     const warmUpRender = async () => {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_RENDER_URL}/health`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_RENDER_URL}/api/health`, {
           method: 'GET',
           signal: AbortSignal.timeout(5000)
         });

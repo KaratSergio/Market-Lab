@@ -46,6 +46,12 @@ export class ProductPublicController {
     enum: ['ASC', 'DESC'],
     description: 'Sort order (ASC or DESC)'
   })
+  @ApiQuery({
+    name: 'stock',
+    required: false,
+    enum: ['in-stock', 'low-stock', 'out-of-stock'],
+    description: 'Filter by stock status'
+  })
   @ApiResponse({ status: 200, type: ProductsListResponseDtoSwagger })
   async findAll(
     @Locale() locale: LanguageCode,
@@ -54,7 +60,8 @@ export class ProductPublicController {
     @Query('limit') limit?: string,
     @Query('search') search?: string,
     @Query('sortBy') sortBy?: 'price' | 'name' | 'createdAt' | 'stock',
-    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC'
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+    @Query('stock') stock?: 'in-stock' | 'low-stock' | 'out-of-stock'
   ) {
     if (search) {
       const searchResults = await this.productService.searchByText(search, locale);
@@ -69,12 +76,15 @@ export class ProductPublicController {
         totalPages: 1
       };
     }
+
     if (id) return this.productService.findByCategoryId(id, locale);
+
     if (page || limit) {
       const pageNum = parseInt(page || '1');
       const limitNum = parseInt(limit || '10');
       const filter: Partial<ProductDomainEntity> = { status: 'active' };
-      return this.productService.getPaginated(pageNum, limitNum, locale, filter, sortBy, sortOrder);
+
+      return this.productService.getPaginated(pageNum, limitNum, locale, filter, sortBy, sortOrder, stock);
     }
     return this.productService.findAll(locale);
   }

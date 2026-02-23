@@ -113,7 +113,8 @@ export class PostgresProductRepository extends DomainProductRepository {
     filter?: Partial<ProductDomainEntity>,
     languageCode: LanguageCode = DEFAULT_LANGUAGE,
     sortBy?: keyof ProductDomainEntity,
-    sortOrder: 'ASC' | 'DESC' = 'DESC'
+    sortOrder: 'ASC' | 'DESC' = 'DESC',
+    stock?: 'in-stock' | 'low-stock' | 'out-of-stock'
   ): Promise<{
     data: ProductDomainEntity[];
     total: number;
@@ -122,7 +123,8 @@ export class PostgresProductRepository extends DomainProductRepository {
     totalPages: number;
   }> {
     const skip = (page - 1) * limit;
-    const query = this._buildWhereQuery(filter);
+
+    const query = this._buildWhereQuery(filter, stock);
 
     query.skip(skip).take(limit);
 
@@ -385,7 +387,12 @@ export class PostgresProductRepository extends DomainProductRepository {
       .where('product.status = :status', { status: 'active' });
   }
 
-  private _buildWhereQuery(filter?: Partial<ProductDomainEntity>): SelectQueryBuilder<ProductOrmEntity> {
+  private readonly LOW_STOCK_THRESHOLD = 10;
+
+  private _buildWhereQuery(
+    filter?: Partial<ProductDomainEntity>,
+    stock?: 'in-stock' | 'low-stock' | 'out-of-stock'
+  ): SelectQueryBuilder<ProductOrmEntity> {
     const query = this.repository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
@@ -393,6 +400,20 @@ export class PostgresProductRepository extends DomainProductRepository {
 
     if (filter) {
       this._applyFilters(query, filter);
+    }
+
+    if (stock) {
+      switch (stock) {
+        case 'in-stock':
+          query.andWhere('product.stock > :minStock', { minStock: this.LOW_STOCK_THRESHOLD });
+          break;
+        case 'low-stock':
+          query.andWhere('product.stock > 0 AND product.stock <= :maxStock', { maxStock: this.LOW_STOCK_THRESHOLD });
+          break;
+        case 'out-of-stock':
+          query.andWhere('product.stock = 0');
+          break;
+      }
     }
 
     return query;

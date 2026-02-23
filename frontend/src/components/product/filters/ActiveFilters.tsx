@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { useTranslations } from 'next-intl';
@@ -40,10 +39,11 @@ export function ActiveFilters({
       'name-asc': t('Catalog.sortNameAsc'),
       'name-desc': t('Catalog.sortNameDesc'),
     };
-    return sortLabels[sort] || null;
+    return sortLabels[sort];
   };
 
-  const hasActiveFilters = search || category || (sort !== 'newest' && getSortLabel());
+  const sortLabel = getSortLabel();
+  const hasActiveFilters = search || category || (sort !== 'newest' && sortLabel);
 
   if (!hasActiveFilters) return null;
 
@@ -85,10 +85,10 @@ export function ActiveFilters({
             </div>
           )}
 
-          {sort !== 'newest' && getSortLabel() && (
+          {sort !== 'newest' && sortLabel && (
             <div className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm">
               <span>
-                {t('Catalog.sortFilter', { sort: getSortLabel() })}
+                {t('Catalog.sortFilter', { sort: sortLabel })}
               </span>
               <button
                 onClick={onClearSort}

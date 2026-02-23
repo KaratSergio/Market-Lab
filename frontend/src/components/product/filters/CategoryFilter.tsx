@@ -35,7 +35,7 @@ export function CategoryFilter({
         >
           <option value="">{allCategoriesLabel}</option>
           {categories.map((category) => (
-            <option key={category.id} value={category.slug}>
+            <option key={category.id} value={category.id}>
               {translateCategory(category.slug)}
             </option>
           ))}

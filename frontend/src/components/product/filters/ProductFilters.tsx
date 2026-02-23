@@ -1,4 +1,3 @@
-//@ts-nocheck
 'use client';
 
 import { useTranslations } from 'next-intl';
@@ -18,8 +17,7 @@ interface ProductFiltersProps {
   searchInput: string;
   category: string;
   sort: string;
-  categories: Array<{ id: string; name: string }>;
-  allCategories: Array<{ id: string; name: string }>;
+  categories: Array<{ id: string; slug: string }>;
   isAdvancedOpen: boolean;
   onSearchChange: (value: string) => void;
   onCategoryChange: (categoryId: string) => void;
@@ -36,7 +34,6 @@ export function ProductFilters({
   category,
   sort,
   categories,
-  allCategories,
   isAdvancedOpen,
   onSearchChange,
   onCategoryChange,
@@ -45,10 +42,10 @@ export function ProductFilters({
   onClearFilters,
   onStockFilter,
   stockFilter,
-}: CatalogFiltersProps) {
+}: ProductFiltersProps) {
   const t = useTranslations();
 
-  const hasActiveFilters = searchInput || category || sort !== 'newest' || stockFilter !== 'all';
+  const hasActiveFilters = Boolean(searchInput || category || sort !== 'newest' || stockFilter !== 'all');
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -78,7 +75,6 @@ export function ProductFilters({
         <CategoryFilter
           value={category}
           categories={categories}
-          allCategories={allCategories}
           onChange={onCategoryChange}
           label={t('Catalog.categoryLabel')}
           allCategoriesLabel={t('Catalog.allCategories')}

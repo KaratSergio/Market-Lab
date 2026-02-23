@@ -55,7 +55,7 @@ export class ProductPublicController {
   @ApiResponse({ status: 200, type: ProductsListResponseDtoSwagger })
   async findAll(
     @Locale() locale: LanguageCode,
-    @Query('id') id?: string,
+    @Query('category') categoryId?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
@@ -65,7 +65,6 @@ export class ProductPublicController {
   ) {
     if (search) {
       const searchResults = await this.productService.searchByText(search, locale);
-
       const jsonProducts = JSON.parse(JSON.stringify(searchResults));
 
       return {
@@ -77,12 +76,12 @@ export class ProductPublicController {
       };
     }
 
-    if (id) return this.productService.findByCategoryId(id, locale);
-
-    if (page || limit) {
+    if (page || limit || categoryId) {
       const pageNum = parseInt(page || '1');
       const limitNum = parseInt(limit || '10');
       const filter: Partial<ProductDomainEntity> = { status: 'active' };
+
+      if (categoryId) filter.categoryId = categoryId;
 
       return this.productService.getPaginated(pageNum, limitNum, locale, filter, sortBy, sortOrder, stock);
     }

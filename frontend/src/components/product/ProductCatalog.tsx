@@ -48,6 +48,10 @@ export function ProductCatalog() {
     'name-desc': { sortBy: 'name' as const, sortOrder: 'DESC' as const },
   } as const;
 
+  const stockValue = stock !== 'all'
+    ? stock as 'in-stock' | 'low-stock' | 'out-of-stock'
+    : undefined;
+
   const getSortParams = (sortValue: string) => {
     const key = Object.keys(SORT_MAPPING).includes(sortValue)
       ? sortValue as keyof typeof SORT_MAPPING
@@ -64,7 +68,7 @@ export function ProductCatalog() {
     search: debouncedSearch || undefined,
     sortBy: sortParams.sortBy,
     sortOrder: sortParams.sortOrder,
-    stock: stock !== 'all' ? stock : 'all',
+    stock: stockValue,
   });
 
   const products = data?.products || [];
@@ -157,7 +161,7 @@ export function ProductCatalog() {
     setIsAdvancedOpen(!isAdvancedOpen);
   };
 
-  const allCategoriesList = useMemo(() => {
+  const categoriesList = useMemo(() => {
     return categories.map(category => ({
       id: category.id,
       slug: category.slug,
@@ -178,8 +182,7 @@ export function ProductCatalog() {
         searchInput={searchInput}
         category={category}
         sort={sort}
-        categories={allCategoriesList}
-        allCategories={categories}
+        categories={categoriesList}
         isAdvancedOpen={isAdvancedOpen}
         onSearchChange={handleSearchChange}
         onCategoryChange={handleCategoryChange}

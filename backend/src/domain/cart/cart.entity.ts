@@ -1,75 +1,43 @@
+import { CartItem } from './cart-item.entity';
 import {
-  CartModel,
-  CartItemModel,
-  CartStatus,
-  CART_STATUS,
-  CreateCartDto
+  CreateCartDto, CartModel,
+  CartStatus, CART_STATUS,
+  CartOwnerType, CART_OWNER_TYPE
 } from './types';
 
 
-export class CartItem implements CartItemModel {
-  constructor(
-    public productId: string,
-    public quantity: number,
-    public price: number,
-    public discount: number = 0,
-    public name: string,
-    public imageUrl?: string
-  ) { }
-
-  get subtotal(): number {
-    return (this.price - this.discount) * this.quantity;
-  }
-
-  updateQuantity(newQuantity: number): void {
-    if (newQuantity < 1) throw new Error('Quantity must be at least 1');
-    this.quantity = newQuantity;
-  }
-
-  applyDiscount(discount: number): void {
-    if (discount < 0 || discount > this.price) throw new Error('Invalid discount amount');
-    this.discount = discount;
-  }
-}
-
 export class CartDomainEntity implements CartModel {
-  public id: string;
-  public userId: string;
-  public items: CartItem[] = [];
-  public totalAmount: number = 0;
-  public discountAmount: number = 0;
-  public finalAmount: number = 0;
-  public currency: string;
-  public status: CartStatus;
-  public expiresAt?: Date;
-  public createdAt: Date;
-  public updatedAt: Date;
+  items: CartItem[] = [];
+  totalAmount = 0;
+  discountAmount = 0;
+  finalAmount = 0;
+  expiresAt: Date;
 
   constructor(
-    id: string,
-    userId: string,
-    currency: string = 'UAH',
-    status: CartStatus = CART_STATUS.ACTIVE,
+    public id: string,
+    public userId: string | null | undefined,
+    public sessionId: string | null | undefined,
+    public ownerType: CartOwnerType,
+    public currency: string = 'UAH',
+    public status: CartStatus = CART_STATUS.ACTIVE,
     items: CartItem[] = [],
     expiresAt?: Date,
-    createdAt: Date = new Date(),
-    updatedAt: Date = new Date()
+    public createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
   ) {
-    this.id = id;
-    this.userId = userId;
-    this.currency = currency;
-    this.status = status;
     this.items = items;
-    this.expiresAt = expiresAt;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-
+    this.expiresAt = expiresAt ?? this.getDefaultExpiry();
     this.calculateTotals();
   }
 
+  private getDefaultExpiry(): Date {
+    const date = new Date();
+    date.setDate(date.getDate() + 30);
+    return date;
+  }
+
   static create(createDto: CreateCartDto): CartDomainEntity {
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days basket life
+    const ownerType = createDto.userId ? CART_OWNER_TYPE.USER : CART_OWNER_TYPE.GUEST;
 
     const items = createDto.items?.map(item => new CartItem(
       item.productId,
@@ -83,21 +51,35 @@ export class CartDomainEntity implements CartModel {
     return new CartDomainEntity(
       crypto.randomUUID(),
       createDto.userId,
+      createDto.sessionId,
+      ownerType,
       createDto.currency || 'UAH',
       CART_STATUS.ACTIVE,
-      items,
-      expiresAt
+      items
     );
+  }
+
+  merge(guestCart: CartDomainEntity): void {
+    guestCart.items.forEach(guestItem => {
+      const existingItem = this.items.find(item => item.productId === guestItem.productId);
+      if (existingItem) existingItem.updateQuantity(Math.max(existingItem.quantity, guestItem.quantity));
+      else this.items.push(guestItem);
+    });
+
+    if (this.ownerType === CART_OWNER_TYPE.GUEST && guestCart.ownerType === CART_OWNER_TYPE.USER) {
+      this.userId = guestCart.userId;
+      this.sessionId = null;
+      this.ownerType = CART_OWNER_TYPE.USER;
+    }
+
+    this.calculateTotals();
+    this.updatedAt = new Date();
   }
 
   addItem(productId: string, quantity: number, price: number, name: string, imageUrl?: string): void {
     const existingItem = this.items.find(item => item.productId === productId);
-
-    if (existingItem) {
-      existingItem.updateQuantity(existingItem.quantity + quantity);
-    } else {
-      this.items.push(new CartItem(productId, quantity, price, 0, name, imageUrl));
-    }
+    if (existingItem) existingItem.updateQuantity(existingItem.quantity + quantity);
+    else this.items.push(new CartItem(productId, quantity, price, 0, name, imageUrl));
 
     this.calculateTotals();
     this.updatedAt = new Date();

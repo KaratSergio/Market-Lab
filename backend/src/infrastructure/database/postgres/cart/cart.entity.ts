@@ -1,8 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { UserOrmEntity } from '../users/user.entity';
 import { CartItemOrmEntity } from './cart-item.entity';
-import { CART_STATUS } from '@domain/cart/types';
-import type { CartStatus } from '@domain/cart/types';
+import { CART_STATUS, CART_OWNER_TYPE } from '@domain/cart/types';
+import type { CartStatus, CartOwnerType } from '@domain/cart/types';
 
 
 @Entity('carts')
@@ -10,8 +10,18 @@ export class CartOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   userId: string;
+
+  @Column({ nullable: true })
+  sessionId: string;
+
+  @Column({
+    type: 'enum',
+    enum: CART_OWNER_TYPE,
+    default: CART_OWNER_TYPE.USER
+  })
+  ownerType: CartOwnerType;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   totalAmount: number;

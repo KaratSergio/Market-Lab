@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { X, Plus, Minus, ShoppingBag, Truck, Shield, AlertCircle } from 'lucide-react';
+import { X, Plus, Minus, ShoppingBag, Truck, Shield, AlertCircle, ArrowBigLeft } from 'lucide-react';
 import { useAuthStore } from '@/core/store/authStore';
 
 import {
@@ -31,29 +31,29 @@ export default function Cart() {
     setIsVisible(true);
   }, []);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-green-50 via-amber-50 to-white flex items-center justify-center p-4">
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl p-8 max-w-md w-full text-center border border-green-100">
-          <div className="w-16 h-16 bg-linear-to-r from-amber-100 to-green-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">
-            🔒
-          </div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-3">
-            {t('authenticationRequired')}
-          </h3>
-          <p className="text-gray-600 mb-6">
-            {t('pleaseLoginToViewCart')}
-          </p>
-          <Link
-            href={`/${locale}/login`}
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-600 to-amber-500 text-white font-medium rounded-full hover:shadow-lg transition-all duration-300"
-          >
-            <span>{t('login')}</span>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen bg-linear-to-br from-green-50 via-amber-50 to-white flex items-center justify-center p-4">
+  //       <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl p-8 max-w-md w-full text-center border border-green-100">
+  //         <div className="w-16 h-16 bg-linear-to-r from-amber-100 to-green-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">
+  //           🔒
+  //         </div>
+  //         <h3 className="text-2xl font-bold text-gray-800 mb-3">
+  //           {t('authenticationRequired')}
+  //         </h3>
+  //         <p className="text-gray-600 mb-6">
+  //           {t('pleaseLoginToViewCart')}
+  //         </p>
+  //         <Link
+  //           href={`/${locale}/login`}
+  //           className="inline-flex items-center space-x-2 px-6 py-3 bg-linear-to-r from-green-600 to-amber-500 text-white font-medium rounded-full hover:shadow-lg transition-all duration-300"
+  //         >
+  //           <span>{t('login')}</span>
+  //         </Link>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (isLoading) {
     return (
@@ -118,7 +118,7 @@ export default function Cart() {
 
   const applyPromoCode = () => {
     if (promoCode.trim()) {
-      applyDiscountMutation.mutate({ code: promoCode });
+      applyDiscountMutation.mutate({ discountCode: promoCode });
       setPromoCode('');
     }
   };
@@ -130,8 +130,13 @@ export default function Cart() {
   };
 
   const handleCheckout = () => {
+    if (!isAuthenticated) {
+      // !!! ДОБАВЛЯЕМ: если не авторизован - редирект на логин
+      window.location.href = `/${locale}/login?redirect=cart`;
+      return;
+    }
     checkoutMutation.mutate();
-    //! переходимо до оформлення заказу
+    //! после успешного чекаута - на оформление
     // window.location.href = `/${locale}/checkout`;
   };
 
@@ -145,10 +150,10 @@ export default function Cart() {
             <div className="flex items-center space-x-4">
               <Link
                 href={`/${locale}/products`}
-                className="flex items-center space-x-3 text-green-700 hover:text-green-800 transition-colors"
+                className="flex items-center space-x-3 text-green-600 hover:text-green-800 transition-colors"
               >
                 <div className="w-10 h-10 bg-linear-to-r from-green-200 to-amber-100 rounded-xl flex items-center justify-center shadow-lg">
-                  ←
+                  <ArrowBigLeft size={18} />
                 </div>
                 <span className="font-medium">{t('continueShopping')}</span>
               </Link>
@@ -159,6 +164,11 @@ export default function Cart() {
               <span className="text-sm text-green-700 font-medium">
                 {cartItems.length} {t('items')}
               </span>
+              {cart && !cart.userId && cart.sessionId && (
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                  {t('guestCart')}
+                </span>
+              )}
             </div>
           </div>
         </div>

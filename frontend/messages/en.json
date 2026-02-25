@@ -11,6 +11,7 @@
     "text": "ECO"
   },
   "Cart": {
+    "guestCart": "Guest cart",
     "cart": "Cart",
     "yourCart": "Your Cart",
     "cartDescription": "Review and manage your organic products",

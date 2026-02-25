@@ -22,4 +22,7 @@ export abstract class CartRepository implements
   abstract findByStatus(status: string): Promise<CartDomainEntity[]>;
   abstract findExpiredCarts(): Promise<CartDomainEntity[]>;
   abstract clearUserCart(userId: string): Promise<void>;
+  abstract findBySessionId(sessionId: string): Promise<CartDomainEntity | null>;
+  abstract findActiveGuestCarts(): Promise<CartDomainEntity[]>;
+  abstract mergeCarts(userId: string, sessionId: string): Promise<CartDomainEntity>;
 }

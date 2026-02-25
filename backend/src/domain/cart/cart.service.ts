@@ -1,10 +1,7 @@
 import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  BadRequestException,
-  ConflictException,
-  ForbiddenException
+  Injectable, Inject,
+  NotFoundException, BadRequestException,
+  ConflictException, ForbiddenException
 } from '@nestjs/common';
 
 import {
@@ -26,19 +23,22 @@ export class CartService {
     private readonly cartRepository: CartRepository,
   ) { }
 
-  async getOrCreateCart(
-    userId: string,
-    currency: string = 'UAH',
-    userRoles: string[]
+  async getOrCreateGuestCart(
+    sessionId: string,
+    currency: string = 'UAH'
   ): Promise<CartDomainEntity> {
-    // if (!userRoles.includes(Role.CUSTOMER)) throw new ForbiddenException('Only customers can have a cart');
-    let cart = await this.cartRepository.findByUserId(userId);
+    if (!sessionId) throw new BadRequestException('Session ID is required for guest cart');
+    let cart = await this.cartRepository.findBySessionId(sessionId);
 
     if (!cart) {
-      cart = CartDomainEntity.create({ userId, currency });
+      cart = CartDomainEntity.create({
+        sessionId,
+        currency
+      });
       return this.cartRepository.create(cart);
     }
-    if (cart.isExpired() && cart.status === CART_STATUS.ACTIVE) {
+
+    if (cart.isExpired()) {
       cart.clear();
       cart = await this.cartRepository.update(cart.id, cart);
     }
@@ -46,47 +46,83 @@ export class CartService {
     return cart;
   }
 
+  async getOrCreateCart(
+    identifier: { userId?: string; sessionId?: string },
+    currency: string = 'UAH',
+    userRoles?: string[]
+  ): Promise<CartDomainEntity> {
+    const { userId, sessionId } = identifier;
+
+    if (userId) {
+      let cart = await this.cartRepository.findByUserId(userId);
+      if (!cart) {
+        cart = CartDomainEntity.create({ userId, currency });
+        return this.cartRepository.create(cart);
+      }
+      return cart;
+    }
+
+    if (sessionId) {
+      return this.getOrCreateGuestCart(sessionId, currency);
+    }
+
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    return this.getOrCreateGuestCart(newSessionId, currency);
+  }
+
+  async mergeGuestCartWithUser(
+    userId: string,
+    sessionId: string
+  ): Promise<CartDomainEntity> {
+    if (!userId || !sessionId) {
+      throw new BadRequestException('Both userId and sessionId are required for merge');
+    }
+
+    return this.cartRepository.mergeCarts(userId, sessionId);
+  }
+
   async getCartById(
     id: string,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
     const cart = await this.cartRepository.findById(id);
     if (!cart) throw new NotFoundException('Cart not found');
 
-    this._checkCartAccess(cart, userId, userRoles);
+    this._checkCartAccess(cart, identifier, userRoles);
     return cart;
   }
 
   async getCartByUserId(
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    // if (!userRoles.includes(Role.CUSTOMER)) throw new ForbiddenException('Only customers can have a cart');
+    const { userId } = identifier;
+
+    if (!userId) {
+      throw new BadRequestException('UserId is required to get cart by user id');
+    }
+
     const cart = await this.cartRepository.findByUserId(userId);
     if (!cart) throw new NotFoundException('Cart not found for user');
 
-    this._checkCartAccess(cart, userId, userRoles);
+    this._checkCartAccess(cart, identifier, userRoles);
     return cart;
   }
 
   async addItemToCart(
-    userId: string,
+    identifier: { userId?: string; sessionId?: string },
     itemDto: AddItemToCartDto,
-    userRoles: string[]
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    // if (userRoles && !userRoles.includes(Role.CUSTOMER)) {
-    //   throw new ForbiddenException('Only customers can add items to cart');
-    // }
+    const cart = await this.getOrCreateCart(identifier, 'UAH', userRoles);
 
-    const cart = await this.getOrCreateCart(userId, 'UAH', userRoles);
-
-    //! Maximum 10 different items in the cart
+    // Maximum 10 different items in the cart
     if (cart.items.length >= 10 && !cart.items.find(item => item.productId === itemDto.productId)) {
       throw new BadRequestException('Cart cannot have more than 10 different items');
     }
 
-    //! Maximum 99 pieces of one product
+    // Maximum 99 pieces of one product
     const existingItem = cart.items.find(item => item.productId === itemDto.productId);
     if (existingItem && existingItem.quantity + itemDto.quantity > 99) {
       throw new BadRequestException('Cannot add more than 99 units of the same product');
@@ -107,13 +143,14 @@ export class CartService {
     cartId: string,
     productId: string,
     updateDto: UpdateCartItemDto,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    const cart = await this.getCartById(cartId, userId, userRoles);
+    const cart = await this.getCartById(cartId, identifier, userRoles);
 
-    // if (!userRoles.includes(Role.CUSTOMER)) throw new ForbiddenException('Only customers can update items in cart');
-    if (cart.status !== CART_STATUS.ACTIVE) throw new ConflictException('Cannot modify cart that is not active');
+    if (cart.status !== CART_STATUS.ACTIVE) {
+      throw new ConflictException('Cannot modify cart that is not active');
+    }
 
     cart.updateItemQuantity(productId, updateDto.quantity);
     return this.cartRepository.update(cart.id, cart);
@@ -122,13 +159,14 @@ export class CartService {
   async removeItemFromCart(
     cartId: string,
     productId: string,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    const cart = await this.getCartById(cartId, userId, userRoles);
+    const cart = await this.getCartById(cartId, identifier, userRoles);
 
-    // if (!userRoles.includes(Role.CUSTOMER)) throw new ForbiddenException('Only customers can remove items from cart');
-    if (cart.status !== CART_STATUS.ACTIVE) throw new ConflictException('Cannot modify cart that is not active');
+    if (cart.status !== CART_STATUS.ACTIVE) {
+      throw new ConflictException('Cannot modify cart that is not active');
+    }
 
     cart.removeItem(productId);
     return this.cartRepository.update(cart.id, cart);
@@ -137,11 +175,10 @@ export class CartService {
   async applyDiscount(
     cartId: string,
     discountDto: ApplyDiscountDto,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    const cart = await this.getCartById(cartId, userId, userRoles);
-    // if (!userRoles.includes(Role.CUSTOMER)) throw new ForbiddenException('Only customers can apply discounts to cart');
+    const cart = await this.getCartById(cartId, identifier, userRoles);
 
     //! Add promo code verification logic
     const discountAmount = discountDto.discountAmount ||
@@ -153,11 +190,10 @@ export class CartService {
 
   async clearCart(
     cartId: string,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    const cart = await this.getCartById(cartId, userId, userRoles);
-    // if (!userRoles.includes(Role.CUSTOMER)) throw new ForbiddenException('Only customers can clear cart');
+    const cart = await this.getCartById(cartId, identifier, userRoles);
 
     cart.clear();
     return this.cartRepository.update(cart.id, cart);
@@ -165,13 +201,19 @@ export class CartService {
 
   async markCartAsPendingCheckout(
     cartId: string,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    const cart = await this.getCartById(cartId, userId, userRoles);
+    const cart = await this.getCartById(cartId, identifier, userRoles);
 
-    // if (!userRoles.includes(Role.CUSTOMER)) throw new ForbiddenException('Only customers can checkout cart');
-    if (cart.items.length === 0) throw new BadRequestException('Cannot checkout empty cart');
+    if (cart.items.length === 0) {
+      throw new BadRequestException('Cannot checkout empty cart');
+    }
+
+    // Only authenticated users can checkout
+    if (!identifier.userId) {
+      throw new ForbiddenException('You must be logged in to checkout');
+    }
 
     cart.markAsPendingCheckout();
     return this.cartRepository.update(cart.id, cart);
@@ -179,14 +221,15 @@ export class CartService {
 
   async markCartAsConvertedToOrder(
     cartId: string,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): Promise<CartDomainEntity> {
-    const cart = await this.getCartById(cartId, userId, userRoles);
+    const cart = await this.getCartById(cartId, identifier, userRoles);
 
-    // if (!userRoles.includes(Role.ADMIN) && !userRoles.includes(Role.CUSTOMER)) {
-    //   throw new ForbiddenException('Only customers or admins can mark cart as converted to order');
-    // }
+    // Only authenticated users or admins can mark as converted
+    if (!identifier.userId && !userRoles?.includes(Role.ADMIN)) {
+      throw new ForbiddenException('You must be logged in to complete order');
+    }
 
     cart.markAsConvertedToOrder();
     return this.cartRepository.update(cart.id, cart);
@@ -197,7 +240,9 @@ export class CartService {
     userRoles: string[]
   ): Promise<CartDomainEntity[]> {
     // Only admins can view all expired carts
-    if (!userRoles.includes(Role.ADMIN)) throw new ForbiddenException('Only admins can view expired carts');
+    if (!userRoles.includes(Role.ADMIN)) {
+      throw new ForbiddenException('Only admins can view expired carts');
+    }
     return this.cartRepository.findExpiredCarts();
   }
 
@@ -206,7 +251,10 @@ export class CartService {
     userRoles: string[]
   ): Promise<void> {
     // Only admins can clear expired carts
-    if (!userRoles.includes(Role.ADMIN)) throw new ForbiddenException('Only admins can cleanup expired carts');
+    if (!userRoles.includes(Role.ADMIN)) {
+      throw new ForbiddenException('Only admins can cleanup expired carts');
+    }
+
     const expiredCarts = await this.findExpiredCarts(userId, userRoles);
 
     for (const cart of expiredCarts) {
@@ -219,15 +267,18 @@ export class CartService {
 
   private _checkCartAccess(
     cart: CartDomainEntity,
-    userId: string,
-    userRoles: string[]
+    identifier: { userId?: string; sessionId?: string },
+    userRoles?: string[]
   ): void {
-    if (userRoles && userRoles.includes(Role.ADMIN)) return;
-    if (userId && cart.userId === userId) return;
+    if (userRoles?.includes(Role.ADMIN)) return;
+
+    if (identifier.userId && cart.userId === identifier.userId) return;
+    if (identifier.sessionId && cart.sessionId === identifier.sessionId && !cart.userId) return;
+
     throw new ForbiddenException('You do not have access to this cart');
   }
 
-  //! Дополнительный метод для статистики поставщика
+  //! Additional method for supplier statistics
   async getSupplierCartStats(
     supplierId: string,
     userId: string,
@@ -243,11 +294,11 @@ export class CartService {
       }
     }
 
-    //! Возвращает статистику по товарам поставщика в активных корзинах
+    //! Returns statistics on supplier products in active carts
     return {
       supplierId,
-      totalInCarts: 0, // ! логику подсчета
-      topProducts: [], // !
+      totalInCarts: 0, //! logic to be implemented
+      topProducts: [], //! logic to be implemented
     };
   }
 }

@@ -2,7 +2,8 @@
 import { CartItemModel } from "./cart.type";
 
 export interface CreateCartDto {
-  userId: string;
+  userId?: string | null;
+  sessionId?: string | null;
   currency?: string;
   items?: CartItemModel[];
 }

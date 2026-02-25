@@ -2,10 +2,11 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CartRepository as DomainCartRepository } from '@domain/cart/cart.repository';
-import { CartDomainEntity, CartItem } from '@domain/cart/cart.entity';
+import { CartDomainEntity } from '@domain/cart/cart.entity';
+import { CartItem } from '@domain/cart/cart-item.entity';
 import { CartOrmEntity } from './cart.entity';
 import { CartItemOrmEntity } from './cart-item.entity';
-import { CART_STATUS, CartStatus } from '@domain/cart/types';
+import { CART_STATUS, CART_OWNER_TYPE, CartStatus } from '@domain/cart/types';
 
 @Injectable()
 export class PostgresCartRepository extends DomainCartRepository {
@@ -166,6 +167,53 @@ export class PostgresCartRepository extends DomainCartRepository {
     }
   }
 
+  async findBySessionId(sessionId: string): Promise<CartDomainEntity | null> {
+    if (!sessionId) return null;
+
+    const ormEntity = await this.cartRepository.findOne({
+      where: { sessionId, status: CART_STATUS.ACTIVE },
+      relations: ['items'],
+      order: { updatedAt: 'DESC' }
+    });
+
+    return ormEntity ? this.toDomainEntity(ormEntity) : null;
+  }
+
+  async findActiveGuestCarts(): Promise<CartDomainEntity[]> {
+    const ormEntities = await this.cartRepository.find({
+      where: {
+        ownerType: CART_OWNER_TYPE.GUEST,
+        status: CART_STATUS.ACTIVE
+      },
+      relations: ['items']
+    });
+
+    return ormEntities.map(this.toDomainEntity);
+  }
+
+  async mergeCarts(userId: string, sessionId: string): Promise<CartDomainEntity> {
+    const userCart = await this.findByUserId(userId);
+    const guestCart = await this.findBySessionId(sessionId);
+
+    if (!guestCart) {
+      if (userCart) return userCart;
+      return this.create(CartDomainEntity.create({ userId }));
+    }
+
+    if (!userCart) {
+      guestCart.userId = userId;
+      guestCart.sessionId = null;
+      guestCart.ownerType = CART_OWNER_TYPE.USER;
+      return this.update(guestCart.id, guestCart);
+    }
+
+    userCart.merge(guestCart);
+    await this.update(userCart.id, userCart);
+    await this.delete(guestCart.id);
+
+    return userCart;
+  }
+
   // Utility methods
   async exists(id: string): Promise<boolean> {
     if (!id) return false;
@@ -192,6 +240,8 @@ export class PostgresCartRepository extends DomainCartRepository {
     return new CartDomainEntity(
       ormEntity.id,
       ormEntity.userId,
+      ormEntity.sessionId,
+      ormEntity.ownerType,
       ormEntity.currency,
       ormEntity.status,
       items,
@@ -206,6 +256,8 @@ export class PostgresCartRepository extends DomainCartRepository {
 
     if (domainEntity.id) ormEntity.id = domainEntity.id;
     if (domainEntity.userId) ormEntity.userId = domainEntity.userId;
+    if (domainEntity.sessionId) ormEntity.sessionId = domainEntity.sessionId;
+    if (domainEntity.ownerType) ormEntity.ownerType = domainEntity.ownerType;
     if (domainEntity.totalAmount !== undefined) ormEntity.totalAmount = domainEntity.totalAmount;
     if (domainEntity.discountAmount !== undefined) ormEntity.discountAmount = domainEntity.discountAmount;
     if (domainEntity.finalAmount !== undefined) ormEntity.finalAmount = domainEntity.finalAmount;

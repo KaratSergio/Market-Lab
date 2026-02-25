@@ -1,4 +1,4 @@
-import { applyDecorators, UseGuards } from '@nestjs/common';
+import { applyDecorators, UseGuards, SetMetadata } from '@nestjs/common';
 import { AuthJwtGuard, RolesGuard } from '../guard';
 import { PermissionsGuard } from '../guard/permissions.guard';
 import { Roles } from './roles.decorator';
@@ -6,6 +6,9 @@ import { Permissions } from './permissions.decorator';
 import { Permission, Role } from '@shared/types';
 
 //! Combined decorator for protecting routes
+
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 export function Auth(
   roles?: Role[],

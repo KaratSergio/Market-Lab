@@ -1,10 +1,11 @@
 import {
   Controller,
-  Get, Post, Put, Delete,
+  Get, Post, Put, Delete, Res, Req,
   Body, Param, HttpCode, HttpStatus,
   Request, ClassSerializerInterceptor,
   UseInterceptors as UseCustomInterceptors,
 } from '@nestjs/common';
+import type { Response } from 'express';
 
 import {
   ApiTags, ApiOperation,
@@ -12,6 +13,7 @@ import {
   ApiOkResponse, ApiNotFoundResponse,
   ApiForbiddenResponse, ApiBadRequestResponse,
   ApiCreatedResponse, ApiNoContentResponse,
+  ApiUnauthorizedResponse, ApiCookieAuth,
 } from '@nestjs/swagger';
 
 import type {
@@ -20,11 +22,7 @@ import type {
   ApplyDiscountDto
 } from '@domain/cart/types';
 
-import {
-  Auth,
-  CustomerOnly,
-} from '../auth/decorators';
-
+import { Auth, Public, CustomerOnly } from '../auth/decorators';
 import { CartService } from '@domain/cart/cart.service';
 import type { AuthRequest } from '../auth/types';
 import { Permission, Role } from '@shared/types';
@@ -41,47 +39,82 @@ import {
   SuccessResponseCartDtoSwagger
 } from '@domain/cart/types/cart.swagger.dto';
 
+
 @ApiTags('cart')
-@ApiBearerAuth('JWT-auth')
 @Controller('cart')
 @UseCustomInterceptors(ClassSerializerInterceptor)
 export class CartController {
   constructor(private readonly cartService: CartService) { }
 
   /**
-   * GET CART (Customer Only)
-   * @description Retrieves the current shopping cart for authenticated customer.
-   * Includes all items, pricing, discounts, and totals.
+   * GET SESSION ID FROM REQUEST
+   * Helper method to extract sessionId from cookies or headers
+   */
+  private getSessionId(req: any): string | undefined {
+    return req.cookies?.['sessionId'] || req.headers?.['x-session-id'];
+  }
+
+  /**
+   * SET SESSION ID COOKIE
+   * Helper method to set sessionId cookie for guests
+   */
+  private setSessionIdCookie(res: Response, sessionId: string): void {
+    res.cookie('sessionId', sessionId, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+
+  /**
+   * GET CART (Public - Guest or Customer)
    */
   @Get()
-  @CustomerOnly()
+  @Public()
   @ApiOperation({
-    summary: 'Get cart (Customer Only)',
-    description: 'Retrieves the current shopping cart for authenticated customer. Includes all items, pricing, discounts, and totals.'
+    summary: 'Get cart (Public - Guest or Customer)',
+    description: 'Retrieves the current shopping cart. Works for both guests and authenticated customers.'
   })
+  @ApiCookieAuth('sessionId')
   @ApiOkResponse({
     description: 'Cart retrieved successfully',
     type: CartResponseDtoSwagger,
   })
-  @ApiNotFoundResponse({ description: 'Cart not found for this user' })
-  @ApiForbiddenResponse({ description: 'User is not a customer' })
-  async getCart(@Request() req: AuthRequest) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.cartService.getOrCreateCart(userId, 'USD', userRoles);
+  @ApiNotFoundResponse({ description: 'Cart not found' })
+  async getCart(
+    @Req() req: AuthRequest & { cookies: any },
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const userId = req.user?.id;
+    const userRoles = req.user?.roles;
+    const sessionId = this.getSessionId(req);
+
+    const identifier = {
+      userId,
+      sessionId: sessionId
+    };
+
+    const cart = await this.cartService.getOrCreateCart(identifier, 'USD', userRoles);
+
+    // If guest and no sessionId yet, create and set it
+    if (!userId && !sessionId && cart.sessionId) {
+      this.setSessionIdCookie(res, cart.sessionId);
+    }
+
+    return cart;
   }
 
   /**
-   * ADD ITEM TO CART (Customer Only)
-   * @description Adds a product item to the shopping cart with specified quantity.
-   * Validates stock availability and product status.
+   * ADD ITEM TO CART (Public - Guest or Customer)
    */
   @Post('items')
-  @Auth([Role.CUSTOMER], [Permission.CART_ADD_ITEM])
+  @Public()
   @ApiOperation({
-    summary: 'Add item to cart (Customer Only)',
-    description: 'Adds a product item to the shopping cart with specified quantity. Validates stock availability and product status.'
+    summary: 'Add item to cart (Public - Guest or Customer)',
+    description: 'Adds a product to the shopping cart. Works for both guests and authenticated customers.'
   })
+  @ApiCookieAuth('sessionId')
   @ApiBody({ type: AddItemToCartDtoSwagger })
   @ApiCreatedResponse({
     description: 'Item added to cart successfully',
@@ -90,25 +123,39 @@ export class CartController {
   @ApiBadRequestResponse({ description: 'Invalid item data or insufficient stock' })
   @ApiNotFoundResponse({ description: 'Product not found or not available' })
   async addItem(
-    @Request() req: AuthRequest,
+    @Req() req: AuthRequest & { cookies: any },
+    @Res({ passthrough: true }) res: Response,
     @Body() addItemDto: AddItemToCartDto
   ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    return this.cartService.addItemToCart(userId, addItemDto, userRoles);
+    const userId = req.user?.id;
+    const userRoles = req.user?.roles;
+    const sessionId = this.getSessionId(req);
+
+    const identifier = {
+      userId,
+      sessionId: sessionId
+    };
+
+    const cart = await this.cartService.addItemToCart(identifier, addItemDto, userRoles);
+
+    // If guest and no sessionId yet, create and set it
+    if (!userId && !sessionId && cart.sessionId) {
+      this.setSessionIdCookie(res, cart.sessionId);
+    }
+
+    return cart;
   }
 
   /**
-   * UPDATE CART ITEM QUANTITY (Customer Only)
-   * @description Updates the quantity of a specific item in the shopping cart.
-   * Validates new quantity against available stock.
+   * UPDATE CART ITEM QUANTITY (Public - Guest or Customer)
    */
   @Put('items/:productId')
-  @Auth([Role.CUSTOMER], [Permission.CART_UPDATE_ITEM])
+  @Public()
   @ApiOperation({
-    summary: 'Update cart item quantity (Customer Only)',
-    description: 'Updates the quantity of a specific item in the shopping cart. Validates new quantity against available stock.'
+    summary: 'Update cart item quantity (Public - Guest or Customer)',
+    description: 'Updates quantity of a specific item in the cart. Works for both guests and authenticated customers.'
   })
+  @ApiCookieAuth('sessionId')
   @ApiParam({
     name: 'productId',
     description: 'Product ID (UUID format)',
@@ -122,67 +169,83 @@ export class CartController {
   @ApiBadRequestResponse({ description: 'Invalid quantity or insufficient stock' })
   @ApiNotFoundResponse({ description: 'Item not found in cart' })
   async updateItem(
-    @Request() req: AuthRequest,
+    @Req() req: AuthRequest & { cookies: any },
     @Param('productId') productId: string,
     @Body() updateDto: UpdateCartItemDto,
   ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    const userId = req.user?.id;
+    const userRoles = req.user?.roles;
+    const sessionId = this.getSessionId(req);
+
+    const identifier = {
+      userId,
+      sessionId: sessionId
+    };
+
+    // Get or create cart to get cartId
+    const cart = await this.cartService.getOrCreateCart(identifier, 'USD', userRoles);
+
     return this.cartService.updateItemQuantity(
       cart.id,
       productId,
       updateDto,
-      userId,
+      identifier,
       userRoles
     );
   }
 
   /**
-   * REMOVE ITEM FROM CART (Customer Only)
-   * @description Removes a specific item from the shopping cart.
-   * Returns updated cart with recalculated totals.
+   * REMOVE ITEM FROM CART (Public - Guest or Customer)
    */
   @Delete('items/:productId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Auth([Role.CUSTOMER], [Permission.CART_REMOVE_ITEM])
+  @Public()
   @ApiOperation({
-    summary: 'Remove item from cart (Customer Only)',
-    description: 'Removes a specific item from the shopping cart. Returns updated cart with recalculated totals.'
+    summary: 'Remove item from cart (Public - Guest or Customer)',
+    description: 'Removes a specific item from the cart. Works for both guests and authenticated customers.'
   })
+  @ApiCookieAuth('sessionId')
   @ApiParam({
     name: 'productId',
     description: 'Product ID (UUID format)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiNoContentResponse({ description: 'Item removed from cart successfully', })
-  @ApiNotFoundResponse({ description: 'Item not found in cart', })
+  @ApiNoContentResponse({ description: 'Item removed from cart successfully' })
+  @ApiNotFoundResponse({ description: 'Item not found in cart' })
   async removeItem(
-    @Request() req: AuthRequest,
+    @Req() req: AuthRequest & { cookies: any },
     @Param('productId') productId: string,
   ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    const userId = req.user?.id;
+    const userRoles = req.user?.roles;
+    const sessionId = this.getSessionId(req);
+
+    const identifier = {
+      userId,
+      sessionId: sessionId
+    };
+
+    // Get or create cart to get cartId
+    const cart = await this.cartService.getOrCreateCart(identifier, 'USD', userRoles);
+
     return this.cartService.removeItemFromCart(
       cart.id,
       productId,
-      userId,
+      identifier,
       userRoles
     );
   }
 
   /**
-   * APPLY DISCOUNT CODE (Customer Only)
-   * @description Applies a discount code or coupon to the shopping cart.
-   * Validates discount code, expiration, and usage limits.
+   * APPLY DISCOUNT CODE (Public - Guest or Customer)
    */
   @Post('apply-discount')
-  @Auth([Role.CUSTOMER], [Permission.CART_APPLY_DISCOUNT])
+  @Public()
   @ApiOperation({
-    summary: 'Apply discount code (Customer Only)',
-    description: 'Applies a discount code or coupon to the shopping cart. Validates discount code, expiration, and usage limits.'
+    summary: 'Apply discount code (Public - Guest or Customer)',
+    description: 'Applies a discount code to the cart. Works for both guests and authenticated customers.'
   })
+  @ApiCookieAuth('sessionId')
   @ApiBody({ type: ApplyDiscountDtoSwagger })
   @ApiOkResponse({
     description: 'Discount applied successfully',
@@ -192,56 +255,111 @@ export class CartController {
     description: 'Invalid, expired, or already used discount code',
   })
   async applyDiscount(
-    @Request() req: AuthRequest,
+    @Req() req: AuthRequest & { cookies: any },
     @Body() discountDto: ApplyDiscountDto,
   ) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+    const userId = req.user?.id;
+    const userRoles = req.user?.roles;
+    const sessionId = this.getSessionId(req);
+
+    const identifier = {
+      userId,
+      sessionId: sessionId
+    };
+
+    // Get or create cart to get cartId
+    const cart = await this.cartService.getOrCreateCart(identifier, 'USD', userRoles);
+
     return this.cartService.applyDiscount(
       cart.id,
       discountDto,
-      userId,
+      identifier,
       userRoles
     );
   }
 
   /**
-   * CLEAR CART (Customer Only)
-   * @description Removes all items from the shopping cart.
-   * Resets cart to empty state.
+   * CLEAR CART (Public - Guest or Customer)
    */
   @Post('clear')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Auth([Role.CUSTOMER], [Permission.CART_CLEAR])
+  @Public()
   @ApiOperation({
-    summary: 'Clear cart (Customer Only)',
-    description: 'Removes all items from the shopping cart. Resets cart to empty state.'
+    summary: 'Clear cart (Public - Guest or Customer)',
+    description: 'Removes all items from the cart. Works for both guests and authenticated customers.'
   })
+  @ApiCookieAuth('sessionId')
   @ApiNoContentResponse({
     description: 'Cart cleared successfully',
   })
-  async clearCart(@Request() req: AuthRequest) {
-    const userId = req.user.id;
-    const userRoles = req.user.roles;
-    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+  async clearCart(
+    @Req() req: AuthRequest & { cookies: any },
+  ) {
+    const userId = req.user?.id;
+    const userRoles = req.user?.roles;
+    const sessionId = this.getSessionId(req);
+
+    const identifier = {
+      userId,
+      sessionId: sessionId
+    };
+
+    // Get or create cart to get cartId
+    const cart = await this.cartService.getOrCreateCart(identifier, 'USD', userRoles);
+
     return this.cartService.clearCart(
       cart.id,
-      userId,
+      identifier,
       userRoles
     );
+  }
+
+  /**
+   * MERGE GUEST CART WITH USER CART (Customer Only)
+   */
+  @Post('merge')
+  @CustomerOnly()
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Merge guest cart with user cart (Customer Only)',
+    description: 'Merges the current guest cart with the user\'s cart after login.'
+  })
+  @ApiOkResponse({
+    description: 'Carts merged successfully',
+    type: CartResponseDtoSwagger,
+  })
+  @ApiUnauthorizedResponse({ description: 'User not authenticated' })
+  async mergeCart(
+    @Req() req: AuthRequest & { cookies: any },
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const userId = req.user.id;
+    const sessionId = this.getSessionId(req);
+    const userRoles = req.user.roles;
+
+    if (sessionId) {
+      const cart = await this.cartService.mergeGuestCartWithUser(userId, sessionId);
+
+      // Clear sessionId after successful merge
+      res.clearCookie('sessionId');
+
+      return cart;
+    }
+
+    // If no guest cart, just return user cart
+    const identifier = { userId };
+    return this.cartService.getCartByUserId(identifier, userRoles);
   }
 
   /**
    * PREPARE CART FOR CHECKOUT (Customer Only)
-   * @description Prepares cart for checkout process.
-   * Validates all items, calculates final totals, and reserves stock.
    */
   @Post('checkout')
-  @Auth([Role.CUSTOMER], [Permission.CART_CHECKOUT])
+  @CustomerOnly()
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Prepare cart for checkout (Customer Only)',
-    description: 'Prepares cart for checkout process. Validates all items, calculates final totals, and reserves stock.'
+    description: 'Prepares cart for checkout process. Requires authentication for order creation.'
   })
   @ApiOkResponse({
     description: 'Cart ready for checkout',
@@ -250,13 +368,17 @@ export class CartController {
   @ApiBadRequestResponse({
     description: 'Cart validation failed (e.g., out of stock items)',
   })
+  @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   async prepareCheckout(@Request() req: AuthRequest) {
     const userId = req.user.id;
     const userRoles = req.user.roles;
-    const cart = await this.cartService.getCartByUserId(userId, userRoles);
+
+    const identifier = { userId };
+    const cart = await this.cartService.getCartByUserId(identifier, userRoles);
+
     return this.cartService.markCartAsPendingCheckout(
       cart.id,
-      userId,
+      identifier,
       userRoles
     );
   }
@@ -265,14 +387,13 @@ export class CartController {
 
   /**
    * GET EXPIRED CARTS (Admin Only)
-   * @description Retrieves list of carts that have expired (abandoned).
-   * Admin-only endpoint for monitoring abandoned carts.
    */
   @Get('admin/expired')
   @Auth([Role.ADMIN], [Permission.CART_ADMIN_READ])
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get expired carts (Admin Only)',
-    description: 'Retrieves list of carts that have expired (abandoned). Admin-only endpoint for monitoring abandoned carts.'
+    description: 'Retrieves list of carts that have expired (abandoned). Admin-only endpoint.'
   })
   @ApiOkResponse({
     description: 'Expired carts retrieved successfully',
@@ -290,15 +411,14 @@ export class CartController {
 
   /**
    * CLEANUP EXPIRED CARTS (Admin Only)
-   * @description Removes expired carts from the system.
-   * Admin-only endpoint for system maintenance.
    */
   @Post('admin/cleanup')
   @HttpCode(HttpStatus.OK)
   @Auth([Role.ADMIN], [Permission.CART_ADMIN_CLEANUP])
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Cleanup expired carts (Admin Only)',
-    description: 'Removes expired carts from the system. Admin-only endpoint for system maintenance.'
+    description: 'Removes expired carts from the system. Admin-only endpoint.'
   })
   @ApiOkResponse({
     description: 'Expired carts cleaned up successfully',
@@ -315,14 +435,13 @@ export class CartController {
 
   /**
    * GET SUPPLIER CART ACTIVITY (Supplier Only)
-   * @description Retrieves statistics about supplier's products in active carts.
-   * Shows how many of supplier's products are currently in customers' carts.
    */
   @Get('supplier/activity')
   @Auth([Role.SUPPLIER])
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get supplier cart activity (Supplier Only)',
-    description: 'Retrieves statistics about supplier\'s products in active carts. Shows how many of supplier\'s products are currently in customers\' carts.'
+    description: 'Retrieves statistics about supplier\'s products in active carts.'
   })
   @ApiOkResponse({
     description: 'Supplier cart statistics retrieved successfully',
@@ -333,8 +452,8 @@ export class CartController {
   })
   async getSupplierCartActivity(@Request() req: AuthRequest) {
     return this.cartService.getSupplierCartStats(
-      req.user.id,
-      req.user.id,
+      req.user.id,  // supplierId
+      req.user.id,  // userId
       req.user.roles
     );
   }

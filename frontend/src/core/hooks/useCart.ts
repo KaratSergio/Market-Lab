@@ -16,22 +16,24 @@ export const cartKeys = {
 };
 
 /**
- * Hook for getting the current user's cart
+ * Hook for getting the current cart (works for both guests and authenticated users)
  */
 export const useCart = () => {
-  const { token, isAuthenticated } = useAuthStore();
+  const { token } = useAuthStore();
 
   const query = useQuery({
     queryKey: cartKeys.details(),
-    queryFn: () => cartApi.getCart(token!),
-    enabled: !!token && isAuthenticated,
+    queryFn: () => cartApi.getCart(token),
+    enabled: true,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
   });
 
   return {
     ...query,
     itemsCount: query.data?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
+    isGuestCart: !query.data?.userId && !!query.data?.sessionId,
   }
 };
 
@@ -43,7 +45,7 @@ export const useAddToCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (item: AddItemToCartDto) => cartApi.addItem(item, token!),
+    mutationFn: (item: AddItemToCartDto) => cartApi.addItem(item, token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.details() });
     },
@@ -62,7 +64,7 @@ export const useUpdateCartItem = () => {
 
   return useMutation({
     mutationFn: ({ productId, quantity }: { productId: string; quantity: number }) =>
-      cartApi.updateItem(productId, { quantity }, token!),
+      cartApi.updateItem(productId, { quantity }, token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.details() });
     },
@@ -80,7 +82,7 @@ export const useRemoveFromCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (productId: string) => cartApi.removeItem(productId, token!),
+    mutationFn: (productId: string) => cartApi.removeItem(productId, token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.details() });
     },
@@ -99,7 +101,7 @@ export const useApplyDiscount = () => {
 
   return useMutation({
     mutationFn: (discountData: ApplyDiscountDto) =>
-      cartApi.applyDiscount(discountData, token!),
+      cartApi.applyDiscount(discountData, token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.details() });
     },
@@ -117,7 +119,7 @@ export const useClearCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => cartApi.clearCart(token!),
+    mutationFn: () => cartApi.clearCart(token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.details() });
     },
@@ -135,12 +137,30 @@ export const usePrepareCheckout = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => cartApi.prepareCheckout(token!),
+    mutationFn: () => cartApi.prepareCheckout(token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.details() });
     },
     onError: (error: Error) => {
       console.error('Failed to prepare checkout:', error);
+    },
+  });
+};
+
+/**
+ * Hook for merging guest cart with user cart after login
+ */
+export const useMergeCart = () => {
+  const { token } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => cartApi.mergeCart(token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: cartKeys.details() });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to merge cart:', error);
     },
   });
 };

@@ -90,7 +90,7 @@ export function SellerDetail({ supplierId }: { supplierId: string }) {
 
           {/* header */}
           <div className="h-32 bg-linear-to-r from-green-500 to-amber-500 relative">
-            <BackButton classText="text-green-300" classIcon='shadow-lg hover:shadow-xl mr-2' text={t('back')} />
+            <BackButton classText="text-green-300" classIcon='shadow-lg rounded-b-none shadow-none hover:shadow-xl mr-0' text={t('back')} />
 
             <div className="absolute -bottom-16 left-8">
               <div className="w-32 h-32 bg-white rounded-2xl shadow-xl flex items-center justify-center text-5xl border-4 border-white">

@@ -44,10 +44,10 @@ export function BackButton({
   return (
     <Link
       href={`/${locale}${backPath}`}
-      className={`flex items-center space-x-3 text-amber-700 hover:text-amber-400 transition-colors group ${className}`}
+      className={`flex items-center space-x-3 text-green-600 hover:text-green-800 transition-colors group ${className}`}
     >
-      <div className={`w-10 h-10 flex items-center justify-center transition-all ${classIcon}`}>
-        <ArrowBigLeft className="w-5 h-5" />
+      <div className={` w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" ${classIcon}`} >
+        <ArrowBigLeft size={18} />
       </div>
       {showText && (
         <span className={`${classText}`}>{text}</span>

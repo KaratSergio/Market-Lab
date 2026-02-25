@@ -167,6 +167,7 @@ export const CART_ENDPOINTS = {
   REMOVE_ITEM: (productId: string) => `${API_PREFIX}/cart/items/${productId}`,
   APPLY_DISCOUNT: `${API_PREFIX}/cart/apply-discount`,
   CLEAR_CART: `${API_PREFIX}/cart/clear`,
+  MERGE_CART: `${API_PREFIX}/cart/merge`,
   CHECKOUT: `${API_PREFIX}/cart/checkout`,
 
   SUPPLIER_STATS: `${API_PREFIX}/cart/supplier/activity`,

@@ -15,13 +15,15 @@ export interface CartItemDto {
 
 export interface CartDto {
   id: string;
-  userId: string;
+  userId?: string | null;
+  sessionId?: string | null;
+  ownerType: 'user' | 'guest';
   items: CartItemDto[];
   totalAmount: number;
   discountAmount: number;
   finalAmount: number;
   currency: string;
-  status: 'ACTIVE' | 'PENDING_CHECKOUT' | 'CONVERTED_TO_ORDER' | 'EXPIRED';
+  status: 'active' | 'pending_checkout' | 'converted_to_order' | 'expired';
   expiresAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -40,7 +42,7 @@ export interface UpdateCartItemDto {
 }
 
 export interface ApplyDiscountDto {
-  code?: string;
+  discountCode?: string;
   discountAmount?: number;
   discountPercentage?: number;
 }

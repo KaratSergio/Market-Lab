@@ -13,7 +13,8 @@ export type TranslationEntityType =
   | 'product'
   | 'supplier'
   | 'customer'
-  | 'attribute';
+  | 'attribute'
+  | 'tag';
 
 export const SUPPORTED_LANGUAGES = {
   EN: 'en',
@@ -27,12 +28,14 @@ export type TranslatableCategoryFields = 'name' | 'description' | 'metaTitle' | 
 export type TranslatableProductFields = 'name' | 'description' | 'shortDescription' | 'metaTitle' | 'metaDescription';
 export type TranslatableSupplierFields = 'firstName' | 'lastName' | 'companyName' | 'description' | 'address';
 export type TranslatableAttributeFields = 'name' | 'description';
+export type TranslatableTagFields = 'name' | 'description';
 
 export const TRANSLATABLE_FIELDS = {
   category: ['name', 'description', 'metaTitle', 'metaDescription'] as TranslatableCategoryFields[],
   product: ['name', 'description', 'shortDescription', 'metaTitle', 'metaDescription'] as TranslatableProductFields[],
   supplier: ['name', 'description', 'contactPerson', 'address'] as TranslatableSupplierFields[],
-  attribute: ['name', 'description'] as TranslatableAttributeFields[]
+  attribute: ['name', 'description'] as TranslatableAttributeFields[],
+  tag: ['name', 'description'] as TranslatableTagFields[]
 } as const;
 
 export type TranslatableFields<T extends TranslationEntityType> =
@@ -40,6 +43,7 @@ export type TranslatableFields<T extends TranslationEntityType> =
   T extends 'product' ? TranslatableProductFields :
   T extends 'supplier' ? TranslatableSupplierFields :
   T extends 'attribute' ? TranslatableAttributeFields :
+  T extends 'tag' ? TranslatableTagFields :
   never;
 
 export interface WithTranslations<T extends TranslationEntityType> {

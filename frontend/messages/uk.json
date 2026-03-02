@@ -368,7 +368,8 @@
     "tags": "Теги",
     "notifyWhenAvailable": "Повідомити про наявність",
     "allProducts": "Всі продукти",
-    "allCategories": "Всі категорії"
+    "allCategories": "Всі категорії",
+    "tryAgain": "Будь ласка, спробуйте пізніше"
   },
   "Forms": {
     "name": "Ім'я",

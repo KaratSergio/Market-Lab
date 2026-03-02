@@ -16,7 +16,6 @@ import {
 import { TagRepository } from './tag.repository';
 import { TranslationService } from '../translations/translation.service';
 import { TagDomainEntity } from './tag.entity';
-import { ProductRepository } from '../products/product.repository';
 
 
 @Injectable()
@@ -24,10 +23,7 @@ export class TagService {
   constructor(
     @Inject('TagRepository')
     private readonly tagRepository: TagRepository,
-    @Inject(TranslationService)
-    private readonly translationService: TranslationService,
-    @Inject('ProductRepository')
-    private readonly productRepository: ProductRepository
+    private readonly translationService: TranslationService
   ) { }
 
   // PUBLIC METHODS
@@ -121,14 +117,28 @@ export class TagService {
   }
 
   async getProductTags(productId: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<TagDomainEntity[]> {
-    await this._ensureProductExists(productId);
     const tags = await this.tagRepository.getProductTags(productId);
     return this._applyTranslationsToTags(tags, languageCode);
   }
 
-  async getTagTranslations(id: string): Promise<Record<string, Record<string, string>>> {
-    const translations = await this.translationService.getEntityTranslations(id, 'tag');
-    return this._groupTranslationsByLanguage(translations);
+  async syncProductTags(productId: string, tagIds: string[]): Promise<void> {
+    const currentTags = await this.tagRepository.getProductTags(productId);
+    const currentTagIds = currentTags.map(t => t.id);
+
+    const tagsToAdd = tagIds.filter(id => !currentTagIds.includes(id));
+    const tagsToRemove = currentTagIds.filter(id => !tagIds.includes(id));
+
+    await this._validateTagsExist(tagsToAdd);
+
+    for (const tagId of tagsToAdd) {
+      await this.tagRepository.addToProduct(tagId, productId);
+      await this._incrementTagUsage(tagId);
+    }
+
+    for (const tagId of tagsToRemove) {
+      await this.tagRepository.removeFromProduct(tagId, productId);
+      await this._decrementTagUsage(tagId);
+    }
   }
 
   // ADMIN METHODS
@@ -163,15 +173,11 @@ export class TagService {
 
   async update(id: string, updateDto: UpdateTagDto): Promise<TagDomainEntity> {
     const tag = await this._ensureTagExists(id);
-
     await this._validateTagUpdate(tag, updateDto);
-
     tag.update(updateDto);
 
     const errors = tag.validate();
-    if (errors.length > 0) {
-      throw new BadRequestException(errors.join(', '));
-    }
+    if (errors.length > 0) throw new BadRequestException(errors.join(', '));
 
     const updatedTag = await this.tagRepository.update(id, tag);
     if (!updatedTag) throw new NotFoundException(`Tag ${id} not found after update`);
@@ -188,12 +194,10 @@ export class TagService {
   }
 
   async delete(id: string): Promise<void> {
-    const tag = await this._ensureTagExists(id);
+    await this._ensureTagExists(id);
 
     const canDelete = await this._canDeleteTag(id);
-    if (!canDelete.canDelete) {
-      throw new BadRequestException(canDelete.reason);
-    }
+    if (!canDelete.canDelete) throw new BadRequestException(canDelete.reason);
 
     await this.translationService.deleteTranslations(id, 'tag');
     await this.tagRepository.delete(id);
@@ -202,11 +206,8 @@ export class TagService {
   async toggleStatus(id: string, status: TagStatus): Promise<TagDomainEntity> {
     const tag = await this._ensureTagExists(id);
 
-    if (status === 'active') {
-      tag.activate();
-    } else {
-      tag.deactivate();
-    }
+    if (status === 'active') tag.activate();
+    else tag.deactivate();
 
     const updatedTag = await this.tagRepository.update(id, tag);
     if (!updatedTag) throw new NotFoundException(`Tag ${id} not found after update`);
@@ -214,59 +215,48 @@ export class TagService {
     return this.findById(id);
   }
 
-  async syncProductTags(productId: string, tagIds: string[]): Promise<void> {
-    await this._ensureProductExists(productId);
+  async getTagTranslations(
+    id: string,
+    languageCode?: LanguageCode
+  ): Promise<Record<string, Record<string, string>> | Record<string, string>> {
+    await this._ensureTagExists(id);
 
-    // Get current tags for the product
-    const currentTags = await this.tagRepository.getProductTags(productId);
-    const currentTagIds = currentTags.map(t => t.id);
+    if (languageCode) {
+      const translations = await this.translationService.getTranslationsForEntities(
+        [id],
+        'tag',
+        languageCode
+      );
 
-    // Tags to add
-    const tagsToAdd = tagIds.filter(id => !currentTagIds.includes(id));
+      const result: Record<string, string> = {};
+      translations.forEach(t => {
+        result[t.fieldName] = t.translationText;
+      });
 
-    // Tags to remove
-    const tagsToRemove = currentTagIds.filter(id => !tagIds.includes(id));
-
-    // Validate all tags exist and are active before making changes
-    await this._validateTagsForSync([...tagsToAdd, ...tagsToRemove]);
-
-    // Add new tags
-    for (const tagId of tagsToAdd) {
-      await this.tagRepository.addToProduct(tagId, productId);
-      await this._incrementTagUsage(tagId);
-    }
-
-    // Remove old tags
-    for (const tagId of tagsToRemove) {
-      await this.tagRepository.removeFromProduct(tagId, productId);
-      await this._decrementTagUsage(tagId);
+      return result;
+    } else {
+      const translations = await this.translationService.getEntityTranslations(id, 'tag');
+      return this._groupTranslationsByLanguage(translations);
     }
   }
 
   async mergeTags(sourceTagId: string, targetTagId: string): Promise<TagDomainEntity> {
-    const sourceTag = await this._ensureTagExists(sourceTagId);
+    await this._ensureTagExists(sourceTagId);
     const targetTag = await this._ensureTagExists(targetTagId);
+    if (sourceTagId === targetTagId) throw new BadRequestException('Cannot merge tag with itself');
 
-    if (sourceTagId === targetTagId) {
-      throw new BadRequestException('Cannot merge tag with itself');
-    }
-
-    // Get all products with source tag
     const productsWithSource = await this.tagRepository.getProductTags(sourceTagId);
 
     if (productsWithSource.length > 0) {
-      // Move all products to target tag
       for (const product of productsWithSource) {
         await this.tagRepository.addToProduct(targetTagId, product.id);
         await this.tagRepository.removeFromProduct(sourceTagId, product.id);
       }
 
-      // Update usage counts
       targetTag.incrementUsage(productsWithSource.length);
       await this.tagRepository.update(targetTagId, targetTag);
     }
 
-    // Merge translations
     const sourceTranslations = await this.translationService.getEntityTranslations(sourceTagId, 'tag');
     if (sourceTranslations && sourceTranslations.length > 0) {
       const translationsByLanguage = this._groupTranslationsByLanguage(sourceTranslations);
@@ -277,7 +267,6 @@ export class TagService {
       );
     }
 
-    // Delete source tag
     await this.translationService.deleteTranslations(sourceTagId, 'tag');
     await this.tagRepository.delete(sourceTagId);
 
@@ -409,7 +398,7 @@ export class TagService {
     return name
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/[^a-z\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
@@ -421,16 +410,10 @@ export class TagService {
     return tag;
   }
 
-  private async _ensureProductExists(id: string): Promise<void> {
-    const exists = await this.productRepository.exists(id);
-    if (!exists) throw new NotFoundException(`Product ${id} not found`);
-  }
-
   private async _ensureTagDoesNotExist(slug: string, name: string): Promise<void> {
     if (await this.tagRepository.existsBySlug(slug)) {
       throw new ConflictException(`Tag with slug "${slug}" already exists`);
     }
-
     if (await this.tagRepository.existsByName(name)) {
       throw new ConflictException(`Tag with name "${name}" already exists`);
     }
@@ -442,7 +425,6 @@ export class TagService {
         throw new ConflictException(`Tag with slug "${updateDto.slug}" already exists`);
       }
     }
-
     if (updateDto.name && updateDto.name !== tag.name) {
       if (await this.tagRepository.existsByName(updateDto.name)) {
         throw new ConflictException(`Tag with name "${updateDto.name}" already exists`);
@@ -450,15 +432,11 @@ export class TagService {
     }
   }
 
-  private async _validateTagsForSync(tagIds: string[]): Promise<void> {
+  private async _validateTagsExist(tagIds: string[]): Promise<void> {
     for (const tagId of tagIds) {
       const tag = await this.tagRepository.findById(tagId);
-      if (!tag) {
-        throw new NotFoundException(`Tag ${tagId} not found`);
-      }
-      if (!tag.isActive()) {
-        throw new BadRequestException(`Tag ${tag.name} is not active`);
-      }
+      if (!tag) throw new NotFoundException(`Tag ${tagId} not found`);
+      if (!tag.isActive()) throw new BadRequestException(`Tag ${tag.name} is not active`);
     }
   }
 

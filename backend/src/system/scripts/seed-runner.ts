@@ -8,6 +8,7 @@ import { SuperAdminInitService } from './super-admin.init';
 import { seedCategories } from './seed-categories';
 import { seedSuppliers } from './seed-suppliers';
 import { seedProducts } from './seed-products';
+import { seedTags } from './seed-tags';
 
 const logger = new Logger('SeedRunner');
 
@@ -25,25 +26,30 @@ async function runAllSeeds() {
     await seedCategories(dataSource);
     logger.log('✅ Categories seeded');
 
-    // 3. Initialize super admin
+    // 3. Seed tags
+    logger.log('🌱 Seeding tags...');
+    await seedTags(dataSource);
+    console.log('✅ Tags seeded');
+
+    // 4. Initialize super admin
     logger.log('👑 Initializing super admin...');
     const superAdminService = app.get(SuperAdminInitService);
     await superAdminService.initializeSuperAdmin();
     logger.log('✅ Super admin initialized');
 
-    // 4. Seed suppliers
+    // 5. Seed suppliers
     logger.log('👥 Seeding suppliers...');
     await seedSuppliers(dataSource);
     logger.log('✅ Suppliers seeded');
 
-    // 5. Seed products
+    // 6. Seed products
     logger.log('🛒 Seeding products...');
     await seedProducts(dataSource);
     logger.log('✅ Products seeded');
 
     logger.log('🎉 All seeds completed!');
 
-    // 6. Show summary
+    // 7. Show summary
     await showSummary(dataSource);
 
   } catch (error) {

@@ -105,37 +105,29 @@ export class PostgresTagRepository extends DomainTagRepository {
   }
 
   // Product-tag relationship methods
-  async addToProduct(tagId: string, productId: string): Promise<void> {
+  async addToProduct(productId: string, tagId: string): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .relation(TagOrmEntity, 'products')
-      .of(tagId)
-      .add(productId);
+      .of(productId)
+      .add(tagId);
   }
 
-  async removeFromProduct(tagId: string, productId: string): Promise<void> {
+  async removeFromProduct(productId: string, tagId: string): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .relation(TagOrmEntity, 'products')
-      .of(tagId)
-      .remove(productId);
+      .of(productId)
+      .remove(tagId);
   }
 
   async getProductTags(productId: string): Promise<TagDomainEntity[]> {
-    const tag = await this.repository.findOne({
-      where: { products: { id: productId } },
-      relations: ['products']
-    });
-
-    if (!tag) return [];
-
     const tags = await this.repository
       .createQueryBuilder('tag')
       .innerJoin('tag.products', 'product', 'product.id = :productId', { productId })
-      .orderBy('tag.name', 'ASC')
       .getMany();
 
-    return tags.map(this._toDomainEntity);
+    return tags.map(tag => this._toDomainEntity(tag));
   }
 
   async getTagsByProductIds(productIds: string[]): Promise<Map<string, TagDomainEntity[]>> {

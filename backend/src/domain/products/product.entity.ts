@@ -23,7 +23,7 @@ export class ProductDomainEntity implements ProductModel {
     public images: string[] = [],
     public stock: number = 0,
     public status: ProductStatus = PRODUCT_STATUS.ACTIVE,
-    public tags: string[] = [],
+    public tagIds: string[] = [],
     public translations?: Partial<Record<LanguageCode, Partial<Record<TranslatableProductFields, string>>>>,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
@@ -44,7 +44,7 @@ export class ProductDomainEntity implements ProductModel {
       createDto.images || [],
       createDto.stock || 0,
       createDto.status || PRODUCT_STATUS.ACTIVE,
-      createDto.tags || []
+      createDto.tagIds || []
     );
   }
 
@@ -60,7 +60,7 @@ export class ProductDomainEntity implements ProductModel {
     if (updateDto.images) this.images = updateDto.images;
     if (updateDto.stock !== undefined) this.stock = updateDto.stock;
     if (updateDto.status) this.status = updateDto.status;
-    if (updateDto.tags) this.tags = updateDto.tags;
+    if (updateDto.tagIds !== undefined) this.tagIds = updateDto.tagIds;
 
     this.updatedAt = new Date();
   }
@@ -151,18 +151,6 @@ export class ProductDomainEntity implements ProductModel {
 
   removeImage(imageUrl: string): void {
     this.images = this.images.filter(img => img !== imageUrl);
-    this.updatedAt = new Date();
-  }
-
-  // TAGS MANAGEMENT
-  addTags(newTags: string[]): void {
-    const uniqueTags = [...new Set([...this.tags, ...newTags])];
-    this.tags = uniqueTags;
-    this.updatedAt = new Date();
-  }
-
-  removeTag(tag: string): void {
-    this.tags = this.tags.filter(t => t !== tag);
     this.updatedAt = new Date();
   }
 

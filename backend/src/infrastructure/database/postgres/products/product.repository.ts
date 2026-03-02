@@ -1,12 +1,13 @@
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductRepository as DomainProductRepository } from '@domain/products/product.repository';
-import { ProductOrmEntity } from './product.entity';
 import { ProductDomainEntity } from '@domain/products/product.entity';
 import { ProductStatus, Unit, Currency } from '@domain/products/types';
 import { TranslationService } from '@domain/translations/translation.service';
+import { ProductOrmEntity } from './product.entity';
 import { LanguageCode, TranslatableProductFields, DEFAULT_LANGUAGE } from '@domain/translations/types';
+import { TagRepository } from '@domain/tags/tag.repository';
 
 
 @Injectable()
@@ -14,20 +15,32 @@ export class PostgresProductRepository extends DomainProductRepository {
   constructor(
     @InjectRepository(ProductOrmEntity)
     private readonly repository: Repository<ProductOrmEntity>,
-    private readonly translationService: TranslationService
+    private readonly translationService: TranslationService,
+    @Inject('TagRepository')
+    private readonly tagRepository: TagRepository
   ) { super() }
 
   // BaseRepository
   async create(data: Partial<ProductDomainEntity>): Promise<ProductDomainEntity> {
     const entity = this._toOrmEntity(data as ProductDomainEntity);
     const saved = await this.repository.save(entity);
+
+    if (data.tagIds && data.tagIds.length > 0) {
+      await this._syncProductTags(saved.id, data.tagIds);
+      const reloaded = await this.repository.findOne({
+        where: { id: saved.id },
+        relations: ['tags']
+      });
+      return this._toDomainEntity(reloaded!, DEFAULT_LANGUAGE);
+    }
+
     return this._toDomainEntity(saved, DEFAULT_LANGUAGE);
   }
 
   async findById(id: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity | null> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['category', 'subcategory']
+      relations: ['category', 'subcategory', 'tags']
     });
 
     return entity ? this._toDomainEntity(entity, languageCode) : null;
@@ -37,9 +50,12 @@ export class PostgresProductRepository extends DomainProductRepository {
     if (!await this.exists(id)) return null;
 
     await this.repository.update(id, this._prepareUpdateData(data));
+    if (data.tagIds !== undefined) {
+      await this._syncProductTags(id, data.tagIds);
+    }
     const updated = await this.repository.findOne({
       where: { id },
-      relations: ['category', 'subcategory']
+      relations: ['category', 'subcategory', 'tags']
     });
 
     return updated ? this._toDomainEntity(updated, DEFAULT_LANGUAGE) : null;
@@ -95,7 +111,7 @@ export class PostgresProductRepository extends DomainProductRepository {
 
   async findAll(languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
     const entities = await this.repository.find({
-      relations: ['category', 'subcategory']
+      relations: ['category', 'subcategory', 'tags']
     });
 
     return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode)));
@@ -105,6 +121,39 @@ export class PostgresProductRepository extends DomainProductRepository {
   async exists(id: string): Promise<boolean> {
     return await this.repository.existsBy({ id });
   }
+
+  async findByTagIds(
+    tagIds: string[],
+    matchAll: boolean = false,
+    languageCode: LanguageCode = DEFAULT_LANGUAGE
+  ): Promise<ProductDomainEntity[]> {
+    if (tagIds.length === 0) return [];
+
+    const query = this.repository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.subcategory', 'subcategory')
+      .leftJoinAndSelect('product.tags', 'tags')
+      .innerJoin('product.tags', 'filterTag')
+      .where('filterTag.id IN (:...tagIds)', { tagIds })
+      .groupBy('product.id, category.id, subcategory.id, tags.id');
+
+    if (matchAll) {
+      query.having('COUNT(DISTINCT filterTag.id) = :count', { count: tagIds.length });
+    }
+
+    const entities = await query.getMany();
+    return Promise.all(entities.map(e => this._toDomainEntity(e, languageCode)));
+  }
+
+  async findProductsWithAnyTag(tagIds: string[], languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
+    return this.findByTagIds(tagIds, false, languageCode);
+  }
+
+  async findProductsWithAllTags(tagIds: string[], languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
+    return this.findByTagIds(tagIds, true, languageCode);
+  }
+
 
   // PaginableRepository methods
   async findWithPagination(
@@ -187,16 +236,8 @@ export class PostgresProductRepository extends DomainProductRepository {
     return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode)));
   }
 
-  async findByTags(tags: string[], languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
-    const query = this._buildBaseQuery();
-
-    tags.forEach((tag, index) => {
-      query.andWhere(`product.tags @> :tag${index}`, { [`tag${index}`]: [tag] });
-    });
-
-    const entities = await query.getMany();
-
-    return Promise.all(entities.map(ormEntity => this._toDomainEntity(ormEntity, languageCode)));
+  async findByTags(tagIds: string[], languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity[]> {
+    return this.findByTagIds(tagIds, false, languageCode);
   }
 
   async findByName(name: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<ProductDomainEntity | null> {
@@ -250,7 +291,7 @@ export class PostgresProductRepository extends DomainProductRepository {
   ): Promise<ProductDomainEntity[]> {
     const entities = await this.repository.find({
       where: { status: 'active' },
-      relations: ['category', 'subcategory'],
+      relations: ['category', 'subcategory', 'tags'],
       order: { [sortBy]: order }
     });
 
@@ -384,6 +425,7 @@ export class PostgresProductRepository extends DomainProductRepository {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.subcategory', 'subcategory')
+      .leftJoinAndSelect('product.tags', 'tags')
       .where('product.status = :status', { status: 'active' });
   }
 
@@ -391,15 +433,22 @@ export class PostgresProductRepository extends DomainProductRepository {
 
   private _buildWhereQuery(
     filter?: Partial<ProductDomainEntity>,
-    stock?: 'in-stock' | 'low-stock' | 'out-of-stock'
+    stock?: 'in-stock' | 'low-stock' | 'out-of-stock',
+    tagIds?: string[]
   ): SelectQueryBuilder<ProductOrmEntity> {
     const query = this.repository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
-      .leftJoinAndSelect('product.subcategory', 'subcategory');
+      .leftJoinAndSelect('product.subcategory', 'subcategory')
+      .leftJoinAndSelect('product.tags', 'tags');
 
     if (filter) {
       this._applyFilters(query, filter);
+    }
+
+    if (tagIds && tagIds.length > 0) {
+      query.innerJoin('product.tags', 'filterTag')
+        .andWhere('filterTag.id IN (:...tagIds)', { tagIds });
     }
 
     if (stock) {
@@ -432,7 +481,6 @@ export class PostgresProductRepository extends DomainProductRepository {
     if (filter.images !== undefined) this._applyImagesFilter(query, filter.images);
     if (filter.stock !== undefined) query.andWhere('product.stock = :stock', { stock: filter.stock });
     if (filter.status) query.andWhere('product.status = :status', { status: filter.status });
-    if (filter.tags !== undefined) this._applyTagsFilter(query, filter.tags);
   }
 
   private _applyImagesFilter(query: SelectQueryBuilder<ProductOrmEntity>, images: string[] | undefined) {
@@ -441,16 +489,6 @@ export class PostgresProductRepository extends DomainProductRepository {
         query.andWhere('product.images = :emptyArray', { emptyArray: [] });
       } else {
         query.andWhere('product.images @> :images', { images });
-      }
-    }
-  }
-
-  private _applyTagsFilter(query: SelectQueryBuilder<ProductOrmEntity>, tags: string[] | undefined) {
-    if (Array.isArray(tags)) {
-      if (tags.length === 0) {
-        query.andWhere('product.tags = :emptyArray', { emptyArray: [] });
-      } else {
-        query.andWhere('product.tags @> :tags', { tags });
       }
     }
   }
@@ -511,9 +549,22 @@ export class PostgresProductRepository extends DomainProductRepository {
     if (data.images !== undefined) updateData.images = data.images;
     if (data.stock !== undefined) updateData.stock = data.stock;
     if (data.status !== undefined) updateData.status = data.status;
-    if (data.tags !== undefined) updateData.tags = data.tags;
 
     return updateData;
+  }
+
+  private async _syncProductTags(productId: string, tagIds: string[]): Promise<void> {
+    const currentTags = await this.tagRepository.getProductTags(productId);
+    const currentTagIds = currentTags.map(t => t.id);
+    const tagsToAdd = tagIds.filter(id => !currentTagIds.includes(id));
+    const tagsToRemove = currentTagIds.filter(id => !tagIds.includes(id));
+
+    for (const tagId of tagsToAdd) {
+      await this.tagRepository.addToProduct(productId, tagId);
+    }
+    for (const tagId of tagsToRemove) {
+      await this.tagRepository.removeFromProduct(productId, tagId);
+    }
   }
 
   private async _toDomainEntity(
@@ -529,6 +580,8 @@ export class PostgresProductRepository extends DomainProductRepository {
     } = ormEntity;
 
     const price = typeof ormEntity.price === 'string' ? parseFloat(ormEntity.price) : ormEntity.price;
+
+    const tagIds = tags?.map(tag => tag.id) || [];
 
     let translatedName = name;
     let translatedDescription = description;
@@ -585,7 +638,7 @@ export class PostgresProductRepository extends DomainProductRepository {
       images || [],
       stock,
       status as ProductStatus,
-      tags || [],
+      tagIds,
       translationsData,
       createdAt,
       updatedAt
@@ -607,7 +660,6 @@ export class PostgresProductRepository extends DomainProductRepository {
     entity.images = domainEntity.images;
     entity.stock = domainEntity.stock;
     entity.status = domainEntity.status;
-    entity.tags = domainEntity.tags;
     entity.createdAt = domainEntity.createdAt;
     entity.updatedAt = domainEntity.updatedAt;
 

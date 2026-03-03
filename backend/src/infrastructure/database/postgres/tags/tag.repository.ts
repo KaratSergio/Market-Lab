@@ -24,7 +24,10 @@ export class PostgresTagRepository extends DomainTagRepository {
   }
 
   async findById(id: string): Promise<TagDomainEntity | null> {
-    const entity = await this.repository.findOneBy({ id });
+    const entity = await this.repository.findOne({
+      where: { id },
+      relations: ['category']
+    });
     return entity ? this._toDomainEntity(entity) : null;
   }
 
@@ -32,7 +35,10 @@ export class PostgresTagRepository extends DomainTagRepository {
     if (!await this.exists(id)) return null;
 
     await this.repository.update(id, this._prepareUpdateData(data));
-    const updated = await this.repository.findOneBy({ id });
+    const updated = await this.repository.findOne({
+      where: { id },
+      relations: ['category']
+    });
     return updated ? this._toDomainEntity(updated) : null;
   }
 
@@ -43,18 +49,25 @@ export class PostgresTagRepository extends DomainTagRepository {
   // QueryableRepository methods
   async findOne(filter: Partial<TagDomainEntity>): Promise<TagDomainEntity | null> {
     const query = this._buildWhereConditions(filter);
-    const entity = await this.repository.findOne({ where: query });
+    const entity = await this.repository.findOne({
+      where: query,
+      relations: ['category']
+    });
     return entity ? this._toDomainEntity(entity) : null;
   }
 
   async findMany(filter: Partial<TagDomainEntity>): Promise<TagDomainEntity[]> {
     const query = this._buildWhereConditions(filter);
-    const entities = await this.repository.find({ where: query });
+    const entities = await this.repository.find({
+      where: query,
+      relations: ['category']
+    });
     return entities.map(this._toDomainEntity);
   }
 
   async findAll(): Promise<TagDomainEntity[]> {
     const entities = await this.repository.find({
+      relations: ['category'],
       order: { usageCount: 'DESC', name: 'ASC' }
     });
     return entities.map(this._toDomainEntity);
@@ -66,17 +79,24 @@ export class PostgresTagRepository extends DomainTagRepository {
 
   // Tag-specific methods
   async findBySlug(slug: string): Promise<TagDomainEntity | null> {
-    const entity = await this.repository.findOneBy({ slug });
+    const entity = await this.repository.findOne({
+      where: { slug },
+      relations: ['category']
+    });
     return entity ? this._toDomainEntity(entity) : null;
   }
 
   async findByName(name: string, exact: boolean = true): Promise<TagDomainEntity[]> {
     if (exact) {
-      const entity = await this.repository.findOneBy({ name });
+      const entity = await this.repository.findOne({
+        where: { name },
+        relations: ['category']
+      });
       return entity ? [this._toDomainEntity(entity)] : [];
     } else {
       const entities = await this.repository
         .createQueryBuilder('tag')
+        .leftJoinAndSelect('tag.category', 'category')
         .where('tag.name ILIKE :name', { name: `%${name}%` })
         .orderBy('tag.usageCount', 'DESC')
         .getMany();
@@ -87,6 +107,7 @@ export class PostgresTagRepository extends DomainTagRepository {
   async findByStatus(status: TagStatus): Promise<TagDomainEntity[]> {
     const entities = await this.repository.find({
       where: { status },
+      relations: ['category'],
       order: { usageCount: 'DESC', name: 'ASC' }
     });
     return entities.map(this._toDomainEntity);
@@ -102,6 +123,27 @@ export class PostgresTagRepository extends DomainTagRepository {
 
   async existsByName(name: string): Promise<boolean> {
     return await this.repository.existsBy({ name });
+  }
+
+  async findByCategoryId(categoryId: string): Promise<TagDomainEntity[]> {
+    const entities = await this.repository.find({
+      where: { categoryId, status: 'active' },
+      relations: ['category'],
+      order: { name: 'ASC' }
+    });
+    return entities.map(this._toDomainEntity);
+  }
+
+  async findByCategorySlug(categorySlug: string): Promise<TagDomainEntity[]> {
+    const entities = await this.repository
+      .createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.category', 'category')
+      .where('category.slug = :categorySlug', { categorySlug })
+      .andWhere('tag.status = :status', { status: 'active' })
+      .orderBy('tag.name', 'ASC')
+      .getMany();
+
+    return entities.map(this._toDomainEntity);
   }
 
   // Product-tag relationship methods
@@ -124,6 +166,7 @@ export class PostgresTagRepository extends DomainTagRepository {
   async getProductTags(productId: string): Promise<TagDomainEntity[]> {
     const tags = await this.repository
       .createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.category', 'category')
       .innerJoin('tag.products', 'product', 'product.id = :productId', { productId })
       .getMany();
 
@@ -133,6 +176,7 @@ export class PostgresTagRepository extends DomainTagRepository {
   async getTagsByProductIds(productIds: string[]): Promise<Map<string, TagDomainEntity[]>> {
     const tags = await this.repository
       .createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.category', 'category')
       .innerJoin('tag.products', 'product')
       .where('product.id IN (:...productIds)', { productIds })
       .orderBy('tag.name', 'ASC')
@@ -208,6 +252,7 @@ export class PostgresTagRepository extends DomainTagRepository {
   async searchTags(query: string, limit: number = 10): Promise<TagDomainEntity[]> {
     const entities = await this.repository
       .createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.category', 'category')
       .where('tag.name ILIKE :query OR tag.slug ILIKE :query', { query: `%${query}%` })
       .andWhere('tag.status = :status', { status: 'active' })
       .orderBy('tag.usageCount', 'DESC')
@@ -220,6 +265,7 @@ export class PostgresTagRepository extends DomainTagRepository {
   async findTagsByProductIds(productIds: string[]): Promise<TagDomainEntity[]> {
     const entities = await this.repository
       .createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.category', 'category')
       .innerJoin('tag.products', 'product')
       .where('product.id IN (:...productIds)', { productIds })
       .distinct(true)
@@ -259,6 +305,7 @@ export class PostgresTagRepository extends DomainTagRepository {
     if (filter.description !== undefined) where.description = filter.description;
     if (filter.status !== undefined) where.status = filter.status;
     if (filter.usageCount !== undefined) where.usageCount = filter.usageCount;
+    if (filter.categoryId !== undefined) where.categoryId = filter.categoryId!;
 
     return where;
   }
@@ -271,6 +318,7 @@ export class PostgresTagRepository extends DomainTagRepository {
     if (data.description !== undefined) updateData.description = data.description;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.usageCount !== undefined) updateData.usageCount = data.usageCount;
+    if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
 
     return updateData;
   }
@@ -283,21 +331,25 @@ export class PostgresTagRepository extends DomainTagRepository {
       ormEntity.description || undefined,
       ormEntity.status as TagStatus,
       ormEntity.usageCount,
+      ormEntity.categoryId || undefined,
       ormEntity.createdAt,
       ormEntity.updatedAt
     );
   }
 
   private _toOrmEntity(domainEntity: TagDomainEntity): TagOrmEntity {
-    return Object.assign(new TagOrmEntity(), {
-      id: domainEntity.id,
-      name: domainEntity.name,
-      slug: domainEntity.slug,
-      description: domainEntity.description || null,
-      status: domainEntity.status,
-      usageCount: domainEntity.usageCount,
-      createdAt: domainEntity.createdAt,
-      updatedAt: domainEntity.updatedAt
-    });
+    const entity = new TagOrmEntity();
+
+    entity.id = domainEntity.id;
+    entity.name = domainEntity.name;
+    entity.slug = domainEntity.slug;
+    entity.description = domainEntity.description || null;
+    entity.status = domainEntity.status;
+    entity.usageCount = domainEntity.usageCount;
+    entity.categoryId = domainEntity.categoryId || null;
+    entity.createdAt = domainEntity.createdAt;
+    entity.updatedAt = domainEntity.updatedAt;
+
+    return entity;
   }
 }

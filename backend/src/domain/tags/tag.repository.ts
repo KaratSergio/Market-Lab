@@ -25,8 +25,8 @@ export abstract class TagRepository implements MinimalRepository<TagDomainEntity
   abstract existsByName(name: string): Promise<boolean>;
 
   // Product-tag relationship methods
-  abstract addToProduct(tagId: string, productId: string): Promise<void>;
-  abstract removeFromProduct(tagId: string, productId: string): Promise<void>;
+  abstract addToProduct(productId: string, tagId: string): Promise<void>;
+  abstract removeFromProduct(productId: string, tagId: string): Promise<void>;
   abstract getProductTags(productId: string): Promise<TagDomainEntity[]>;
   abstract getTagsByProductIds(productIds: string[]): Promise<Map<string, TagDomainEntity[]>>;
 
@@ -38,6 +38,8 @@ export abstract class TagRepository implements MinimalRepository<TagDomainEntity
   // Search and filtering
   abstract searchTags(query: string, limit?: number): Promise<TagDomainEntity[]>;
   abstract findTagsByProductIds(productIds: string[]): Promise<TagDomainEntity[]>;
+  abstract findByCategoryId(categoryId: string): Promise<TagDomainEntity[]>;
+  abstract findByCategorySlug(categorySlug: string): Promise<TagDomainEntity[]>;
 
   // Bulk operations
   abstract bulkUpdateUsageCounts(): Promise<void>;

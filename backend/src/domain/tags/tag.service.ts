@@ -55,6 +55,16 @@ export class TagService {
     return this._applyTranslationsToTags(tags, languageCode);
   }
 
+  async findByCategoryId(categoryId: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<TagDomainEntity[]> {
+    const tags = await this.tagRepository.findByCategoryId(categoryId);
+    return this._applyTranslationsToTags(tags, languageCode);
+  }
+
+  async findByCategorySlug(categorySlug: string, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<TagDomainEntity[]> {
+    const tags = await this.tagRepository.findByCategorySlug(categorySlug);
+    return this._applyTranslationsToTags(tags, languageCode);
+  }
+
   async getPopularTags(limit: number = 20, languageCode: LanguageCode = DEFAULT_LANGUAGE): Promise<PopularTag[]> {
     const popularTags = await this.tagRepository.getPopularTags(limit);
 
@@ -349,6 +359,7 @@ export class TagService {
       translationMap.description || tag.description,
       tag.status,
       tag.usageCount,
+      tag.categoryId,
       tag.createdAt,
       tag.updatedAt
     );

@@ -1,6 +1,6 @@
 import {
   IsString, IsOptional, IsIn, IsNotEmpty,
-  Min, Max, IsObject, IsNumber
+  Min, Max, IsObject, IsNumber, IsUUID
 } from 'class-validator';
 
 import { TAG_STATUS_VALUES, type TagStatus } from './tag.type';
@@ -25,6 +25,10 @@ export class CreateTagDto {
   status?: TagStatus;
 
   @IsOptional()
+  @IsUUID()
+  categoryId?: string | null;
+
+  @IsOptional()
   @IsObject({ message: 'Translations must be an object' })
   translations?: Record<LanguageCode, Partial<Record<TranslatableTagFields, string>>>;
 }
@@ -47,6 +51,10 @@ export class UpdateTagDto {
   @IsOptional()
   @IsIn(TAG_STATUS_VALUES, { message: 'Invalid status' })
   status?: TagStatus;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string | null;
 
   @IsOptional()
   @IsObject({ message: 'Translations must be an object' })

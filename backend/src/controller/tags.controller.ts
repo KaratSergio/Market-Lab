@@ -258,4 +258,34 @@ export class TagController {
   ) {
     return this.tagService.mergeTags(body.sourceTagId, body.targetTagId);
   }
+
+  @Get('by-category/:categoryId')
+  @ApiOperation({ summary: 'Get tags by category ID' })
+  @ApiParam({ name: 'categoryId', type: String })
+  @ApiQuery({
+    name: 'language',
+    required: false,
+    enum: Object.values(SUPPORTED_LANGUAGES)
+  })
+  async getByCategoryId(
+    @Param('categoryId', ParseUUIDPipe) categoryId: string,
+    @Query('language') language?: LanguageCode
+  ) {
+    return this.tagService.findByCategoryId(categoryId, language);
+  }
+
+  @Get('by-category-slug/:slug')
+  @ApiOperation({ summary: 'Get tags by category slug' })
+  @ApiParam({ name: 'slug', type: String })
+  @ApiQuery({
+    name: 'language',
+    required: false,
+    enum: Object.values(SUPPORTED_LANGUAGES)
+  })
+  async getByCategorySlug(
+    @Param('slug') slug: string,
+    @Query('language') language?: LanguageCode
+  ) {
+    return this.tagService.findByCategorySlug(slug, language);
+  }
 }

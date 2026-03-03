@@ -664,3 +664,108 @@ export const tagsDataEn = {
     description: 'Award-winning product'
   }
 };
+
+export const tagsByCategory = {
+  'vegetables': [
+    'fresh-vegetables',
+    'root-vegetables',
+    'leafy-greens',
+    'nightshades',
+    'cruciferous',
+    'cucurbits',
+    'alliums'
+  ],
+  'fruits': [
+    'berries',
+    'stone-fruits',
+    'pome-fruits',
+    'tropical-fruits'
+  ],
+  'dairy-products': [
+    'farm-milk',
+    'goat-dairy',
+    'artisan-cheese',
+    'fermented-dairy',
+    'farm-butter'
+  ],
+  'meat-poultry': [
+    'free-range',
+    'grass-fed',
+    'farm-pork',
+    'farm-beef',
+    'farm-chicken',
+    'rabbit-meat',
+    'homemade-sausages',
+    'cured-meats'
+  ],
+  'honey-bee-products': [
+    'raw-honey',
+    'monofloral-honey',
+    'polyfloral-honey',
+    'propolis',
+    'bee-pollen',
+    'royal-jelly',
+    'beeswax'
+  ],
+  'bread-bakery': [
+    'sourdough-bread',
+    'whole-grain',
+    'rye-bakery',
+    'handmade-pastries',
+    'no-preservatives'
+  ],
+  'grains-cereals': [
+    'buckwheat',
+    'ancient-grains',
+    'gluten-free-grains',
+    'farm-flour'
+  ],
+  'preserves': [
+    'homemade-jam',
+    'fermented',
+    'pickles',
+    'natural-compotes',
+    'preserved-juices'
+  ],
+  'drinks': [
+    'fresh-juices',
+    'herbal-teas',
+    'farm-kvass',
+    'kombucha'
+  ],
+  'nuts-dried-fruits': [
+    'raw-nuts',
+    'dried-fruits',
+    'nuts-mixes'
+  ],
+  'vegetable-oils': [
+    'cold-pressed',
+    'unrefined-oils',
+    'pumpkin-seed-oil',
+    'flaxseed-oil'
+  ],
+  'spices-herbs': [
+    'dried-herbs',
+    'medicinal-herbs',
+    'spice-blends',
+    'natural-salt'
+  ],
+  'baby-food': [
+    'baby-purees',
+    'baby-cereals',
+    'baby-snacks'
+  ],
+  'farm-delicacies': [
+    'farm-delicacies',
+    'pates',
+    'smoked-products',
+    'marinated-products'
+  ],
+  'quality': [
+    'premium',
+    'farmers-choice',
+    'limited-edition',
+    'family-recipe',
+    'award-winning'
+  ]
+};

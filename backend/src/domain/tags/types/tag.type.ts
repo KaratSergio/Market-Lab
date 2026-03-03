@@ -16,10 +16,16 @@ export interface TagModel extends Entity, WithTranslations<'tag'> {
   description?: string;
   status: TagStatus;
   usageCount: number;
+  categoryId?: string | null;
 }
 
 export interface TagWithProductCount extends TagModel {
   productCount: number;
+}
+
+export interface TagWithCategory extends TagModel {
+  categoryName?: string;
+  categorySlug?: string;
 }
 
 export interface PopularTag {

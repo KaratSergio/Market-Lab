@@ -12,6 +12,7 @@ export class TagDomainEntity implements TagModel {
     public description: string = '',
     public status: TagStatus = DEFAULT_TAG_STATUS,
     public usageCount: number = 0,
+    public categoryId?: string | null,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
   ) { }
@@ -25,7 +26,8 @@ export class TagDomainEntity implements TagModel {
       slug,
       createDto.description || '',
       createDto.status || DEFAULT_TAG_STATUS,
-      0 // new tag starts with 0 used
+      0, // new tag starts with 0 used
+      createDto.categoryId
     );
   }
 
@@ -34,6 +36,7 @@ export class TagDomainEntity implements TagModel {
     if (updateDto.slug !== undefined) this.slug = updateDto.slug;
     if (updateDto.description !== undefined) this.description = updateDto.description;
     if (updateDto.status !== undefined) this.status = updateDto.status;
+    if (updateDto.categoryId !== undefined) this.categoryId = updateDto.categoryId;
 
     this.updatedAt = new Date();
   }

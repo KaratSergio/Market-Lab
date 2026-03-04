@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Product, ProductStatus } from '@/core/types/productTypes';
-import { useCategoryTranslations } from '@/core/utils/i18n/categories';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { ImageUploader, TagMultiSelect, TagOption } from '@/components/ui';
 
 import {
@@ -15,18 +14,18 @@ import {
   useTagsByCategoryId,
   useProductTags,
 } from '@/core/hooks';
+import { Locale } from '@/core/constants/locales';
 
 interface ProductFormModalProps {
   product?: Product | null;
   onCancel: () => void;
 }
 
-
 export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
   useLockScroll(true);
 
   const t = useTranslations();
-  const { translateMainCategory, translateSubcategory } = useCategoryTranslations();
+  const locale = useLocale() as Locale;
 
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -42,34 +41,42 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
   });
 
   // Load parent categories
-  const { data: parentCategories = [], isLoading: loadingParents } = useParentCategories();
+  const { data: parentCategories = [], isLoading: loadingParents } = useParentCategories(locale);
 
   // Load subcategories when a parent category is selected
   const { data: childCategories = [], isLoading: loadingChildren } = useCategoryChildren(
-    formData.categoryId || undefined
+    formData.categoryId || undefined,
+    locale
   );
 
   // Load tags for selected category
   const { data: categoryTags = [], isLoading: loadingTags } = useTagsByCategoryId(
-    formData.categoryId || undefined
+    formData.categoryId || undefined,
+    locale
   );
 
   // Load product's current tags if editing
-  const { data: productTags = [], isLoading: loadingProductTags } = useProductTags(product?.id);
+  const { data: productTags = [], isLoading: loadingProductTags } = useProductTags(
+    product?.id,
+    locale
+  );
+
+  console.log('Product tags:', productTags);
 
   // Mutations
   const createProductMutation = useCreateSupplierProduct();
   const updateProductMutation = useUpdateSupplierProduct();
 
-  const loading =
-    createProductMutation.isPending ||
-    updateProductMutation.isPending;
+  const loading = createProductMutation.isPending || updateProductMutation.isPending;
 
   // Transform tags to options
-  const tagOptions: TagOption[] = categoryTags.map((tag) => ({
-    value: tag.id,
-    label: tag.name,
-  }));
+  const tagOptions: TagOption[] = useMemo(() =>
+    categoryTags.map((tag) => ({
+      value: tag.id,
+      label: tag.name,
+    })),
+    [categoryTags]
+  );
 
   // Initialize form with product data
   useEffect(() => {
@@ -192,18 +199,6 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
     onCancel();
   }, [imagePreviews, onCancel]);
 
-  const getCategoryName = (category: any): string => {
-    if (!category?.slug) return category?.name || '';
-    return translateMainCategory(category.slug);
-  };
-
-  const getSubcategoryName = (subcategory: any, parentCategoryId: string): string => {
-    if (!subcategory?.slug) return subcategory?.name || '';
-    const parentCategory = parentCategories.find((cat) => cat.id === parentCategoryId);
-    if (!parentCategory?.slug) return translateMainCategory(subcategory.slug);
-    return translateSubcategory(parentCategory.slug, subcategory.slug);
-  };
-
   const existingImagesCount = product?.images?.length || 0;
   const newImagesCount = selectedImages.length;
   const isLoadingTags = loadingTags || (product && loadingProductTags);
@@ -255,7 +250,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   <option value="">{t('ProductForm.categoryPlaceholder')}</option>
                   {parentCategories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {getCategoryName(category)}
+                      {category.name}
                     </option>
                   ))}
                 </select>
@@ -279,7 +274,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   <option value="">{t('ProductForm.subcategoryPlaceholder')}</option>
                   {childCategories.map((subcategory) => (
                     <option key={subcategory.id} value={subcategory.id}>
-                      {getSubcategoryName(subcategory, formData.categoryId)}
+                      {subcategory.name}
                     </option>
                   ))}
                 </select>

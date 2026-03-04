@@ -1,12 +1,12 @@
 import { apiFetch } from '@/core/utils/api-utils';
 import { TAG_ENDPOINTS } from '@/core/constants/api-config';
+import { Locale } from '../constants/locales';
 
 import {
   Tag, TagWithTranslations, TagWithProductCount,
   PopularTag, CreateTagDto, UpdateTagDto,
   TagFilters, SyncProductTagsResult,
   MergeTagsResult, DeleteTranslationParams,
-  LanguageCode,
 } from '../types/tagTypes';
 
 
@@ -32,7 +32,7 @@ export const tagApi = {
   /**
    * Get popular tags with product count
    */
-  getPopular: async (limit: number = 20, language?: LanguageCode): Promise<PopularTag[]> => {
+  getPopular: async (limit: number = 20, language?: Locale): Promise<PopularTag[]> => {
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
     if (language) params.append('language', language);
@@ -46,7 +46,7 @@ export const tagApi = {
   /**
    * Get all tags with product counts
    */
-  getWithCounts: async (language?: LanguageCode): Promise<TagWithProductCount[]> => {
+  getWithCounts: async (language?: Locale): Promise<TagWithProductCount[]> => {
     const params = language ? `?language=${language}` : '';
     return apiFetch<TagWithProductCount[]>(
       `${TAG_ENDPOINTS.GET_WITH_COUNTS}${params}`,
@@ -57,7 +57,7 @@ export const tagApi = {
   /**
    * Get tags for a specific product
    */
-  getByProductId: async (productId: string, language?: LanguageCode): Promise<Tag[]> => {
+  getByProductId: async (productId: string, language?: Locale): Promise<Tag[]> => {
     const params = language ? `?language=${language}` : '';
     return apiFetch<Tag[]>(
       `${TAG_ENDPOINTS.GET_BY_PRODUCT_ID(productId)}${params}`,
@@ -68,7 +68,7 @@ export const tagApi = {
   /**
    * Search tags by name
    */
-  search: async (query: string, limit: number = 10, language?: LanguageCode): Promise<Tag[]> => {
+  search: async (query: string, limit: number = 10, language?: Locale): Promise<Tag[]> => {
     const params = new URLSearchParams();
     params.append('q', query);
     params.append('limit', limit.toString());
@@ -83,7 +83,7 @@ export const tagApi = {
   /**
    * Get tag by slug
    */
-  getBySlug: async (slug: string, language?: LanguageCode): Promise<Tag> => {
+  getBySlug: async (slug: string, language?: Locale): Promise<Tag> => {
     const params = language ? `?language=${language}` : '';
     return apiFetch<Tag>(
       `${TAG_ENDPOINTS.GET_BY_SLUG(slug)}${params}`,
@@ -94,7 +94,7 @@ export const tagApi = {
   /**
    * Get tag by ID
    */
-  getById: async (id: string, language?: LanguageCode): Promise<Tag> => {
+  getById: async (id: string, language?: Locale): Promise<Tag> => {
     const params = language ? `?language=${language}` : '';
     return apiFetch<Tag>(
       `${TAG_ENDPOINTS.GET_BY_ID(id)}${params}`,
@@ -115,7 +115,7 @@ export const tagApi = {
   /**
    * Get tags by category ID
    */
-  getByCategoryId: async (categoryId: string, language?: LanguageCode): Promise<Tag[]> => {
+  getByCategoryId: async (categoryId: string, language?: Locale): Promise<Tag[]> => {
     const params = language ? `?language=${language}` : '';
     return apiFetch<Tag[]>(
       `${TAG_ENDPOINTS.GET_BY_CATEGORY_ID(categoryId)}${params}`,
@@ -126,7 +126,7 @@ export const tagApi = {
   /**
    * Get tags by category slug
    */
-  getByCategorySlug: async (slug: string, language?: LanguageCode): Promise<Tag[]> => {
+  getByCategorySlug: async (slug: string, language?: Locale): Promise<Tag[]> => {
     const params = language ? `?language=${language}` : '';
     return apiFetch<Tag[]>(
       `${TAG_ENDPOINTS.GET_BY_CATEGORY_SLUG(slug)}${params}`,
@@ -186,7 +186,7 @@ export const tagApi = {
    */
   updateTranslations: async (
     id: string,
-    translations: Record<LanguageCode, Record<string, string>>,
+    translations: Record<Locale, Record<string, string>>,
     token: string
   ): Promise<void> => {
     return apiFetch<void>(

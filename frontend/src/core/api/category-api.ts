@@ -1,15 +1,16 @@
 import { apiFetch } from '@/core/utils/api-utils';
 import { CATEGORY_ENDPOINTS } from '@/core/constants/api-config';
 import { Category, CategoryTreeNode, CreateCategoryDto, UpdateCategoryDto } from '../types';
-
+import { Locale } from '../constants/locales';
 
 export const categoryApi = {
   /**
    * Get all categories with tree structure
    */
-  getAll: async (): Promise<CategoryTreeNode[]> => {
+  getAll: async (language?: Locale): Promise<CategoryTreeNode[]> => {
+    const params = language ? `?language=${language}` : '';
     return apiFetch<CategoryTreeNode[]>(
-      CATEGORY_ENDPOINTS.GET_ALL,
+      `${CATEGORY_ENDPOINTS.GET_ALL}${params}`,
       { method: 'GET' }
     );
   },
@@ -17,9 +18,10 @@ export const categoryApi = {
   /**
    * Get parent categories only
    */
-  getParents: async (): Promise<Category[]> => {
+  getParents: async (language?: Locale): Promise<Category[]> => {
+    const params = language ? `?language=${language}` : '';
     return apiFetch<Category[]>(
-      CATEGORY_ENDPOINTS.GET_PARENTS,
+      `${CATEGORY_ENDPOINTS.GET_PARENTS}${params}`,
       { method: 'GET' }
     );
   },
@@ -27,9 +29,10 @@ export const categoryApi = {
   /**
    * Get children of a category
    */
-  getChildren: async (parentId: string): Promise<Category[]> => {
+  getChildren: async (parentId: string, language?: Locale): Promise<Category[]> => {
+    const params = language ? `?language=${language}` : '';
     return apiFetch<Category[]>(
-      CATEGORY_ENDPOINTS.GET_CHILDREN(parentId),
+      `${CATEGORY_ENDPOINTS.GET_CHILDREN(parentId)}${params}`,
       { method: 'GET' }
     );
   },
@@ -37,9 +40,10 @@ export const categoryApi = {
   /**
    * Get category by ID
    */
-  getById: async (id: string): Promise<Category> => {
+  getById: async (id: string, language?: Locale): Promise<Category> => {
+    const params = language ? `?language=${language}` : '';
     return apiFetch<Category>(
-      CATEGORY_ENDPOINTS.GET_BY_ID(id),
+      `${CATEGORY_ENDPOINTS.GET_BY_ID(id)}${params}`,
       { method: 'GET' }
     );
   },
@@ -47,54 +51,39 @@ export const categoryApi = {
   /**
    * Get category by slug
    */
-  getBySlug: async (slug: string): Promise<Category> => {
+  getBySlug: async (slug: string, language?: Locale): Promise<Category> => {
+    const params = language ? `?language=${language}` : '';
     return apiFetch<Category>(
-      CATEGORY_ENDPOINTS.GET_BY_SLUG(slug),
+      `${CATEGORY_ENDPOINTS.GET_BY_SLUG(slug)}${params}`,
       { method: 'GET' }
     );
   },
 
-  /**
-   * Create new category (Admin only)
-   */
+  // Admin endpoints
   create: async (data: CreateCategoryDto, token: string): Promise<Category> => {
     return apiFetch<Category>(
       CATEGORY_ENDPOINTS.CREATE,
       {
         method: 'POST',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       },
       { token }
     );
   },
 
-  /**
-   * Update category (Admin only)
-   */
-  update: async (
-    id: string,
-    data: UpdateCategoryDto,
-    token: string
-  ): Promise<Category> => {
+  update: async (id: string, data: UpdateCategoryDto, token: string): Promise<Category> => {
     return apiFetch<Category>(
       CATEGORY_ENDPOINTS.UPDATE(id),
       {
         method: 'PUT',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       },
       { token }
     );
   },
 
-  /**
-   * Delete category (Admin only)
-   */
   delete: async (id: string, token: string): Promise<void> => {
     return apiFetch<void>(
       CATEGORY_ENDPOINTS.DELETE(id),

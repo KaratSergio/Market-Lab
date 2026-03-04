@@ -1,13 +1,13 @@
-import { useCategoryTranslations } from '@/core/utils/i18n';
 import { FolderOpen } from 'lucide-react';
 
 interface CategoryFilterProps {
   value: string;
-  categories: Array<{ id: string; slug: string }>;
+  categories: Array<{ id: string; name: string }>;
   onChange: (categoryId: string) => void;
   label: string;
   allCategoriesLabel: string;
 }
+
 
 export function CategoryFilter({
   value,
@@ -19,8 +19,6 @@ export function CategoryFilter({
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onChange(e.target.value);
   };
-
-  const { translateCategory } = useCategoryTranslations();
 
   return (
     <div>
@@ -36,7 +34,7 @@ export function CategoryFilter({
           <option value="">{allCategoriesLabel}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
-              {translateCategory(category.slug)}
+              {category.name}
             </option>
           ))}
         </select>

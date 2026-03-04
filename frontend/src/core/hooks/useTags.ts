@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tagApi } from '@/core/api/tag-api';
+import { Locale } from '../constants/locales';
 
 import {
-  TagFilters, CreateTagDto, UpdateTagDto,
-  LanguageCode, DeleteTranslationParams,
+  TagFilters,
+  CreateTagDto, UpdateTagDto,
+  DeleteTranslationParams,
 } from '../types/tagTypes';
 
 
@@ -11,24 +13,15 @@ export const tagKeys = {
   all: ['tags'] as const,
   lists: () => [...tagKeys.all, 'list'] as const,
   list: (filters?: TagFilters) => [...tagKeys.lists(), filters] as const,
-  popular: (limit?: number, language?: LanguageCode) =>
-    [...tagKeys.all, 'popular', { limit, language }] as const,
-  withCounts: (language?: LanguageCode) =>
-    [...tagKeys.all, 'withCounts', language] as const,
-  byProduct: (productId: string, language?: LanguageCode) =>
-    [...tagKeys.all, 'byProduct', productId, language] as const,
-  search: (query: string, limit?: number, language?: LanguageCode) =>
-    [...tagKeys.all, 'search', query, limit, language] as const,
-  bySlug: (slug: string, language?: LanguageCode) =>
-    [...tagKeys.all, 'bySlug', slug, language] as const,
-  detail: (id: string, language?: LanguageCode) =>
-    [...tagKeys.all, 'detail', id, language] as const,
-  translations: (id: string) =>
-    [...tagKeys.all, 'translations', id] as const,
-  byCategoryId: (categoryId: string, language?: LanguageCode) =>
-    [...tagKeys.all, 'byCategory', categoryId, language] as const,
-  byCategorySlug: (slug: string, language?: LanguageCode) =>
-    [...tagKeys.all, 'byCategorySlug', slug, language] as const,
+  popular: (limit?: number, language?: Locale) => [...tagKeys.all, 'popular', { limit, language }] as const,
+  withCounts: (language?: Locale) => [...tagKeys.all, 'withCounts', language] as const,
+  byProduct: (productId: string, language?: Locale) => [...tagKeys.all, 'byProduct', productId, language] as const,
+  search: (query: string, limit?: number, language?: Locale) => [...tagKeys.all, 'search', query, limit, language] as const,
+  bySlug: (slug: string, language?: Locale) => [...tagKeys.all, 'bySlug', slug, language] as const,
+  detail: (id: string, language?: Locale) => [...tagKeys.all, 'detail', id, language] as const,
+  translations: (id: string) => [...tagKeys.all, 'translations', id] as const,
+  byCategoryId: (categoryId: string, language?: Locale) => [...tagKeys.all, 'byCategory', categoryId, language] as const,
+  byCategorySlug: (slug: string, language?: Locale) => [...tagKeys.all, 'byCategorySlug', slug, language] as const,
 };
 
 /**
@@ -45,7 +38,7 @@ export const useTags = (filters?: TagFilters) => {
 /**
  * Hook for getting popular tags
  */
-export const usePopularTags = (limit: number = 20, language?: LanguageCode) => {
+export const usePopularTags = (limit: number = 20, language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.popular(limit, language),
     queryFn: () => tagApi.getPopular(limit, language),
@@ -56,7 +49,7 @@ export const usePopularTags = (limit: number = 20, language?: LanguageCode) => {
 /**
  * Hook for getting tags with product counts
  */
-export const useTagsWithCounts = (language?: LanguageCode) => {
+export const useTagsWithCounts = (language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.withCounts(language),
     queryFn: () => tagApi.getWithCounts(language),
@@ -67,7 +60,7 @@ export const useTagsWithCounts = (language?: LanguageCode) => {
 /**
  * Hook for getting tags by product ID
  */
-export const useProductTags = (productId?: string, language?: LanguageCode) => {
+export const useProductTags = (productId?: string, language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.byProduct(productId || '', language),
     queryFn: () => productId ? tagApi.getByProductId(productId, language) : Promise.resolve([]),
@@ -79,7 +72,7 @@ export const useProductTags = (productId?: string, language?: LanguageCode) => {
 /**
  * Hook for searching tags
  */
-export const useTagSearch = (query: string, limit: number = 10, language?: LanguageCode) => {
+export const useTagSearch = (query: string, limit: number = 10, language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.search(query, limit, language),
     queryFn: () => tagApi.search(query, limit, language),
@@ -91,7 +84,7 @@ export const useTagSearch = (query: string, limit: number = 10, language?: Langu
 /**
  * Hook for getting tag by slug
  */
-export const useTagBySlug = (slug?: string, language?: LanguageCode) => {
+export const useTagBySlug = (slug?: string, language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.bySlug(slug || '', language),
     queryFn: () => slug ? tagApi.getBySlug(slug, language) : Promise.reject(new Error('No slug provided')),
@@ -103,7 +96,7 @@ export const useTagBySlug = (slug?: string, language?: LanguageCode) => {
 /**
  * Hook for getting tag by ID
  */
-export const useTagById = (id?: string, language?: LanguageCode) => {
+export const useTagById = (id?: string, language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.detail(id || '', language),
     queryFn: () => id ? tagApi.getById(id, language) : Promise.reject(new Error('No ID provided')),
@@ -127,7 +120,7 @@ export const useTagTranslations = (id?: string) => {
 /**
  * Hook for getting tags by category ID
  */
-export const useTagsByCategoryId = (categoryId?: string, language?: LanguageCode) => {
+export const useTagsByCategoryId = (categoryId?: string, language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.byCategoryId(categoryId || '', language),
     queryFn: () => categoryId ? tagApi.getByCategoryId(categoryId, language) : Promise.resolve([]),
@@ -139,7 +132,7 @@ export const useTagsByCategoryId = (categoryId?: string, language?: LanguageCode
 /**
  * Hook for getting tags by category slug
  */
-export const useTagsByCategorySlug = (slug?: string, language?: LanguageCode) => {
+export const useTagsByCategorySlug = (slug?: string, language?: Locale) => {
   return useQuery({
     queryKey: tagKeys.byCategorySlug(slug || '', language),
     queryFn: () => slug ? tagApi.getByCategorySlug(slug, language) : Promise.resolve([]),
@@ -212,7 +205,7 @@ export const useUpdateTagTranslations = () => {
       token
     }: {
       id: string;
-      translations: Record<LanguageCode, Record<string, string>>;
+      translations: Record<Locale, Record<string, string>>;
       token: string
     }) => tagApi.updateTranslations(id, translations, token),
     onSuccess: (_, variables) => {

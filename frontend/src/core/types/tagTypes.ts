@@ -1,4 +1,4 @@
-export type LanguageCode = 'en' | 'uk';
+import { Locale } from "../constants/locales";
 
 export interface Tag {
   id: string;
@@ -17,7 +17,7 @@ export interface Tag {
 
 export interface TagTranslation {
   id: string;
-  language: LanguageCode;
+  language: Locale;
   name: string;
   description?: string;
   metaTitle?: string;
@@ -45,7 +45,7 @@ export interface CreateTagDto {
   metaTitle?: string;
   metaDescription?: string;
   categoryId?: string;
-  translations?: Record<LanguageCode, {
+  translations?: Record<Locale, {
     name: string;
     description?: string;
     metaTitle?: string;
@@ -61,7 +61,7 @@ export interface UpdateTagDto {
   metaTitle?: string;
   metaDescription?: string;
   categoryId?: string;
-  translations?: Record<LanguageCode, {
+  translations?: Record<Locale, {
     name: string;
     description?: string;
     metaTitle?: string;
@@ -70,7 +70,7 @@ export interface UpdateTagDto {
 }
 
 export interface TagFilters {
-  language?: LanguageCode;
+  language?: Locale;
   search?: string;
   status?: 'active' | 'inactive';
   page?: number;
@@ -91,6 +91,6 @@ export interface MergeTagsResult {
 }
 
 export interface DeleteTranslationParams {
-  language?: LanguageCode;
+  language?: Locale;
   field?: string;
 }

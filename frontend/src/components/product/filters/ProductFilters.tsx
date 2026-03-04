@@ -6,6 +6,10 @@ import { CategoryFilter } from './CategoryFilter';
 import { SortFilter } from './SortFilter';
 import { AdvancedFilters } from './AdvancedFilters';
 import { FilterControls } from './FilterControls';
+import { useLocale } from 'next-intl';
+import { useCategories } from '@/core/hooks';
+import { Locale } from '@/core/constants/locales';
+
 
 interface ProductFiltersProps {
   stats: {
@@ -17,7 +21,6 @@ interface ProductFiltersProps {
   searchInput: string;
   category: string;
   sort: string;
-  categories: Array<{ id: string; slug: string }>;
   isAdvancedOpen: boolean;
   onSearchChange: (value: string) => void;
   onCategoryChange: (categoryId: string) => void;
@@ -33,7 +36,6 @@ export function ProductFilters({
   searchInput,
   category,
   sort,
-  categories,
   isAdvancedOpen,
   onSearchChange,
   onCategoryChange,
@@ -44,6 +46,13 @@ export function ProductFilters({
   stockFilter,
 }: ProductFiltersProps) {
   const t = useTranslations();
+  const locale = useLocale() as Locale;
+  const { data: categories = [] } = useCategories(locale);
+
+  const categoryOptions = categories.map(cat => ({
+    id: cat.id,
+    name: cat.name
+  }));
 
   const hasActiveFilters = Boolean(searchInput || category || sort !== 'newest' || stockFilter !== 'all');
 
@@ -74,7 +83,7 @@ export function ProductFilters({
 
         <CategoryFilter
           value={category}
-          categories={categories}
+          categories={categoryOptions}
           onChange={onCategoryChange}
           label={t('Catalog.categoryLabel')}
           allCategoriesLabel={t('Catalog.allCategories')}

@@ -157,6 +157,35 @@ export const CATEGORY_ENDPOINTS = {
 } as const;
 
 /**
+ * Tag management API endpoints
+ */
+export const TAG_ENDPOINTS = {
+  // Public endpoints
+  GET_ALL: '/tags',
+  GET_POPULAR: '/tags/popular',
+  GET_WITH_COUNTS: '/tags/with-counts',
+  GET_BY_PRODUCT_ID: (productId: string) => `/tags/product/${productId}`,
+  SEARCH: '/tags/search',
+  GET_BY_SLUG: (slug: string) => `/tags/slug/${slug}`,
+  GET_BY_ID: (id: string) => `/tags/${id}`,
+  GET_TRANSLATIONS: (id: string) => `/tags/${id}/translations`,
+
+  // Category based endpoints
+  GET_BY_CATEGORY_ID: (categoryId: string) => `/tags/by-category/${categoryId}`,
+  GET_BY_CATEGORY_SLUG: (slug: string) => `/tags/by-category-slug/${slug}`,
+
+  // Admin endpoints
+  CREATE: '/tags',
+  UPDATE: (id: string) => `/tags/${id}`,
+  DELETE: (id: string) => `/tags/${id}`,
+  UPDATE_TRANSLATIONS: (id: string) => `/tags/${id}/translations`,
+  DELETE_TRANSLATIONS: (id: string) => `/tags/${id}/translations`,
+  CHANGE_STATUS: (id: string, status: string) => `/tags/${id}/status/${status}`,
+  SYNC_PRODUCT_TAGS: (productId: string) => `/tags/product/${productId}/sync`,
+  MERGE_TAGS: '/tags/merge',
+} as const;
+
+/**
  * Cart management API endpoints
  */
 export const CART_ENDPOINTS = {

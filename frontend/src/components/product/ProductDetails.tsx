@@ -1,12 +1,13 @@
 'use client';
 
-import { usePublicProduct } from '@/core/hooks';
+import { usePublicProduct, useProductTags } from '@/core/hooks';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
-import Link from 'next/link';
 import { AddToCartButton } from '@/components/cart/AddToCartButton';
 import { Share2 } from 'lucide-react';
 import { BackButton } from '../ui/button/BackButton';
+import { Locale } from '@/core/constants/locales';
+
 
 interface ProductDetailsProps {
   productId: string;
@@ -19,11 +20,15 @@ export function ProductDetails({
   onAddToCart,
   onSave
 }: ProductDetailsProps) {
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const t = useTranslations('Product');
   const tCommon = useTranslations('Common');
-  const { data: product, isLoading } = usePublicProduct(productId);
+
+  const { data: product, isLoading: isLoadingProduct } = usePublicProduct(productId);
+  const { data: tags = [], isLoading: isLoadingTags } = useProductTags(productId, locale);
+
   const [selectedImage, setSelectedImage] = useState(0);
+  const isLoading = isLoadingProduct || isLoadingTags;
 
   if (isLoading) {
     return (
@@ -210,21 +215,22 @@ export function ProductDetails({
           </div>
 
           {/* Tags */}
-          {product.tags && product.tags.length > 0 && (
+          {tags.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-3">{tCommon('tags')}</h3>
               <div className="flex flex-wrap gap-2">
-                {product.tags.map((tag, index) => (
+                {tags.map((tag) => (
                   <span
-                    key={index}
-                    className="px-3 py-1 bg-white border border-green-200 text-green-700 rounded-full text-sm hover:bg-green-50 transition-colors"
+                    key={tag.id}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
                   >
-                    {tag}
+                    {tag.name}
                   </span>
                 ))}
               </div>
             </div>
           )}
+
 
           {/* Product Details */}
           <div className="space-y-4 pt-4 border-t border-gray-200">

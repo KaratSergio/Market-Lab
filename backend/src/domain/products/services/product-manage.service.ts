@@ -52,6 +52,7 @@ export class ProductManagementService {
       );
     }
 
+    if (dto.tagIds?.length) await this.tagService.syncProductTags(savedProduct.id, dto.tagIds);
     if (images?.length) await this._uploadAndAttachImages(savedProduct, images, companyName);
     return savedProduct;
   }
@@ -77,6 +78,8 @@ export class ProductManagementService {
         dto.translations
       );
     }
+
+    if (dto.tagIds) await this.tagService.syncProductTags(id, dto.tagIds);
 
     if (newImages?.length) {
       const uploadedUrls = await this._uploadImages(newImages, companyName, product.name);

@@ -65,7 +65,7 @@ export const useProductTags = (productId?: string, language?: Locale) => {
     queryKey: tagKeys.byProduct(productId || '', language),
     queryFn: () => productId ? tagApi.getByProductId(productId, language) : Promise.resolve([]),
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 };
 

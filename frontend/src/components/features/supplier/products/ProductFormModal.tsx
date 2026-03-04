@@ -61,8 +61,6 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
     locale
   );
 
-  console.log('Product tags:', productTags);
-
   // Mutations
   const createProductMutation = useCreateSupplierProduct();
   const updateProductMutation = useUpdateSupplierProduct();

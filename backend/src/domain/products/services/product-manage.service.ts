@@ -19,7 +19,9 @@ import {
 } from "../types";
 import { Role } from '@shared/types';
 import { LanguageCode, DEFAULT_LANGUAGE } from "@domain/translations/types";
+
 import { TranslationService } from "@domain/translations/translation.service";
+import { TagService } from '@domain/tags/tag.service';
 
 
 @Injectable()
@@ -28,8 +30,9 @@ export class ProductManagementService {
     private readonly productCore: ProductCoreService,
     private readonly productOwner: ProductOwnerService,
     private readonly productFileService: ProductFileService,
-    @Inject(TranslationService)
-    private readonly translationService: TranslationService
+
+    private readonly translationService: TranslationService,
+    private readonly tagService: TagService
   ) { }
 
   async create(
@@ -94,6 +97,8 @@ export class ProductManagementService {
     const { supplierId, companyName } = await this.productOwner.getSupplierInfo(userId);
 
     this.productCore.checkProductOwnership(product, supplierId, userRoles, 'delete');
+
+    await this.tagService.syncProductTags(id, []);
 
     await this.translationService.deleteTranslations(id, 'product');
 

@@ -141,12 +141,12 @@ export class TagService {
     await this._validateTagsExist(tagsToAdd);
 
     for (const tagId of tagsToAdd) {
-      await this.tagRepository.addToProduct(tagId, productId);
+      await this.tagRepository.addToProduct(productId, tagId);
       await this._incrementTagUsage(tagId);
     }
 
     for (const tagId of tagsToRemove) {
-      await this.tagRepository.removeFromProduct(tagId, productId);
+      await this.tagRepository.removeFromProduct(productId, tagId);
       await this._decrementTagUsage(tagId);
     }
   }

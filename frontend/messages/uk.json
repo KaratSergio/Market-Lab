@@ -320,7 +320,14 @@
     "imagesSummary": "{existing} існуючих зображень + {new} нових зображень",
     "statusLabel": "Активний (видимий для клієнтів)",
     "updateButton": "Оновити продукт",
-    "createButton": "Додати продукт"
+    "createButton": "Додати продукт",
+    "tagsLabel": "Теги",
+    "selectCategoryFirst": "Спочатку виберіть категорію",
+    "loadingTags": "Завантаження тегів...",
+    "noTagsForCategory": "Для цієї категорії немає тегів",
+    "tagsPlaceholder": "Виберіть теги...",
+    "selectedTagsCount": "Вибрано тегів: {count}",
+    "noTagsAvailable": "Немає доступних тегів"
   },
   "Common": {
     "per": "за",

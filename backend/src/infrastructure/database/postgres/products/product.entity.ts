@@ -1,14 +1,14 @@
 import {
   Entity, Column,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  Index, ManyToOne,
-  JoinColumn
+  CreateDateColumn, UpdateDateColumn,
+  Index, ManyToOne, ManyToMany,
+  JoinColumn, JoinTable
 } from 'typeorm';
 
 import { CategoryOrmEntity } from '../categories/category.entity';
 import { SupplierProfileOrmEntity } from '../suppliers/supplier.entity';
+import { TagOrmEntity } from '../tags/tag.entity';
 
 @Entity('products')
 @Index(['supplierId', 'status'])
@@ -65,8 +65,13 @@ export class ProductOrmEntity {
   })
   status: string;
 
-  @Column({ type: 'jsonb', default: [] })
-  tags: string[];
+  @ManyToMany(() => TagOrmEntity, tag => tag.products)
+  @JoinTable({
+    name: 'product_tags',
+    joinColumn: { name: 'productId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'tagId', referencedColumnName: 'id' }
+  })
+  tags: TagOrmEntity[];
 
   @Column({
     type: 'enum',

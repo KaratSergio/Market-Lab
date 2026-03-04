@@ -21,6 +21,7 @@ import { AdminModule } from '@module/admin.module';
 import { CartModule } from '@module/cart.module';
 import { OrderModule } from '@module/order.module';
 import { PaymentModule } from '@module/payment.module';
+import { TagsModule } from './module/tags.module';
 
 // ORM Entities
 import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.entity';
@@ -55,6 +56,7 @@ import { HealthController } from '@controller/health.controller';
     CartModule,
     OrderModule,
     PaymentModule,
+    TagsModule,
 
     // TypeORM entities for SuperAdminInitializerService
     TypeOrmModule.forFeature([

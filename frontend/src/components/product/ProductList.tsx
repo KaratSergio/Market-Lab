@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import { ProductCard } from './ProductCard';
 import { Product } from '@/core/types/productTypes';
 import { useColdStart } from '@/core/hooks/useColdStart';
-import { CardSkeleton, ColdStartBanner } from '@/components/ui';
+import { CardSkeleton } from '@/components/ui';
+import { ColdStartBanner } from '@/shared/dev/ColdStartBanner';
 
 interface ProductListProps {
   products: Product[];

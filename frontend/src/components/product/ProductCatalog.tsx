@@ -161,13 +161,6 @@ export function ProductCatalog() {
     setIsAdvancedOpen(!isAdvancedOpen);
   };
 
-  const categoriesList = useMemo(() => {
-    return categories.map(category => ({
-      id: category.id,
-      slug: category.slug,
-    })).sort((a, b) => a.slug.localeCompare(b.slug));
-  }, [categories]);
-
   if (error) return <ErrorState error={error} />;
 
   return (
@@ -182,7 +175,6 @@ export function ProductCatalog() {
         searchInput={searchInput}
         category={category}
         sort={sort}
-        categories={categoriesList}
         isAdvancedOpen={isAdvancedOpen}
         onSearchChange={handleSearchChange}
         onCategoryChange={handleCategoryChange}

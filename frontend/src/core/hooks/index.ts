@@ -6,5 +6,6 @@ export * from './useSupplier'
 export * from './useCategory'
 export * from './useCart'
 export * from './useColdStart'
+export * from './useTags'
 
 

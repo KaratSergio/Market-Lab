@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Product, ProductStatus } from '@/core/types/productTypes';
-import { useCategoryTranslations } from '@/core/utils/i18n/categories';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { ImageUploader, TagMultiSelect, TagOption } from '@/components/ui';
 
 import {
   useLockScroll,
@@ -11,7 +11,10 @@ import {
   useUpdateSupplierProduct,
   useParentCategories,
   useCategoryChildren,
+  useTagsByCategoryId,
+  useProductTags,
 } from '@/core/hooks';
+import { Locale } from '@/core/constants/locales';
 
 interface ProductFormModalProps {
   product?: Product | null;
@@ -22,10 +25,11 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
   useLockScroll(true);
 
   const t = useTranslations();
-  const { translateMainCategory, translateSubcategory } = useCategoryTranslations();
+  const locale = useLocale() as Locale;
 
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<TagOption[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -37,15 +41,40 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
   });
 
   // Load parent categories
-  const { data: parentCategories = [], isLoading: loadingParents } = useParentCategories();
+  const { data: parentCategories = [], isLoading: loadingParents } = useParentCategories(locale);
 
   // Load subcategories when a parent category is selected
-  const { data: childCategories = [], isLoading: loadingChildren } =
-    useCategoryChildren(formData.categoryId || undefined);
+  const { data: childCategories = [], isLoading: loadingChildren } = useCategoryChildren(
+    formData.categoryId || undefined,
+    locale
+  );
 
+  // Load tags for selected category
+  const { data: categoryTags = [], isLoading: loadingTags } = useTagsByCategoryId(
+    formData.categoryId || undefined,
+    locale
+  );
+
+  // Load product's current tags if editing
+  const { data: productTags = [], isLoading: loadingProductTags } = useProductTags(
+    product?.id,
+    locale
+  );
+
+  // Mutations
   const createProductMutation = useCreateSupplierProduct();
   const updateProductMutation = useUpdateSupplierProduct();
+
   const loading = createProductMutation.isPending || updateProductMutation.isPending;
+
+  // Transform tags to options
+  const tagOptions: TagOption[] = useMemo(() =>
+    categoryTags.map((tag) => ({
+      value: tag.id,
+      label: tag.name,
+    })),
+    [categoryTags]
+  );
 
   // Initialize form with product data
   useEffect(() => {
@@ -59,7 +88,6 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
         stock: product.stock || 0,
         status: product.status || 'draft',
       });
-      if (product.images) setImagePreviews(product.images);
     } else {
       setFormData({
         name: '',
@@ -70,30 +98,44 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
         stock: 0,
         status: 'draft',
       });
+      setSelectedTags([]);
     }
   }, [product]);
+
+  // Set selected tags when product tags are loaded
+  useEffect(() => {
+    if (productTags.length > 0) {
+      setSelectedTags(
+        productTags.map((tag) => ({
+          value: tag.id,
+          label: tag.name,
+        }))
+      );
+    }
+  }, [productTags]);
+
+  // Reset tags when category changes (only for new products)
+  useEffect(() => {
+    if (!product) {
+      setSelectedTags([]);
+    }
+  }, [formData.categoryId, product]);
 
   // Cleanup image previews
   useEffect(() => {
     return () => imagePreviews.forEach((url) => URL.revokeObjectURL(url));
   }, [imagePreviews]);
 
-  const handleImageSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const newImages = Array.from(files);
-    setSelectedImages((prev) => [...prev, ...newImages]);
-
-    const newPreviews = newImages.map((file) => URL.createObjectURL(file));
+  const handleImageSelect = useCallback((files: File[]) => {
+    setSelectedImages((prev) => [...prev, ...files]);
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews((prev) => [...prev, ...newPreviews]);
   }, []);
 
-  const removeImage = useCallback((index: number, isNewImage: boolean) => {
+  const handleImageRemove = useCallback((index: number, isNewImage: boolean) => {
     if (isNewImage) {
       setSelectedImages((prev) => prev.filter((_, i) => i !== index));
     }
-
     setImagePreviews((prev) => {
       const newPreviews = prev.filter((_, i) => i !== index);
       URL.revokeObjectURL(prev[index]);
@@ -101,63 +143,63 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
     });
   }, []);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    try {
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        stock: formData.stock,
-        status: formData.status,
-        ...(formData.categoryId && { categoryId: formData.categoryId }),
-        ...(formData.subcategoryId && { subcategoryId: formData.subcategoryId }),
-      };
+      try {
+        const productData = {
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          stock: formData.stock,
+          status: formData.status,
+          tagIds: selectedTags.map((tag) => tag.value),
+          ...(formData.categoryId && { categoryId: formData.categoryId }),
+          ...(formData.subcategoryId && { subcategoryId: formData.subcategoryId }),
+        };
 
-      if (product) {
-        await updateProductMutation.mutateAsync({
-          id: product.id,
-          data: productData,
-          images: selectedImages,
-        });
-      } else {
-        await createProductMutation.mutateAsync({
-          data: productData,
-          images: selectedImages,
-        });
+        if (product) {
+          await updateProductMutation.mutateAsync({
+            id: product.id,
+            data: productData,
+            images: selectedImages,
+          });
+        } else {
+          await createProductMutation.mutateAsync({
+            data: productData,
+            images: selectedImages,
+          });
+        }
+
+        // Cleanup
+        setSelectedImages([]);
+        setImagePreviews([]);
+        setSelectedTags([]);
+        onCancel();
+      } catch (error) {
+        console.error('Failed to save product:', error);
       }
-
-      setSelectedImages([]);
-      setImagePreviews([]);
-      onCancel();
-    } catch (error) {
-      console.error('Failed to save product:', error);
-    }
-  }, [formData, selectedImages, product, createProductMutation, updateProductMutation, onCancel]);
+    },
+    [
+      formData,
+      selectedImages,
+      selectedTags,
+      product,
+      createProductMutation,
+      updateProductMutation,
+      onCancel,
+    ]
+  );
 
   const handleCancel = useCallback(() => {
-    imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     onCancel();
   }, [imagePreviews, onCancel]);
 
-  const getCategoryName = (category: any): string => {
-    if (!category?.slug) return category?.name || '';
-    return translateMainCategory(category.slug);
-  };
-
-  const getSubcategoryName = (subcategory: any, parentCategoryId: string): string => {
-    if (!subcategory?.slug) return subcategory?.name || '';
-
-    const parentCategory = parentCategories.find(cat => cat.id === parentCategoryId);
-    if (!parentCategory?.slug) return translateMainCategory(subcategory.slug);
-
-    return translateSubcategory(parentCategory.slug, subcategory.slug);
-  };
-
   const existingImagesCount = product?.images?.length || 0;
   const newImagesCount = selectedImages.length;
-  const totalImages = existingImagesCount + newImagesCount;
+  const isLoadingTags = loadingTags || (product && loadingProductTags);
 
   return (
     <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -192,11 +234,13 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                 </label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    categoryId: e.target.value,
-                    subcategoryId: ''
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      categoryId: e.target.value,
+                      subcategoryId: '',
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={loading || loadingParents}
                   required
@@ -204,7 +248,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   <option value="">{t('ProductForm.categoryPlaceholder')}</option>
                   {parentCategories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {getCategoryName(category)}
+                      {category.name}
                     </option>
                   ))}
                 </select>
@@ -228,7 +272,7 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                   <option value="">{t('ProductForm.subcategoryPlaceholder')}</option>
                   {childCategories.map((subcategory) => (
                     <option key={subcategory.id} value={subcategory.id}>
-                      {getSubcategoryName(subcategory, formData.categoryId)}
+                      {subcategory.name}
                     </option>
                   ))}
                 </select>
@@ -244,6 +288,21 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
                 )}
               </div>
             </div>
+
+            {/* Tags */}
+            <TagMultiSelect
+              categoryId={formData.categoryId}
+              isLoading={isLoadingTags ?? false}
+              options={tagOptions}
+              value={selectedTags}
+              onChange={setSelectedTags}
+              disabled={loading}
+              placeholder={t('ProductForm.tagsPlaceholder')}
+              noOptionsMessage={t('ProductForm.noTagsAvailable')}
+              loadingMessage={t('ProductForm.loadingTags')}
+              selectCategoryFirstMessage={t('ProductForm.selectCategoryFirst')}
+              noTagsMessage={t('ProductForm.noTagsForCategory')}
+            />
 
             {/* Description */}
             <div>
@@ -314,89 +373,15 @@ export function ProductFormModal({ product, onCancel }: ProductFormModalProps) {
             </div>
 
             {/* Images */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('ProductForm.imagesLabel', {
-                  current: totalImages,
-                  max: 4
-                })}
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageSelect}
-                  className="hidden"
-                  id="product-images"
-                  disabled={loading || totalImages >= 4}
-                />
-                <label
-                  htmlFor="product-images"
-                  className={`cursor-pointer block ${(loading || totalImages >= 4) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div className="text-gray-400 mb-2 text-4xl">📷</div>
-                  <p className="text-gray-600">
-                    {t('ProductForm.imagesClickToSelect')}
-                  </p>
-                  <p className="text-gray-500 text-sm mt-1">
-                    {t('ProductForm.imagesSupportedFormats')}
-                  </p>
-                  {totalImages >= 4 && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {t('ProductForm.imagesMaxReached')}
-                    </p>
-                  )}
-                </label>
-
-                {imagePreviews.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600 mb-2">
-                      {t('ProductForm.imagesPreviews')}:
-                    </p>
-                    <div className="grid grid-cols-4 gap-2">
-                      {imagePreviews.map((preview, index) => {
-                        const isNewImage = index >= existingImagesCount;
-                        return (
-                          <div key={index} className="relative">
-                            <img
-                              src={preview}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-20 object-cover rounded"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImage(index, isNewImage)}
-                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                              disabled={loading}
-                              title={isNewImage
-                                ? t('ProductForm.removeNewImage')
-                                : t('ProductForm.removeExistingImage')
-                              }
-                            >
-                              ×
-                            </button>
-                            {isNewImage && (
-                              <div className="absolute bottom-0 left-0 right-0 bg-blue-500 text-white text-xs py-0.5 text-center">
-                                {t('ProductForm.newImageBadge')}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {product?.images && product.images.length > 0 && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        {t('ProductForm.imagesSummary', {
-                          existing: product.images.length,
-                          new: selectedImages.length
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            <ImageUploader
+              existingImagesCount={existingImagesCount}
+              newImagesCount={newImagesCount}
+              maxImages={4}
+              onImageSelect={handleImageSelect}
+              onImageRemove={handleImageRemove}
+              imagePreviews={imagePreviews}
+              disabled={loading}
+            />
 
             {/* Actions */}
             <div className="flex justify-end gap-3 pt-6 border-t">

@@ -6,3 +6,4 @@ export * from './productTypes';
 export * from './cartTypes';
 export * from './categoryTypes';
 export * from './formTypes';
+export * from './tagTypes';

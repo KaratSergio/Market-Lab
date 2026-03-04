@@ -28,7 +28,7 @@ export interface ProductModel extends Entity, WithTranslations<'product'> {
   images: string[];
   stock: number;
   status: ProductStatus;
-  tags: string[];
+  tagIds: string[];
   unit: Unit;
   currency: Currency;
 }

@@ -30,8 +30,9 @@ import { UserOrmEntity } from '@infrastructure/database/postgres/users/user.enti
 import { S3StorageModule } from '@module/s3-storage.module';
 import { S3ProductImageStorageAdapter } from '@infrastructure/storage/s3-product-img.adapter';
 
-// Categories Module
+// Modules
 import { CategoriesModule } from '@module/categories.module';
+import { TagsModule } from '@module/tags.module';
 
 
 @Module({
@@ -40,6 +41,7 @@ import { CategoriesModule } from '@module/categories.module';
     ConfigModule.forRoot(),
     S3StorageModule,
     CategoriesModule,
+    TagsModule,
     TranslationsModule,
   ],
   controllers: [

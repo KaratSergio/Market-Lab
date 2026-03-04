@@ -11,7 +11,7 @@ export interface Product {
   images: string[];
   status: ProductStatus;
   supplierId: string;
-  tags: string[];
+  tagIds: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -27,7 +27,7 @@ export interface CreateProductDto {
   subcategoryId?: string;
   stock?: number;
   status?: ProductStatus;
-  tags?: string[];
+  tagIds?: string[];
 }
 
 export interface UpdateProductDto {
@@ -38,7 +38,7 @@ export interface UpdateProductDto {
   subcategoryId?: string;
   stock?: number;
   status?: ProductStatus;
-  tags?: string[];
+  tagIds?: string[];
   images?: string[];
 }
 

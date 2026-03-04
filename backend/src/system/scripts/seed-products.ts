@@ -51,6 +51,24 @@ export async function seedProducts(dataSource: any) {
       `SELECT id, slug, "parentId", name FROM categories ORDER BY "parentId" NULLS FIRST, "order"`
     );
 
+    // Get ALL tags with their IDs
+    console.log('📋 Loading tags data...');
+    const tags = await dataSource.query(`
+      SELECT id, slug, name FROM tags WHERE status = 'active'
+    `);
+
+    // Create tag map for quick access by slug
+    const tagMap = {};
+    tags.forEach(tag => {
+      tagMap[tag.slug] = {
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug
+      };
+    });
+
+    console.log(`✅ Loaded ${tags.length} active tags`);
+
     // Create maps for quick access
     const categoryMap = {};
     const subcategoryMap = {};
@@ -175,32 +193,37 @@ export async function seedProducts(dataSource: any) {
             }
           }
 
-          const descriptionUk = product.description; // full description from seed
-          const shortDescriptionUk = product.shortDescription; // short description from seed
+          const descriptionUk = product.description;
+          const shortDescriptionUk = product.shortDescription;
 
-          const descriptionEn = productEn.description; // English full description
-          const shortDescriptionEn = productEn.shortDescription; // English short description
+          const descriptionEn = productEn.description;
+          const shortDescriptionEn = productEn.shortDescription;
 
-          // Generate smart tags for better search and filtering
-          const tags = generateProductTags({
+          // Generate tag IDs based on product attributes
+          const tagIds = await generateProductTagIds({
+            dataSource,
             productName: product.name,
             categorySlug: product.categorySlug,
             subcategoryName: subcategoryName,
             supplierTheme: supplier.theme.name,
-            price: product.price
+            price: product.price,
+            tagMap
           });
 
-          const productResult = await dataSource.query(`
+          // Generate UUID for product
+          const productId = crypto.randomUUID();
+
+          await dataSource.query(`
             INSERT INTO products (
               "id", "name", "description", "shortDescription", "price", 
               "supplierId", "categoryId", "subcategoryId",
-              "images", "stock", "status", "tags", 
-              "createdAt", "updatedAt"
+              "images", "stock", "status", "createdAt", "updatedAt"
             ) VALUES (
-              gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7,
-              $8, $9, $10, $11, $12, $13
-            ) RETURNING id
+              $1, $2, $3, $4, $5, $6, $7, $8,
+              $9, $10, $11, $12, $13
+            )
           `, [
+            productId,
             product.name,
             descriptionUk,
             shortDescriptionUk,
@@ -211,13 +234,28 @@ export async function seedProducts(dataSource: any) {
             JSON.stringify([]),      // empty images array
             Math.floor(Math.random() * 50) + 20,
             'active',
-            JSON.stringify(tags),
             new Date(),
             new Date()
           ]);
 
-          const productId = productResult[0].id;
           createdCount++;
+
+          // Add tags to product_tags junction table
+          if (tagIds.length > 0) {
+            console.log(`   🏷️  Adding ${tagIds.length} tags to ${product.name}...`);
+
+            for (const tagId of tagIds) {
+              try {
+                await dataSource.query(`
+                  INSERT INTO product_tags ("productId", "tagId")
+                  VALUES ($1, $2)
+                  ON CONFLICT DO NOTHING
+                `, [productId, tagId]);
+              } catch (error) {
+                console.error(`     ❌ Failed to add tag ${tagId}:`, error.message);
+              }
+            }
+          }
 
           // Add English translations for all fields
           if (productEn.name || productEn.description || productEn.shortDescription) {
@@ -280,10 +318,7 @@ export async function seedProducts(dataSource: any) {
               logMessage += ` (${subcategoryName})`;
             }
           }
-
-          // Log if descriptions exist
-          if (descriptionUk) logMessage += ` 📝`;
-          if (shortDescriptionUk) logMessage += ` 📋`;
+          if (tagIds.length > 0) logMessage += ` 🏷️${tagIds.length}`;
           console.log(logMessage);
 
         } catch (error) {
@@ -308,9 +343,24 @@ export async function seedProducts(dataSource: any) {
       }
     }
 
+    // Update tag usage counts
+    console.log('\n📊 Updating tag usage counts...');
+    await dataSource.query(`
+      UPDATE tags t
+      SET "usageCount" = (
+        SELECT COUNT(*) 
+        FROM product_tags pt 
+        WHERE pt."tagId" = t.id
+      )
+    `);
+    console.log('✅ Tag usage counts updated');
+
     // Statistics
     const productsCount = await dataSource.query('SELECT COUNT(*) FROM products');
     console.log(`\n🎉 Total products created: ${parseInt(productsCount[0].count)}`);
+
+    const productTagsCount = await dataSource.query('SELECT COUNT(*) FROM product_tags');
+    console.log(`🏷️  Product-tag relationships: ${parseInt(productTagsCount[0].count)}`);
 
     const translationsCount = await dataSource.query(
       `SELECT COUNT(*) FROM translations WHERE "entityType" = 'product'`
@@ -332,8 +382,25 @@ export async function seedProducts(dataSource: any) {
     console.log(`   📝 Products with full description: ${parseInt(descriptionStats[0].with_description)}/${parseInt(descriptionStats[0].total)}`);
     console.log(`   📋 Products with short description: ${parseInt(descriptionStats[0].with_short_description)}/${parseInt(descriptionStats[0].total)}`);
 
+    // Show most popular tags
+    const popularTags = await dataSource.query(`
+      SELECT t.name, t."usageCount"
+      FROM tags t
+      WHERE t."usageCount" > 0
+      ORDER BY t."usageCount" DESC
+      LIMIT 10
+    `);
+
+    if (popularTags.length > 0) {
+      console.log('\n🔥 Most popular tags:');
+      popularTags.forEach(tag => {
+        console.log(`   ${tag.name}: ${tag.usageCount} products`);
+      });
+    }
+
     return {
       totalProducts: parseInt(productsCount[0].count),
+      productTagsRelations: parseInt(productTagsCount[0].count),
       withDescription: parseInt(descriptionStats[0].with_description),
       withShortDescription: parseInt(descriptionStats[0].with_short_description),
       translationsCount: parseInt(translationsCount[0].count),
@@ -351,125 +418,93 @@ export async function seedProducts(dataSource: any) {
 }
 
 /**
- * Generate smart product tags for better search and filtering
+ * Generate tag IDs based on product attributes
  */
-function generateProductTags({
+async function generateProductTagIds({
+  dataSource,
   productName,
   categorySlug,
   subcategoryName,
   supplierTheme,
-  price
+  price,
+  tagMap
 }) {
-  const tags = [];
+  const tagSlugs = [];
 
-  // 1. Keywords from product name (important for search)
-  const nameWords = productName
-    .toLowerCase()
-    .split(' ')
-    .filter(word => word.length > 3)
-    .slice(0, 5);
-  tags.push(...nameWords);
+  // 1. Category-specific tags
+  const categoryTagMap = {
+    'vegetables': ['fresh-vegetables', 'seasonal', 'local'],
+    'fruits': ['berries', 'stone-fruits', 'pome-fruits', 'seasonal'],
+    'dairy-products': ['farm-milk', 'fermented-dairy', 'artisan-cheese'],
+    'meat-poultry': ['free-range', 'grass-fed', 'farm-pork', 'farm-chicken'],
+    'honey-bee-products': ['raw-honey', 'monofloral-honey', 'propolis'],
+    'bread-bakery': ['sourdough-bread', 'whole-grain', 'handmade-pastries'],
+    'grains-cereals': ['buckwheat', 'gluten-free-grains', 'ancient-grains'],
+    'preserves': ['homemade-jam', 'fermented', 'pickles'],
+    'drinks': ['herbal-teas', 'farm-kvass', 'kombucha'],
+    'nuts-dried-fruits': ['raw-nuts', 'dried-fruits'],
+    'vegetable-oils': ['cold-pressed', 'unrefined-oils'],
+    'spices-herbs': ['dried-herbs', 'medicinal-herbs', 'natural-salt'],
+    'farm-delicacies': ['farm-delicacies', 'pates', 'smoked-products'],
+    'baby-food': ['baby-purees', 'baby-cereals']
+  };
 
-  // 2. Category and subcategory
-  tags.push(categorySlug);
-  if (subcategoryName) {
-    tags.push(subcategoryName.toLowerCase());
+  // Add category-specific tags
+  if (categoryTagMap[categorySlug]) {
+    tagSlugs.push(...categoryTagMap[categorySlug]);
   }
 
-  // 3. Supplier theme (but not as generic tag)
-  // We use theme name without adding extra generic tags
-
-  // 4. Category-specific tags (relevant for search)
-  switch (categorySlug) {
-    case 'vegetables':
-      tags.push('овочі', 'городина');
-      break;
-    case 'fruits':
-      tags.push('фрукти', 'ягоди');
-      break;
-    case 'dairy-products':
-      tags.push('молочні', 'сир', 'молоко', 'сметана');
-      break;
-    case 'meat-poultry':
-      tags.push('м\'ясо', 'птиця', 'ковбаса');
-      break;
-    case 'eggs':
-      tags.push('яйця');
-      break;
-    case 'honey-bee-products':
-      tags.push('мед', 'прополіс', 'бджолиний');
-      break;
-    case 'bread-bakery':
-      tags.push('хліб', 'випічка', 'булочки');
-      break;
-    case 'grains-cereals':
-      tags.push('крупи', 'зерно', 'борошно');
-      break;
-    case 'preserves':
-      tags.push('консервація', 'варення', 'соління');
-      break;
-    case 'drinks':
-      tags.push('напої', 'сік', 'квас', 'чай');
-      break;
-    case 'nuts-dried-fruits':
-      tags.push('горіхи', 'сухофрукти');
-      break;
-    case 'vegetable-oils':
-      tags.push('олія');
-      break;
-    case 'spices-herbs':
-      tags.push('спеції', 'приправи', 'трави');
-      break;
-    case 'farm-delicacies':
-      tags.push('делікатеси', 'домашні');
-      break;
-    case 'baby-food':
-      tags.push('дитяче', 'харчування');
-      break;
-  }
-
-  // 5. Price category
-  if (price < 50) {
-    tags.push('недорогі');
-  } else if (price >= 50 && price < 150) {
-    tags.push('середня-ціна');
-  } else {
-    tags.push('преміум');
-  }
-
-  // 6. Special product attributes (only if present in name)
+  // 2. Add organic tag if applicable
   if (productName.toLowerCase().includes('органічний') ||
     productName.toLowerCase().includes('біо') ||
     productName.toLowerCase().includes('еко')) {
-    tags.push('органічний');
+    tagSlugs.push('organic');
   }
 
+  // 3. Add homemade tag if applicable
   if (productName.toLowerCase().includes('домашній') ||
     productName.toLowerCase().includes('домашня') ||
     productName.toLowerCase().includes('домашнє')) {
-    tags.push('домашній');
+    tagSlugs.push('family-recipe');
   }
 
+  // 4. Add smoked tag if applicable
   if (productName.toLowerCase().includes('копчений') ||
     productName.toLowerCase().includes('копчена')) {
-    tags.push('копчений');
+    tagSlugs.push('smoked-products');
   }
 
+  // 5. Add pickled tag if applicable
   if (productName.toLowerCase().includes('маринований')) {
-    tags.push('маринований');
+    tagSlugs.push('pickles');
   }
 
+  // 6. Add dried tag if applicable
   if (productName.toLowerCase().includes('сушений') ||
     productName.toLowerCase().includes('сушена')) {
-    tags.push('сушений');
+    tagSlugs.push('dried-fruits');
   }
 
+  // 7. Add fresh tag if applicable
   if (productName.toLowerCase().includes('свіжий') ||
     productName.toLowerCase().includes('свіжа')) {
-    tags.push('свіжий');
+    tagSlugs.push('seasonal');
   }
 
-  // 7. Remove duplicates and limit to 15 tags
-  const uniqueTags = [...new Set(tags)];
-  return uniqueTags.slice(0, 15);
+  // 8. Price category
+  if (price > 200) {
+    tagSlugs.push('premium');
+  }
+
+  // 9. Always add organic
+  tagSlugs.push('organic');
+
+  // Convert slugs to IDs, filter out any that don't exist in tagMap
+  const tagIds = tagSlugs
+    .map(slug => tagMap[slug]?.id)
+    .filter(id => id !== undefined);
+
+  // Remove duplicates and limit to 10 tags per product
+  const uniqueTagIds = [...new Set(tagIds)];
+  return uniqueTagIds.slice(0, 10);
 }

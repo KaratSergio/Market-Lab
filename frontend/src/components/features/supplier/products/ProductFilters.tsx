@@ -4,8 +4,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useProductStore } from '@/core/store/productStore';
 import { ProductStatus, Product } from '@/core/types/productTypes';
 import { useCategories } from '@/core/hooks';
-import { useCategoryTranslations, useStatusTranslations } from '@/core/utils/i18n';
-import { useTranslations } from 'next-intl';
+import { useStatusTranslations } from '@/core/utils/i18n';
+import { useTranslations, useLocale } from 'next-intl';
+import { Locale } from '@/core/constants/locales';
 
 interface ProductFiltersProps {
   products: Product[];
@@ -25,10 +26,10 @@ export function ProductFilters({ products }: ProductFiltersProps) {
     resetFilters,
   } = useProductStore();
 
-  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+  const locale = useLocale() as Locale;
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories(locale);
 
   const t = useTranslations();
-  const { translateCategory } = useCategoryTranslations();
   const { translateStatus } = useStatusTranslations();
 
   // Local state for debouncing
@@ -51,8 +52,7 @@ export function ProductFilters({ products }: ProductFiltersProps) {
   // Get category name by ID
   const getCategoryName = (categoryId: string): string => {
     const category = categories.find(c => c.id === categoryId);
-    if (!category) return categoryId;
-    return translateCategory(category.slug);
+    return category?.name || categoryId;
   };
 
   // Extract unique categories from products
@@ -65,10 +65,13 @@ export function ProductFilters({ products }: ProductFiltersProps) {
     });
 
     return Array.from(categoryIds)
-      .map(categoryId => ({
-        id: categoryId,
-        name: getCategoryName(categoryId)
-      }))
+      .map(categoryId => {
+        const category = categories.find(c => c.id === categoryId);
+        return {
+          id: categoryId,
+          name: category?.name || categoryId
+        };
+      })
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [products, categories]);
 
@@ -373,7 +376,9 @@ export function ProductFilters({ products }: ProductFiltersProps) {
             {selectedCategory && (
               <div className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm">
                 <span>
-                  {t('ProductFilters.categoryFilter', { category: getCategoryName(selectedCategory) })}
+                  {t('ProductFilters.categoryFilter', {
+                    category: getCategoryName(selectedCategory)
+                  })}
                 </span>
                 <button
                   onClick={() => setSelectedCategory(null)}
@@ -387,7 +392,9 @@ export function ProductFilters({ products }: ProductFiltersProps) {
             {statusFilter !== 'all' && (
               <div className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm">
                 <span>
-                  {t('ProductFilters.statusFilter', { status: translateStatus(statusFilter as ProductStatus) })}
+                  {t('ProductFilters.statusFilter', {
+                    status: translateStatus(statusFilter as ProductStatus)
+                  })}
                 </span>
                 <button
                   onClick={() => setStatusFilter('all')}

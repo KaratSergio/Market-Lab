@@ -92,6 +92,7 @@ export const productApi = {
       subcategoryId: data.subcategoryId,
       stock: data.stock,
       status: data.status || 'draft',
+      tagIds: data.tagIds,
     };
 
     formData.append('data', JSON.stringify(productData));
@@ -142,6 +143,7 @@ export const productApi = {
       subcategoryId: data.subcategoryId,
       stock: data.stock,
       status: data.status,
+      tagIds: data.tagIds,
     };
 
     // Remove undefined fields

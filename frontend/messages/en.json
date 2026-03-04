@@ -320,7 +320,14 @@
     "imagesSummary": "{existing} existing images + {new} new images",
     "statusLabel": "Active (visible to customers)",
     "updateButton": "Update Product",
-    "createButton": "Add Product"
+    "createButton": "Add Product",
+    "tagsLabel": "Tags",
+    "selectCategoryFirst": "Please select a category first",
+    "loadingTags": "Loading tags...",
+    "noTagsForCategory": "No tags available for this category",
+    "tagsPlaceholder": "Select tags...",
+    "selectedTagsCount": "Selected tags: {count}",
+    "noTagsAvailable": "No tags available"
   },
   "Common": {
     "per": "per",
@@ -372,7 +379,8 @@
     "tags": "Tags",
     "notifyWhenAvailable": "Notify When Available",
     "allProducts": "All products",
-    "allCategories": "All categories"
+    "allCategories": "All categories",
+    "tryAgain": "Please try again later"
   },
   "Forms": {
     "name": "Name",

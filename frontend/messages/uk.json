@@ -320,7 +320,14 @@
     "imagesSummary": "{existing} існуючих зображень + {new} нових зображень",
     "statusLabel": "Активний (видимий для клієнтів)",
     "updateButton": "Оновити продукт",
-    "createButton": "Додати продукт"
+    "createButton": "Додати продукт",
+    "tagsLabel": "Теги",
+    "selectCategoryFirst": "Спочатку виберіть категорію",
+    "loadingTags": "Завантаження тегів...",
+    "noTagsForCategory": "Для цієї категорії немає тегів",
+    "tagsPlaceholder": "Виберіть теги...",
+    "selectedTagsCount": "Вибрано тегів: {count}",
+    "noTagsAvailable": "Немає доступних тегів"
   },
   "Common": {
     "per": "за",
@@ -368,7 +375,8 @@
     "tags": "Теги",
     "notifyWhenAvailable": "Повідомити про наявність",
     "allProducts": "Всі продукти",
-    "allCategories": "Всі категорії"
+    "allCategories": "Всі категорії",
+    "tryAgain": "Будь ласка, спробуйте пізніше"
   },
   "Forms": {
     "name": "Ім'я",

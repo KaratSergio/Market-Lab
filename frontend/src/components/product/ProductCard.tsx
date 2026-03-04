@@ -4,11 +4,11 @@ import { memo } from 'react';
 import { Product } from '@/core/types/productTypes';
 import { useCategoryById } from '@/core/hooks';
 import { useTranslations, useLocale } from 'next-intl';
+import { Locale } from '@/core/constants/locales';
 
 import {
   useProductUnits,
   useStatusTranslations,
-  useCategoryTranslations
 } from '@/core/utils/i18n';
 
 interface ProductCardProps {
@@ -41,26 +41,25 @@ export const ProductCard = memo(function ProductCard({
   compact = false,
 }: ProductCardProps) {
   const t = useTranslations();
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
 
   const { getStatusInfo } = useStatusTranslations();
   const { formatPriceWithUnit, formatStockWithUnit } = useProductUnits();
-  const { translateCategory } = useCategoryTranslations();
 
-  const { data: category } = useCategoryById(product.categoryId);
-  const categorySlug = category?.slug || '';
+  const { data: category } = useCategoryById(product.categoryId, locale);
+
+  const translatedCategoryName = category?.name || product.categoryId || '';
 
   const statusInfo = getStatusInfo(product.status);
-  const translatedCategoryName = translateCategory(categorySlug);
   const formattedPrice = formatPriceWithUnit(
     product.price,
-    categorySlug,
+    category?.slug ?? '',
     product.subcategoryId,
     locale
   );
   const stockText = formatStockWithUnit(
     product.stock,
-    categorySlug,
+    category?.slug ?? '',
     product.subcategoryId
   );
 
@@ -77,7 +76,9 @@ export const ProductCard = memo(function ProductCard({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-100 ${onClick && !isSupplierMode ? 'cursor-pointer' : ''
+      className={`bg-white rounded-lg shadow-sm overflow-hidden
+          hover:shadow-md transition-shadow border border-gray-100
+          ${onClick && !isSupplierMode ? 'cursor-pointer' : ''
         } ${compact ? 'h-full flex flex-col' : ''}`}
       onClick={handleClick}
     >

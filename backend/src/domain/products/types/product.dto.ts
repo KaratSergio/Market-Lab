@@ -57,7 +57,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsArray({ message: 'Tags must be an array' })
   @IsString({ each: true, message: 'Each tag must be a string' })
-  tags?: string[] = [];
+  tagIds?: string[] = [];
 
   @IsOptional()
   @IsIn(UNIT_VALUES, { message: 'Invalid unit' })
@@ -119,7 +119,7 @@ export class UpdateProductDto {
   @IsOptional()
   @IsArray({ message: 'Tags must be an array' })
   @IsString({ each: true, message: 'Each tag must be a string' })
-  tags?: string[];
+  tagIds?: string[];
 
   @IsOptional()
   @IsIn(UNIT_VALUES, { message: 'Invalid unit' })
